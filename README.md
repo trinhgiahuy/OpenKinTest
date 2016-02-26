@@ -36,3 +36,9 @@ See: http://ros.org/wiki/ethzasl_xsens_driver
 # Motion Fusion
 
 http://msthub.ain.rd.tut.fi/mobilemachines/motion_fusion/blob/master/src/KalmanImu.py
+
+
+# Script startup
+Currently the startup of the script is located at ~/openkin/measurement.sh
+This script is executed with the crontab but this will likely need more thorough testing.
+/etc/rc.local would be another potential place.
