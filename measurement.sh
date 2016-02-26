@@ -1,5 +1,5 @@
 #!/bin/sh
-su ubuntu -c
+#TODO might be a good idea to start the nodes at the beginning and only  start/stop the bag recording
 screen -r grive -X quit
 screen -dmS grive
 while true; do 
