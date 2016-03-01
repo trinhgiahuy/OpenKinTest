@@ -53,7 +53,14 @@ class XSensDriver(object):
 
 		rospy.loginfo("MT node interface: %s at %d bd."%(device, baudrate))
 		self.mt = mtdevice.MTDevice(device, baudrate)
-
+		
+		mode = mtdevice.get_mode('c')
+		settings = mtdevice.get_settings('tAGM')
+		self.mt.configure(mode, settings, 1152, 0)
+		
+		self.mt.write_init()
+		
+		
 		self.frame_id = get_param('~frame_id', '/base_imu')
 		
 		self.diag_pub = rospy.Publisher('/diagnostics', DiagnosticArray, queue_size=10)

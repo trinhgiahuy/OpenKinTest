@@ -16,7 +16,7 @@ verbose = False
 class MTDevice(object):
 	"""XSens MT device communication object."""
 
-	def __init__(self, port, baudrate=115200, timeout=0.02, autoconf=True,
+	def __init__(self, port, baudrate=115200, timeout=0.5, autoconf=False,
 			config_mode=False):
 		"""Open device."""
 		## serial interface to the device
@@ -83,10 +83,10 @@ class MTDevice(object):
 		#answer = self.read_msg()
 		
 		#samplecounter quaternion
-		#outputMode = "\xFA\xFF\xD2\x04\x00\x00\x00\x01\x2A"
-		#self.device.write(outputMode)
-		#print("Wrote samplecounter quaternion outputmode")
-		#answer = self.read_msg()
+		outputMode = "\xFA\xFF\xD2\x04\x00\x00\x00\x01\x2A"
+		self.device.write(outputMode)
+		print("Wrote samplecounter quaternion outputmode")
+		answer = self.read_msg()
 
 		#gotoMesure = "\xFA\xFF\x10\x00\xF1"
 		#self.device.write(gotoMesure)
@@ -101,9 +101,9 @@ class MTDevice(object):
 		calib_mode = OutputSettings.CalibMode_Mask
 		timestamp = OutputSettings.Timestamp_SampleCnt
 		orient_mode = OutputSettings.OrientMode_Quaternion
-		calib_mode &= OutputSettings.CalibMode_Acc
-		calib_mode &= OutputSettings.CalibMode_Gyr
-		calib_mode &= OutputSettings.CalibMode_Mag
+		#calib_mode &= OutputSettings.CalibMode_Acc
+		#calib_mode &= OutputSettings.CalibMode_Gyr
+		#calib_mode &= OutputSettings.CalibMode_Mag
 		NED = 0
 		
 		settings = timestamp|orient_mode|calib_mode|NED
@@ -133,6 +133,7 @@ class MTDevice(object):
 		#print("Answerred %s" % answer)
 		print("Configuring done")
 		
+
 	## Low-level message sending function.
 	def write_msg(self, mid, data=[]):
 		"""Low-level message sending function."""
@@ -200,20 +201,30 @@ class MTDevice(object):
 			# Makes sure the buffer has 'size' bytes.
 			def waitfor(size=1):
 				read_buf = self.device.read(size)
+				
 				for _ in range(10):
 					if len(read_buf) == size:
+						dataHex = ""
+						dataHex = ":".join("{:02x}".format(ord(c)) for c in read_buf)
+						print("Buffer: ", dataHex)
 						return read_buf
 					read_buf += self.device.read(size-len(read_buf))
 				raise MTException("timeout waiting for message.")
 
 			if ord(waitfor())<>0xFA:
+				print("Got beginning of message")
 				continue
 			# second part of preamble
 			if ord(waitfor())<>0xFF:	# we assume no timeout anymore
+				print("Got second of a message")
 				continue
+
 			# read message id and length of message
 			#msg = self.device.read(2)
 			mid, length = struct.unpack('!BB', waitfor(2))
+
+			print("MID: ", mid, "Length: ", length)
+
 			if length==255:	# extended length
 				length, = struct.unpack('!H', waitfor(2))
 			# read contents and checksum
@@ -377,6 +388,8 @@ class MTDevice(object):
 				'time': time,
 				'number of devices': num,
 				'device ID': deviceID}
+		#import rpdb2
+		#rpdb2.start_embedded_debugger('wtf')
 		return conf
 
 
@@ -443,6 +456,7 @@ class MTDevice(object):
 	## Configure the mode and settings of the MT device.
 	def configure(self, mode, settings, period=None, skipfactor=None):
 		"""Configure the mode and settings of the MT device."""
+		print("Configuring device..")
 		self.GoToConfig()
 		self.SetOutputMode(mode)
 		self.SetOutputSettings(settings)
@@ -708,6 +722,12 @@ class MTDevice(object):
 	## Parse a legacy MTData message
 	def parse_MTData(self, data, mode=None, settings=None):
 		"""Read and parse a measurement packet."""
+		dataHex = ""
+		dataHex = ":".join("{:02x}".format(ord(c)) for c in data)
+		print("Legacy data: ", dataHex)
+		#import rpdb2
+		#rpdb2.start_embedded_debugger('wtf')
+		#self.parse_MTData2(data)
 		# getting mode
 		if mode is None:
 			mode = self.mode
@@ -801,9 +821,13 @@ class MTDevice(object):
 				data = data[2:]
 				output['Sample'] = TS
 		except struct.error, e:
-			raise MTException("could not parse MTData message.")
+			print(output)
+			#raise MTException("could not parse MTData message.")
+			print("could not parse MTData message.")
 		if data <> '':
-			raise MTException("could not parse MTData message (too long).")
+			print("output: ", output)
+			print("could not parse MTData message (too long).")
+			#raise MTException("could not parse MTData message (too long).")
 		return output
 
 
@@ -957,7 +981,7 @@ def main():
 	shopts = 'hra:ceid:b:m:s:p:f:x:'
 	lopts = ['help', 'reset', 'change-baudrate=', 'configure', 'echo',
 			'inspect', 'device=', 'baudrate=', 'output-mode=',
-			'output-settings=', 'period=', 'skip-factor=', 'xkf-scenario=']
+			'output-settings=', 'period=', 'skip-factor=', 'xkf-scenario=', 'doinit']
 	try:
 		opts, args = getopt.gnu_getopt(sys.argv[1:], shopts, lopts)
 	except getopt.GetoptError, e:
@@ -974,6 +998,7 @@ def main():
 	new_baudrate = None
 	new_xkf = None
 	actions = []
+
 	# filling in arguments
 	for o, a in opts:
 		if o in ('-h', '--help'):
@@ -990,6 +1015,8 @@ def main():
 			actions.append('change-baudrate')
 		if o in ('-c', '--configure'):
 			actions.append('configure')
+		if o in ('--doinit'):
+			actions.append('doinit')
 		if o in ('-e', '--echo'):
 			actions.append('echo')
 		if o in ('-i', '--inspect'):
@@ -1055,6 +1082,12 @@ def main():
 		except serial.SerialException:
 			raise MTException("unable to open %s"%device)
 		# execute actions
+		if 'doinit' in actions:
+			print("Doing initialization as the mtmanager does")
+			mt.write_init()
+			print("Starting measurements..")
+			mt.GoToMeasurement()
+
 		if 'inspect' in actions:
 			mt.GoToConfig()
 			print "Device: %s at %d Bd:"%(device, baudrate)
@@ -1204,4 +1237,5 @@ def get_settings(arg):
 
 if __name__=='__main__':
 	main()
+
 
