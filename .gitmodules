@@ -1,6 +1,0 @@
-[submodule "nodes/ethzasl_xsens_driver"]
-	path = nodes/ethzasl_xsens_driver
-	url = https://github.com/ethz-asl/ethzasl_xsens_driver.git
-[submodule "nodes/ublox"]
-	path = nodes/ublox
-	url = https://github.com/KumarRobotics/ublox.git
