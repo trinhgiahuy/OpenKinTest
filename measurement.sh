@@ -84,12 +84,12 @@ while true; do
 	check3G
 
 	nc -w 3 -z 8.8.8.8 53  >/dev/null 2>&1
-	if [ -f "online" ]; then
-		online=0
-	else
-		online=1
-	fi
-#	online=$?
+#	if [ -f "online" ]; then
+#		online=0
+#	else
+#		online=1
+#	fi
+	online=$?
 	if [ $online -eq 0 ]; then
 
 		#echo "System online, stopping recording"
