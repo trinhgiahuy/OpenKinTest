@@ -15,6 +15,8 @@ UPLOADED=1
 IMUERR=0
 GPSERR=0
 
+online=1
+
 # Functions
 function quitScreens {
 	if screen -list | grep -q "gps"; then
@@ -41,6 +43,17 @@ function quitScreens {
 	fi
 }
 
+function check3G {
+	if [ "$online" -ne 0 ]; then
+		if lsusb | grep -q 12d1:1003; then
+			echo "Connecting 3G"
+			echo "Connecting 3G" >> $LOGFILE
+			# Connect to 3G with Huawei E160, saunalahti
+			sudo sakis3g connect OTHER="USBMODEM" USBMODEM="12d1:1003" APN="internet.saunalahti"
+		fi
+	fi
+}
+
 # Get Xsens device
 XSENS=""
 #for f in /dev/serial/by-id/usb-Xsens_Xsens_COM_port*; do
@@ -49,9 +62,9 @@ for f in /dev/serial/by-id/usb-Xsens_Xsens_*; do
     ## Check if the glob gets expanded to existing files.
     ## If not, f here will be exactly the pattern above
     ## and the exists test will evaluate to false.
-    #[ -e "$f" ] && echo "files do exist" || echo "files do not exist"
-
-    XSENS=$f
+    if [ -e "$f" ]; then
+         XSENS=$f
+    fi
 
     ## This is all we needed to know, so we can break after the first iteration
     break
@@ -67,14 +80,20 @@ done
 #screen -dmS grive
 
 while true; do
+
+	check3G
+
 	nc -w 3 -z 8.8.8.8 53  >/dev/null 2>&1
-#	if [ -f "online" ]; then
-#		online=0
-#	else
-#		online=1
-#	fi
-	online=$?
+	if [ -f "online" ]; then
+		online=0
+	else
+		online=1
+	fi
+#	online=$?
 	if [ $online -eq 0 ]; then
+
+		#echo "System online, stopping recording"
+		#echo "System online, stopping recording" >> $LOGFILE
 
 		# Stop IMU, GPS and recording
 		quitScreens
@@ -116,6 +135,8 @@ while true; do
 #		fi
 
 		if [ "$GPSERR" -gt 10 ]; then
+			echo "GPS-errors more than 10, restarting"
+			echo "GPS-errors more than 10, restarting" >> $LOGFILE
 			GPSERR=0
 			quitScreens
 		fi
@@ -154,6 +175,8 @@ while true; do
 		if screen -list | grep -q "gps"; then
 
 			if [ "$IMUERR" -gt 10 ]; then
+				echo "IMU-errors more than 10, restaring IMU"
+				echo "IMU-errors more than 10, restaring IMU" >> $LOGFILE
 				IMUERR=0
 				screen -S imu -X quit
 			fi
