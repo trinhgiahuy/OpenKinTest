@@ -43,7 +43,8 @@ function quitScreens {
 
 # Get Xsens device
 XSENS=""
-for f in /dev/serial/by-id/usb-Xsens_Xsens_COM_port*; do
+#for f in /dev/serial/by-id/usb-Xsens_Xsens_COM_port*; do
+for f in /dev/serial/by-id/usb-Xsens_Xsens_*; do
 
     ## Check if the glob gets expanded to existing files.
     ## If not, f here will be exactly the pattern above
@@ -55,6 +56,8 @@ for f in /dev/serial/by-id/usb-Xsens_Xsens_COM_port*; do
     ## This is all we needed to know, so we can break after the first iteration
     break
 done
+
+#/dev/serial/by-id/usb-Xsens_Xsens_USB-serial_converter_XSUO65V1-if00-port0
 
 #echo "Trying to quit grive-screen"
 #echo "Trying to quit grive-screen" >> $LOGFILE
