@@ -371,9 +371,11 @@ class MTDevice(object):
 	## Read configuration from device.
 	def auto_config(self):
 		"""Read configuration from device."""
-		self.GoToConfig()
-		self.ReqConfiguration()
-		self.GoToMeasurement()
+#		self.GoToConfig()
+#		self.ReqConfiguration()
+		# Custom line to set output
+		self.configure(get_mode("oc"), get_settings("tqAMG"))
+#		self.GoToMeasurement()
 		return self.mode, self.settings, self.length
 		#self.GoToConfig()
 		#mode = self.GetOutputMode()
@@ -712,9 +714,10 @@ class MTDevice(object):
 				data = data[2:]
 				output['Sample'] = TS
 		except struct.error, e:
-			raise MTException("could not parse MTData message.")
-		#if data <> '':
-			#raise MTException("could not parse MTData message (too long).")
+			lineno = sys.exc_info()[2].tb_lineno
+			raise MTException("could not parse MTData message: line {0}: {1}".format(lineno, e))
+#		if data <> '':
+#			raise MTException("could not parse MTData message (too long).")
 		return output
 
 

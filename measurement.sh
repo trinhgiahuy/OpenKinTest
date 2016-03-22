@@ -1,11 +1,15 @@
 #!/bin/bash
 #TODO might be a good idea to start the nodes at the beginning and only  start/stop the bag recording
 
+# Needed for rostopic
+source /opt/ros/indigo/setup.bash
+
 GPSTEMPFILE="/home/ubuntu/gpstemp.log"
 LOGFILE="/home/ubuntu/measurement.log"
 DATADIR="/home/ubuntu/data"
+ROSTOPICFILE="/home/ubuntu/rostmp.log"
 # empty logfile
-> $LOGFILE
+#> $LOGFILE
 
 GRIVEPID=-1
 
@@ -24,6 +28,8 @@ function logger {
 	echo "[$(date)] $1"
 }
 
+logger "Starting datalogger"
+
 function quitScreens {
 	if screen -list | grep -q "gps"; then
 		logger "Shutting down the gps"
@@ -41,7 +47,7 @@ function quitScreens {
 		logger "Shutting down bag"
 		#The bag needs to exit gracefully
 		screen -S bag -X stuff $'\003'
-		sleep 3
+		sleep 5
 		screen -S bag -X quit
 	fi
 }
@@ -74,29 +80,17 @@ done
 
 #/dev/serial/by-id/usb-Xsens_Xsens_USB-serial_converter_XSUO65V1-if00-port0
 
-#echo "Trying to quit grive-screen"
-#echo "Trying to quit grive-screen" >> $LOGFILE
-#screen -r grive -X quit
-#echo "Starting up grive-screen"
-#echo "Starting up grive-screen" >> $LOGFILE
-#screen -dmS grive
-
 while true; do
 
 	check3G
 
 	# enough timeout for 3g
-	nc -w 10 -z 8.8.8.8 53  >/dev/null 2>&1
-#	if [ -f "online" ]; then
-#		online=0
-#	else
-#		online=1
-#	fi
+	nc -w 30 -z 8.8.8.8 53  >/dev/null 2>&1
 	online=$?
+	if [ -f "online" ]; then
+		online="$(cat online)"
+	fi
 	if [ $online -eq 0 ]; then
-
-		#echo "System online, stopping recording"
-		#echo "System online, stopping recording" >> $LOGFILE
 
 		# Stop IMU, GPS and recording
 		quitScreens
@@ -119,7 +113,7 @@ while true; do
 				logger "Uploading the data"
 				#screen -r grive -X stuff $'\ngrive\n'
 				# upload in subshell, wait for finish (should we?)
-				(cd $DATADIR; grive) & >> $LOGFILE
+				(cd $DATADIR; grive >> $LOGFILE) & >> $LOGFILE
 				GRIVEPID=$!
 			fi
 			UPLOADED=0
@@ -153,7 +147,7 @@ while true; do
 	                # if file exists and not empty
 	                if [ -s $GPSTEMPFILE ]; then
 				logger "Error on starting gps"
-				logger $GPSTEMPFILE
+				logger "$(cat $GPSTEMPFILE)"
 	                        screen -S gps -X quit
 	                        # start over
 	                        continue
@@ -195,17 +189,24 @@ while true; do
 		STOPPED=1
 
 		# Check we have wanted topics (so working)
-		# TODO: might fail for some reason? Causing recording to restart...
-		# Might be fixed with zeroing of errors
-		if ! rostopic list | grep -q "/imu/data"; then
+		rostopic list > $ROSTOPICFILE 2>&1
+		ROSRET=$?
+		logger "rostopic $ROSRET"
+		logger "$(cat $ROSTOPICFILE)"
+
+		if ! grep -q "/imu/data" $ROSTOPICFILE; then
+			logger "/imu/data not found"
 			((IMUERR++))
 		else
+			#logger "zeroing imuerr"
 			IMUERR=0
 		fi
 
-		if ! rostopic list | grep -q "/gps/fix"; then
+		if ! grep -q "/gps/navsol" $ROSTOPICFILE; then
+			logger "/gps/navsol not found on rostopic"
 			((GPSERR++))
 		else
+			#logger "zeroing gpserr"
 			GPSERR=0
 		fi
 
