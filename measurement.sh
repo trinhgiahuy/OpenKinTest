@@ -50,6 +50,13 @@ function quitScreens {
 		sleep 5
 		screen -S bag -X quit
 	fi
+
+	if screen -list | grep -q "log"; then
+		logger "Shutting down logger"
+		screen -S log -X stuff $'\003'
+		sleep 3
+		screen -S log -X quit
+	fi
 }
 
 function check3G {
@@ -99,7 +106,7 @@ while true; do
 
 			#Uploading the data
 			logger "Waiting for everything to shut down"
-			while screen -list | grep "imu\|gps\|bag"; do
+			while screen -list | grep "imu\|gps\|bag\|log"; do
 				sleep 2
 			done
 
@@ -182,6 +189,12 @@ while true; do
 				screen -dmS bag
 				screen -r bag -X stuff $'\nrosbag record -a\n'
 			fi
+
+			if ! screen -list | grep -q "log"; then
+				logger "Offline: Startin logger"
+				screen -dmS log
+				screen -r bag -X stuff $'\nrosrun ascii_logger listener.py\n'
+			fi
 		else
 			logger "GPS wasn't running!"
 		fi
@@ -194,7 +207,7 @@ while true; do
 		logger "rostopic $ROSRET"
 		logger "$(cat $ROSTOPICFILE)"
 
-		if ! grep -q "/imu/data" $ROSTOPICFILE; then
+		if ! grep -q "^/imu/data$" $ROSTOPICFILE; then
 			logger "/imu/data not found"
 			((IMUERR++))
 		else
@@ -202,8 +215,8 @@ while true; do
 			IMUERR=0
 		fi
 
-		if ! grep -q "/gps/navsol" $ROSTOPICFILE; then
-			logger "/gps/navsol not found on rostopic"
+		if ! grep -q "^/gps/navsol$" $ROSTOPICFILE && grep -q "^/gps/fix$" $ROSTOPICFILE; then
+			logger "/gps/navsol or /gps/fix not found on rostopic"
 			((GPSERR++))
 		else
 			#logger "zeroing gpserr"
