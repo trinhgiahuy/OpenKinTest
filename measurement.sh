@@ -16,8 +16,8 @@ GRIVEPID=-1
 STOPPED=0
 UPLOADED=1
 
-IMUERR=0
-GPSERR=0
+IMUERR=1
+GPSERR=1
 
 online=1
 
@@ -137,7 +137,7 @@ while true; do
 
 		if [ "$GPSERR" -gt 10 ]; then
 			logger "GPS-errors more than 10, restarting"
-			GPSERR=0
+			GPSERR=1
 			quitScreens
 		fi
 
@@ -172,7 +172,7 @@ while true; do
 
 			if [ "$IMUERR" -gt 10 ]; then
 				logger "IMU-errors more than 10, restaring IMU"
-				IMUERR=0
+				IMUERR=1
 				screen -S imu -X quit
 			fi
 
@@ -190,10 +190,10 @@ while true; do
 				screen -r bag -X stuff $'\nrosbag record -a\n'
 			fi
 
-			if ! screen -list | grep -q "log"; then
-				logger "Offline: Startin logger"
+			if ! (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $GPSERR -eq 0 ]]; then
+				logger "Offline: Starting logger"
 				screen -dmS log
-				screen -r bag -X stuff $'\nrosrun ascii_logger listener.py\n'
+				screen -r log -X stuff $'\nrosrun ascii_logger listener.py > /home/ubuntu/ascii.log\n'
 			fi
 		else
 			logger "GPS wasn't running!"
@@ -215,7 +215,7 @@ while true; do
 			IMUERR=0
 		fi
 
-		if ! grep -q "^/gps/navsol$" $ROSTOPICFILE && grep -q "^/gps/fix$" $ROSTOPICFILE; then
+		if ! (grep -q "^/gps/navsol$" $ROSTOPICFILE && grep -q "^/gps/fix$" $ROSTOPICFILE); then
 			logger "/gps/navsol or /gps/fix not found on rostopic"
 			((GPSERR++))
 		else

@@ -19,9 +19,10 @@ file = open(filename, "a")
 def imucallback(data):
     #rospy.loginfo(rospy.get_caller_id() + 'Imu-data: %s', str(data))
     #rospy.loginfo('IMU angular_vel: %f %f %f', data.angular_velocity.x, data.angular_velocity.y, data.angular_velocity.z)
-    line = "NaN\t{0:.9f}\t{1}\tNaN\tNaN\tNaN\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}".format(
+    line = "NaN\t{0}.{1}\t{2}\tNaN\tNaN\tNaN\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}".format(
         # gps seq
-        1000*data.header.stamp.secs + (data.header.stamp.nsecs * 1e-6),
+        data.header.stamp.secs,
+        data.header.stamp.nsecs,
         data.header.seq,
         # gps latitude
         # longitude
@@ -42,9 +43,10 @@ def imucallback(data):
 def gpscallback(data):
     #rospy.loginfo(rospy.get_caller_id() + 'GPS-data: %s', str(data))
     #rospy.loginfo('GPS latitude: %f, longitude: %f', data.latitude, data.longitude)
-    line = "{0}\t{1:.9f}\tNaN\t{2}\t{3}\t{4}\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN".format(
+    line = "{0}\t{1}.{2}\tNaN\t{3}\t{4}\t{5}\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN".format(
         data.header.seq,
-        1000*data.header.stamp.secs + (data.header.stamp.nsecs * 1e-6),
+        data.header.stamp.secs,
+        data.header.stamp.nsecs,
         # imu seq
         data.latitude,
         data.longitude,
