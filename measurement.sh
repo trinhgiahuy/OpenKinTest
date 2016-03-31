@@ -19,6 +19,8 @@ UPLOADED=1
 IMUERR=1
 GPSERR=1
 
+TIMECORRECTED=1
+
 online=1
 
 # Functions
@@ -98,6 +100,11 @@ while true; do
 		online="$(cat online)"
 	fi
 	if [ $online -eq 0 ]; then
+
+		if [[ $TIMECORRECTED -ne 0 ]] && sudo ntpdate time1.mikes.fi; then
+			TIMECORRECTED=0
+			logger "Time corrected"
+		fi
 
 		# Stop IMU, GPS and recording
 		quitScreens
@@ -215,8 +222,8 @@ while true; do
 			IMUERR=0
 		fi
 
-		if ! (grep -q "^/gps/navsol$" $ROSTOPICFILE && grep -q "^/gps/fix$" $ROSTOPICFILE); then
-			logger "/gps/navsol or /gps/fix not found on rostopic"
+		if ! (grep -q "^/gps/navsol$" $ROSTOPICFILE && grep -q "^/gps/fix$" $ROSTOPICFILE && grep -q "^/gps/navposllh$" $ROSTOPICFILE); then
+			logger "/gps/navsol, navposllh or /gps/fix not found on rostopic"
 			((GPSERR++))
 		else
 			#logger "zeroing gpserr"
