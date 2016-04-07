@@ -5,12 +5,14 @@
 import rospy
 from std_msgs.msg import String
 from sensor_msgs.msg import Imu, NavSatFix
-from ublox_msgs.msg import NavSOL
+#from ublox_msgs.msg import NavSOL
 
 from decimal import *
 getcontext().prec = 100
 
 from collections import deque
+
+import threading
 
 import time
 filename = time.strftime("%Y-%m-%d-%H-%M-%S")
@@ -18,105 +20,152 @@ filename = "/home/ubuntu/data/" + filename + ".txt"
 
 file = open(filename, "a")
 
-#buffer = deque([])
+buffer = deque([])
+bufferlock = threading.Lock()
+
+counterlock = threading.Lock()
+counter = 0
 
 def imucallback(data):
-#    global buffer
+    global buffer, counter
 
     #rospy.loginfo(rospy.get_caller_id() + 'Imu-data: %s', str(data))
     #rospy.loginfo('IMU angular_vel: %f %f %f', data.angular_velocity.x, data.angular_velocity.y, data.angular_velocity.z)
     
-#    point.timestamp.secs = data.header.stamp.secs
-#    point.timestamp.nsecs = data.header.stamp.nsecs
-#    point.imuseq = data.header.seq
-#    point.ang.x = data.angular_velocity.x
-#    point.ang.y = data.angular_velocity.y
-#    point.ang.z = data.angular_velocity.z
-#    point.ori.x = data.orientation.x
-#    point.ori.y = data.orientation.y
-#    point.ori.z = data.orientation.z
-#    point.ori.w = data.orientation.w
-#    point.acc.x = data.linear_acceleration.x
-#    point.acc.y = data.linear_acceleration.y
-#    point.acc.z = data.linear_acceleration.z
-    
-#    buffer.append(point)
-    
-    line = "NaN\t{0}.{1:09d}\t{2}\tNaN\tNaN\tNaN\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}".format(
-        # gps seq
-        data.header.stamp.secs,
-        data.header.stamp.nsecs,
-        data.header.seq,
-        # gps latitude
-        # longitude
-        # altitude
-        data.angular_velocity.x,
-        data.angular_velocity.y,
-        data.angular_velocity.z,
-        data.orientation.x,
-        data.orientation.y,
-        data.orientation.z,
-        data.orientation.w,
-        data.linear_acceleration.x,
-        data.linear_acceleration.y,
-        data.linear_acceleration.z)
+    point = {'timestamp.secs': data.header.stamp.secs,
+             'timestamp.nsecs': data.header.stamp.nsecs,
+             'imuseq': data.header.seq,
+             'ang.x': data.angular_velocity.x,
+             'ang.y': data.angular_velocity.y,
+             'ang.z': data.angular_velocity.z,
+             'ori.x': data.orientation.x,
+             'ori.y': data.orientation.y,
+             'ori.z': data.orientation.z,
+             'ori.w': data.orientation.w,
+             'acc.x': data.linear_acceleration.x,
+             'acc.y': data.linear_acceleration.y,
+             'acc.z': data.linear_acceleration.z}
 
-    writeline(line)
+    # append to buffer
+    bufferlock.acquire()
+    buffer.append(point)
+    bufferlock.release()
 
+    # write buffer to file every now and then
+    counter += 1
+    if counter > 30:
+        counter = 0
+        writeBuffer()
+    
 def gpscallback(data):
-#    global buffer
+    global buffer
 
     #rospy.loginfo(rospy.get_caller_id() + 'GPS-data: %s', str(data))
     #rospy.loginfo('GPS latitude: %f, longitude: %f', data.latitude, data.longitude)
 
-#    point.gpsseq = data.header.seq
-#    point.timestamp.secs = data.header.stamp.secs
-#    point.timestamp.nsecs = data.header.stamp.nsecs
-#    point.latitude = data.latitude
-#    point.longitude = data.longitude
-#    point.altitude = data.altitude
+    point = {'gpsseq': data.header.seq,
+             'timestamp.secs': data.header.stamp.secs,
+             'timestamp.nsecs': data.header.stamp.nsecs,
+             'latitude': data.latitude,
+             'longitude': data.longitude,
+             'altitude': data.altitude}
 
-#    buffer.append(point)
-
-    line = "{0}\t{1}.{2:09d}\tNaN\t{3}\t{4}\t{5}\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN\tNaN".format(
-        data.header.seq,
-        data.header.stamp.secs,
-        data.header.stamp.nsecs,
-        # imu seq
-        data.latitude,
-        data.longitude,
-        data.altitude
-	# angular_velo.x
-        # angular_vel.y
-        # angular_vel.z
-        # orientation.x
-        # orientation.y
-        # orientation.z
-        # orientation.w
-        # linear_acc.x
-        # linear_acc.y
-        # linear_acc.z
-        )
-
-    writeline(line)
+    # write to buffer
+    bufferlock.acquire()
+    buffer.append(point)
+    bufferlock.release()
 
 def writeline(str_towrite):
     global file
     file.write(str_towrite+"\n")
 
-#def writeBuffer():
-#    global buffer
+def writeBuffer():
+    global buffer
+
+    # indexes of gps, imu -points to be joined
+    joins = []
+    # how many points to leave for next round
+    leave = 1
+
+    bufferlock.acquire()
 
     # check more than 20 samples in buffer
-#    if len(buffer) > 20
-        # first 10, check if there's gps-data
-#        buf_list = list(buffer)
-#        buf_list = buf_list[:9]
-#        matches = [x for x in buf_list if hasattr(x, 'gpsseq')]
-#        if len(matches) > 0
-            # find closest imu-point
-            
+    # and find closest imu-points for gps-points
+    if len(buffer) > 20:
+        for i, j in enumerate(buffer):
+            if 'gpsseq' in j:
+                # test closest points for imu
+                if i == 0:
+                    # first, check next
+                    if i+1 < len(buffer):
+                        if 'imuseq' in buffer[i+1]:
+                            # join j to buffer[i+1]
+                            joins.append((i,i+1))
+                elif i == len(buffer)-1:
+                    # last in buffer, save gps and previous imu for next round
+                    leave = 2
+                else:
+                    # if imu points
+                    prev_imu = 'imuseq' in buffer[i-1]
+                    next_imu = 'imuseq' in buffer[i+1]
+                    if prev_imu and next_imu:
+                        if abs((buffer[i-1]['timestamp.secs']+(1e-9*buffer[i-1]['timestamp.nsecs'])) -
+                           (buffer[i]['timestamp.secs']+(1e-9*buffer[i]['timestamp.nsecs']))) < \
+                           abs((buffer[i]['timestamp.secs']+(1e-9*buffer[i]['timestamp.nsecs'])) -
+                           (buffer[i]['timestamp.secs']+(1e-9*buffer[i]['timestamp.nsecs']))):
+                            # previous closer
+                            joins.append((i, i-1))
+                        else:
+                            # next closer
+                            joins.append((i, i+1))
+                            if i == len(buffer)-2:
+                                # dont leave fused point to buffer
+                                leave = 0
+                    elif prev_imu:
+                        joins.append((i, i-1))
+                    elif next_imu:
+                        joins.append((i, i+1))
+                    #else:
+                        # No imu-points on sides, no join
     # pair gps-data with imu-data
+    for j in joins:
+        buffer[j[1]]['gpsseq'] = buffer[j[0]]['gpsseq']
+        buffer[j[1]]['latitude'] = buffer[j[0]]['latitude']
+        buffer[j[1]]['longitude'] = buffer[j[0]]['longitude']
+        buffer[j[1]]['altitude'] = buffer[j[0]]['altitude']
+        buffer[j[0]]['del'] = True
+
+    buffer = [x for x in buffer if not 'del' in x]
+
+    # write to file
+    i = 0
+    while (i < len(buffer)-leave):
+        #rospy.loginfo(buffer)
+        line = "{0}\t{1}.{2:09d}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}".format(
+          buffer[i].get('gpsseq', 'NaN'),
+          buffer[i].get('timestamp.secs', 'NaN'),
+          buffer[i].get('timestamp.nsecs', 'NaN'),
+          buffer[i].get('imuseq', 'NaN'),
+          buffer[i].get('latitude', 'NaN'),
+          buffer[i].get('longitude', 'NaN'),
+          buffer[i].get('altitude', 'NaN'),
+          buffer[i].get('ang.x', 'NaN'),
+          buffer[i].get('ang.y', 'NaN'),
+          buffer[i].get('ang.z', 'NaN'),
+          buffer[i].get('ori.x', 'NaN'),
+          buffer[i].get('ori.y', 'NaN'),
+          buffer[i].get('ori.z', 'NaN'),
+          buffer[i].get('ori.w', 'NaN'),
+          buffer[i].get('acc.x', 'NaN'),
+          buffer[i].get('acc.y', 'NaN'),
+          buffer[i].get('acc.z', 'NaN')
+        )
+        
+        writeline(line)
+        # remove written
+        buffer.remove(buffer[i])
+
+    bufferlock.release()
 
 def listener():
 

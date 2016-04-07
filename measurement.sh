@@ -11,6 +11,10 @@ ROSTOPICFILE="/home/ubuntu/rostmp.log"
 # empty logfile
 #> $LOGFILE
 
+# led connected
+LED=0
+LEDPID=0
+
 GRIVEPID=-1
 
 STOPPED=0
@@ -32,7 +36,33 @@ function logger {
 
 logger "Starting datalogger"
 
+function led_on {
+	if [ "$LEDPID" -ne 0 ]; then
+		/usr/bin/sudo kill -USR1 $LEDPID
+	fi
+}
+
+function led_off {
+	if [ "$LEDPID" -ne 0 ]; then
+		/usr/bin/sudo kill -USR2 $LEDPID
+	fi
+}
+
+if [ "$LED" -eq 0 ]; then
+	/usr/bin/sudo /usr/bin/python /home/ubuntu/openkin/led-pin.py > /home/ubuntu/led.log 2>&1 &
+	SUDOPID=$!
+	sleep 1
+	LEDPID=$(/bin/ps --ppid $SUDOPID -o pid=)
+	echo $LEDPID
+	logger "Led connected"
+	led_on
+	sleep 1
+	led_off
+fi
+
+
 function quitScreens {
+	led_off
 	if screen -list | grep -q "gps"; then
 		logger "Shutting down the gps"
 
@@ -163,11 +193,13 @@ while true; do
 				logger "Error on starting gps"
 				logger "$(cat $GPSTEMPFILE)"
 	                        screen -S gps -X quit
+				led_off
 	                        # start over
 	                        continue
 	                elif [ ! -f $GPSTEMPFILE ]; then
 				logger "GPSlog not found"
 				screen -S gps -X quit
+				led_off
                                 # start over
 				continue
 			fi
@@ -180,6 +212,7 @@ while true; do
 			if [ "$IMUERR" -gt 10 ]; then
 				logger "IMU-errors more than 10, restaring IMU"
 				IMUERR=1
+				led_off
 				screen -S imu -X quit
 			fi
 
@@ -189,18 +222,21 @@ while true; do
 				# /dev/serial/by-id/usb-Xsens_Xsens_COM_port_00342762-if00
 				#screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py _device:=/dev/serial/by-id/usb-Xsens_Xsens_COM_port_00340764-if00\n'
 				screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py _device:='$XSENS$'\n'
+				led_off
 			fi
 
 			if ! screen -list | grep -q "bag"; then
 				logger "Offline: Starting RECORDING"
 				screen -dmS bag
 				screen -r bag -X stuff $'\nrosbag record -a\n'
+				led_off
 			fi
 
 			if ! (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $GPSERR -eq 0 ]]; then
 				logger "Offline: Starting logger"
 				screen -dmS log
 				screen -r log -X stuff $'\nrosrun ascii_logger listener.py > /home/ubuntu/ascii.log\n'
+				led_on
 			fi
 		else
 			logger "GPS wasn't running!"
@@ -211,8 +247,8 @@ while true; do
 		# Check we have wanted topics (so working)
 		rostopic list > $ROSTOPICFILE 2>&1
 		ROSRET=$?
-		logger "rostopic $ROSRET"
-		logger "$(cat $ROSTOPICFILE)"
+		#logger "rostopic $ROSRET"
+		#logger "$(cat $ROSTOPICFILE)"
 
 		if ! grep -q "^/imu/data$" $ROSTOPICFILE; then
 			logger "/imu/data not found"
