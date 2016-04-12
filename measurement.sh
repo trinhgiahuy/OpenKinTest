@@ -258,8 +258,8 @@ while true; do
 			IMUERR=0
 		fi
 
-		if ! (grep -q "^/gps/navsol$" $ROSTOPICFILE && grep -q "^/gps/fix$" $ROSTOPICFILE && grep -q "^/gps/navposllh$" $ROSTOPICFILE); then
-			logger "/gps/navsol, navposllh or /gps/fix not found on rostopic"
+		if ! (grep -q "^/gps/navsol$" $ROSTOPICFILE && grep -q "^/gps/fix$" $ROSTOPICFILE && grep -q "^/gps/navposllh$" $ROSTOPICFILE && grep -q "^/gps/navvelned$" $ROSTOPICFILE); then
+			logger "/gps/navsol, navposllh, navvelned or /gps/fix not found on rostopic"
 			((GPSERR++))
 		else
 			#logger "zeroing gpserr"
