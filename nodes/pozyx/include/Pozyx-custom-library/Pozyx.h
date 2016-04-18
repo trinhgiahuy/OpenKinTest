@@ -237,6 +237,7 @@ private:
     static int _sw_version;         // Pozyx software (firmware) version. (By updating the firmware on the Pozyx device, this value can change)
 
     static int i2c_file;
+    static int gpio_file;
 
     static void initI2C();
 
