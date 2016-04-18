@@ -51,7 +51,7 @@ void loop();
 
 int main()
 {
-  if(Pozyx.begin(true, MODE_POLLING, 0, 0) == POZYX_FAILURE){
+  if(Pozyx.begin(true, MODE_INTERRUPT, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
     std::cerr << "ERROR: Unable to connect to POZYX shield" << std::endl;
     std::cerr << "Reset required" << std::endl;
     delay(100);
@@ -103,14 +103,13 @@ void loop(){
   }else
   {
     // wait until this device gives an interrupt
-    if (Pozyx.waitForFlag(POZYX_INT_STATUS_IMU, 10))
+    if (Pozyx.waitForFlag(POZYX_INT_STATUS_IMU, 8))
     {
       #ifdef TIMING
       std::cout << "0: " << std::chrono::duration_cast<second_> (clock_::now() - beginning_).count() << " s" << std::endl;
       beginning_ = clock_::now();
       #endif
       // we received an interrupt from pozyx telling us new IMU data is ready, now let's read it!
-      // TODO: This takes too long time!
       Pozyx.regRead(POZYX_PRESSURE, (uint8_t*)&sensor_data, 24*sizeof(int16_t));
       #ifdef TIMING
       std::cout << "1: " << std::chrono::duration_cast<second_> (clock_::now() - beginning_).count() << " s" << std::endl;

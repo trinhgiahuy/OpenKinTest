@@ -29,7 +29,7 @@ extern "C" {
 #define BUFFER_LENGTH 32
 #define GPIO 338
 #define SYSFS_GPIO_DIR "/sys/class/gpio"
-#define POLL_TIMEOUT 30000 // 3 seconds
+#define POLL_TIMEOUT 3000 // 3 seconds
 
 //#define DEBUG
 
@@ -77,7 +77,9 @@ bool PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms)
   fdset[0].fd = gpio_file;
   fdset[0].events = POLLPRI;
 
-  int rc;
+  int rc = 0;
+
+  char buf[1];
 
   // stay in this loop until the event interrupt flag is set or until the the timer runs out
   while(millis()-timer < timeout_ms)
@@ -86,14 +88,16 @@ bool PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms)
     if( _mode == MODE_POLLING ){
       delay(1);
     }
-
-
+    //lseek(gpio_file, 0, SEEK_SET);
+    //read(gpio_file, buf, sizeof buf);
     // TODO: more event interrupts, maybe poll in thread
     //if( (_interrupt == 1) || (_mode == MODE_POLLING))
     if( (_mode == MODE_POLLING) || (rc = poll(fdset, nfds, timeout)))
     {
+      lseek(gpio_file, 0, SEEK_SET);
+      read(gpio_file, buf, sizeof buf);
       #ifdef DEBUG
-      std::cout << "Polled " << millis() << std::endl;
+      std::cout << "Polled " << millis() << ", rc: " << rc << ", revents: " << fdset[0].revents << std::endl;
       #endif
       //_interrupt = 0;
 
@@ -138,7 +142,6 @@ int PozyxClass::begin(bool print_result, int mode, int interrupts, int interrupt
 
 
   //Wire.begin();
-  //TODO:
 
   // wait a bit until the pozyx board is up and running
   delay(250);
@@ -229,7 +232,7 @@ int PozyxClass::begin(bool print_result, int mode, int interrupts, int interrupt
 
     if (result) {
       #ifdef DEBUG
-      std::cerr << "Error interruting" << std::endl;
+      std::cerr << "Error interrupting" << std::endl;
       #endif
       return POZYX_FAILURE;
     }
@@ -239,7 +242,7 @@ int PozyxClass::begin(bool print_result, int mode, int interrupts, int interrupt
     int fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
     if (fd < 0) {
       #ifdef DEBUG
-      std::cerr << "Error interruting 1" << std::endl;
+      std::cerr << "Error interrupting 1" << std::endl;
       #endif
       return POZYX_FAILURE;
     }
@@ -256,7 +259,7 @@ int PozyxClass::begin(bool print_result, int mode, int interrupts, int interrupt
     fd = open(dir.c_str(), O_WRONLY);
     if (fd < 0) {
       #ifdef DEBUG
-      std::cerr << "Error interruting 2" << std::endl;
+      std::cerr << "Error interrupting 2" << std::endl;
       #endif
       return POZYX_FAILURE;
     }
@@ -271,7 +274,7 @@ int PozyxClass::begin(bool print_result, int mode, int interrupts, int interrupt
     fd = open(edge.c_str(), O_WRONLY);
     if (fd < 0) {
       #ifdef DEBUG
-      std::cerr << "Error interruting 3" << std::endl;
+      std::cerr << "Error interrupting 3" << std::endl;
       #endif
       return POZYX_FAILURE;
     }
@@ -283,16 +286,17 @@ int PozyxClass::begin(bool print_result, int mode, int interrupts, int interrupt
     ss << SYSFS_GPIO_DIR << "/gpio" << (GPIO+interrupt_pin) << "/value";
     std::string value = ss.str();
 
+    //gpio_file = open(value.c_str(), O_RDONLY);
     gpio_file = open(value.c_str(), O_RDONLY | O_NONBLOCK);
     if (gpio_file < 0) {
       #ifdef DEBUG
-      std::cerr << "Error interruting 4" << std::endl;
+      std::cerr << "Error interrupting 4" << std::endl;
       #endif
       return POZYX_FAILURE;
     }
 
     // set the function that must be called upon an interrupt
-    //TODO: attachInterrupt(interrupt_pin, IRQ, RISING);
+    //attachInterrupt(interrupt_pin, IRQ, RISING);
 
     // use interrupt as provided and initiate the interrupt mask
     uint8_t int_mask = interrupts;
@@ -700,7 +704,7 @@ int PozyxClass::i2cWriteWrite(const uint8_t reg_address, const uint8_t *pData, i
   }
 
 
-  //TODO: Wire.beginTransmission(POZYX_I2C_ADDRESS);
+  //Wire.beginTransmission(POZYX_I2C_ADDRESS);
   // write the starting register address
   /*n = Wire.write(reg_address);
   if (n != 1)
@@ -861,7 +865,7 @@ int PozyxClass::i2cWriteRead(uint8_t* write_data, int write_len, uint8_t* read_d
     }
   }
 */
-  //TODO: Wire.beginTransmission(POZYX_I2C_ADDRESS);
+  //Wire.beginTransmission(POZYX_I2C_ADDRESS);
   /*for(i=0; i<write_len; i++){
     n = Wire.write(*(write_data+i));  // write parameter bytes
   }
