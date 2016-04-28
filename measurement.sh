@@ -134,6 +134,12 @@ while true; do
 		if [[ $TIMECORRECTED -ne 0 ]] && sudo ntpdate time1.mikes.fi; then
 			TIMECORRECTED=0
 			logger "Time corrected"
+			for n in {1..50}; do
+                        	led_on
+				sleep 0.1
+				led_off
+				sleep 0.1
+			done
 		fi
 
 		# Stop IMU, GPS and recording
@@ -221,6 +227,13 @@ while true; do
 				screen -dmS imu
 				# /dev/serial/by-id/usb-Xsens_Xsens_COM_port_00342762-if00
 				#screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py _device:=/dev/serial/by-id/usb-Xsens_Xsens_COM_port_00340764-if00\n'
+				# Alignment reset will be soon
+				for n in {1..10}; do
+                                	led_on
+                        	        sleep 0.4
+                	                led_off
+        	                        sleep 0.2
+	                        done
 				screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py _device:='$XSENS$'\n'
 				led_off
 			fi
