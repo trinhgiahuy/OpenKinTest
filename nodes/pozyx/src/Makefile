@@ -1,7 +1,7 @@
 INC=-I../include/Pozyx-Arduino-library/ -I../include/RasPiArduino/cores/piduino/ -I../include/RasPiArduino/variants/bplus/ -I../include/RasPiArduino/libraries/Wire/
 
 test: test.cpp
-	g++ -o test test.cpp -lwiringPi -lpthread
+	g++ -fpermissive -MD -DRASPI -DSERIAL_TO_CONSOLE -I../include/Pozyx-Arduino-library/ -I../include/RasPiArduino/cores/piduino/ -I../include/RasPiArduino/variants/bplus/ -I../include/RasPiArduino/libraries/Wire/ -o test test.cpp ../include/Pozyx-Arduino-library/*.cpp ../include/RasPiArduino/libraries/Wire/Wire.cpp ../include/RasPiArduino/libraries/Wire/utility/twi.c ../include/RasPiArduino/cores/piduino/*.cpp ../include/RasPiArduino/cores/piduino/*.c ../include/RasPiArduino/libraries/TTY/TTY.cpp -lpthread 
 
 #test: test.cpp
 #	g++ -MD -DRASPI $(INC) -o $@ $<

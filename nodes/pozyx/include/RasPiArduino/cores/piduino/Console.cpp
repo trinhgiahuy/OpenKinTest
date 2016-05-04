@@ -24,7 +24,9 @@
 #include "Arduino.h"
 
 #include "Console.h"
+extern "C" {
 #include "idemonitor.h"
+}
 
 void LinuxConsole::begin(){
   console_begin();

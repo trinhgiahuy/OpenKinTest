@@ -26,6 +26,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+extern "C" {
+
 int _server_socket;
 int _client_socket;
 struct sockaddr_in _server;
@@ -130,4 +132,6 @@ int idemonitor_peek(){
 
 void idemonitor_flush(){
   _rx_fill = 0;
+}
+
 }
