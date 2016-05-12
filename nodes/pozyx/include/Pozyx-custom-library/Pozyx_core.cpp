@@ -552,7 +552,7 @@ int PozyxClass::i2cWriteWrite(const uint8_t reg_address, const uint8_t *pData, i
 {
   int n, error, i;
 
-  n = i2c_smbus_write_byte(i2c_file, reg_address);
+  /*n = i2c_smbus_write_byte(i2c_file, reg_address);
 
   if (n != 0) {
     return (POZYX_FAILURE);
@@ -564,7 +564,32 @@ int PozyxClass::i2cWriteWrite(const uint8_t reg_address, const uint8_t *pData, i
     if (data != 0) {
       return (POZYX_FAILURE);
     }
+  }*/
+
+  struct i2c_rdwr_ioctl_data io;
+  struct i2c_msg msg[2];
+  char buf[1] = {(char)reg_address};
+
+  msg[0].addr = POZYX_I2C_ADDRESS;
+  msg[0].flags = 0;
+  msg[0].len = 1;
+  msg[0].buf = buf;
+
+  msg[1].addr = POZYX_I2C_ADDRESS;
+  msg[1].flags = I2C_M_NOSTART;
+  msg[1].len = size;
+  msg[1].buf = (char*)pData;
+
+  io.msgs = msg;
+  io.nmsgs = 2;
+
+  if (ioctl(i2c_file, I2C_RDWR, &io) < 0) {
+    #ifdef DEBUG
+    std::cerr << "Error repeated writing to I2C" << std::endl;
+    #endif
+    return POZYX_FAILURE;
   }
+
 
   //TODO: Wire.beginTransmission(POZYX_I2C_ADDRESS);
   // write the starting register address
@@ -613,8 +638,65 @@ int PozyxClass::i2cWriteRead(uint8_t* write_data, int write_len, uint8_t* read_d
         }
       }
   } else {
-    std::cerr << "Not implemented" << std::endl;
-    return (POZYX_FAILURE);
+
+    uint8_t data_ex[32];
+    for (i=0; i<write_len-1; i++) {
+      data_ex[i] = write_data[i+1];
+    }
+
+    #ifdef DEBUG
+    std::cout << "DEBUG: function call with " << std::dec << (int)(write_len)-1 << " parameters" << std::endl;
+    std::cout << "Write: " << std::hex << (int)write_data[0];
+    for (i=1; i<write_len; i++) {
+      std::cout << ", " << std::hex << (int)write_data[i];
+    }
+    std::cout << std::endl;
+    #endif
+
+    struct i2c_rdwr_ioctl_data io;
+    struct i2c_msg msg[2];
+
+    msg[0].addr = POZYX_I2C_ADDRESS;
+    msg[0].flags = 0;
+    msg[0].len = write_len;
+    msg[0].buf = (char*)write_data;
+
+    msg[1].addr = POZYX_I2C_ADDRESS;
+    msg[1].flags = I2C_M_RD | I2C_M_NOSTART;
+    msg[1].len = read_len;
+    msg[1].buf = (char*)read_data;
+
+    io.msgs = msg;
+    io.nmsgs = 2;
+
+    if (ioctl(i2c_file, I2C_RDWR, &io) < 0) {
+      #ifdef DEBUG
+      std::cerr << "Error reading/writing to I2C" << std::endl;
+      #endif
+      return POZYX_FAILURE;
+    } else {
+      #ifdef DEBUG
+      std::cout << "Got data: " << std::hex;
+      for (i=0; i<read_len;i++) {
+        std::cout << (int)read_data[i] << ", ";
+      }
+      std::cout << std::endl;
+      #endif
+    }
+
+    //n = i2c_smbus_block_process_call(i2c_file, write_data[0], (uint8_t)write_len, data_ex);
+/*
+    if (n != read_len) {
+      std::cerr << "Wrong amount of data received: " << n << ", should be " << read_len << std::endl;
+      return (POZYX_FAILURE);
+    }
+
+    for (i=0; i<read_len; i++) {
+      read_data[i] = data_ex[i];
+    }
+*/
+    //std::cerr << "Not implemented" << std::endl;
+    //return (POZYX_FAILURE);
   }
 
 /*

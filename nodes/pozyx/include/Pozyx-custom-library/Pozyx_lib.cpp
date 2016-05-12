@@ -5,12 +5,24 @@
 *
 */
 
+#include "helpers.hh"
 #include "Pozyx.h"
-#include <linux/i2c-dev.h>
+#include <string>
+#include <iostream>
+#include <cstring>
 
 extern "C" {
   #include "Pozyx_definitions.h"
 }
+
+#undef NULL
+#define NULL 0
+
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::string;
+using std::memcpy;
 
 int PozyxClass::getWhoAmI(uint8_t *whoami , uint16_t remote_id)
 {
@@ -907,7 +919,7 @@ void PozyxClass::resetSystem(uint16_t remote_id)
 }
 
 
-String PozyxClass::getSystemError(uint16_t remote_id)
+string PozyxClass::getSystemError(uint16_t remote_id)
 {
   uint8_t error_code;
 
@@ -921,44 +933,44 @@ String PozyxClass::getSystemError(uint16_t remote_id)
   switch(error_code)
   {
     case POZYX_ERROR_NONE:
-      return F("");
+      return "";
     case POZYX_ERROR_I2C_WRITE:
-      return F("Error 0x01: Error writing to a register through the I2C bus");
+      return "Error 0x01: Error writing to a register through the I2C bus";
     case POZYX_ERROR_I2C_CMDFULL:
-      return F("Error 0x02: Pozyx cannot handle all the I2C commands at once");
+      return ("Error 0x02: Pozyx cannot handle all the I2C commands at once");
     case POZYX_ERROR_ANCHOR_ADD:
-      return F("Error 0x03: Cannot add anchor to the internal device list");
+      return ("Error 0x03: Cannot add anchor to the internal device list");
     case POZYX_ERROR_COMM_QUEUE_FULL:
-      return F("Error 0x04: Communication queue is full, too many UWB messages");
+      return ("Error 0x04: Communication queue is full, too many UWB messages");
     case POZYX_ERROR_I2C_READ:
-      return F("Error 0x05: Error reading from a register from the I2C bus");
+      return ("Error 0x05: Error reading from a register from the I2C bus");
     case POZYX_ERROR_UWB_CONFIG:
-      return F("Error 0x06: Cannot change the UWB configuration");
+      return ("Error 0x06: Cannot change the UWB configuration");
     case POZYX_ERROR_OPERATION_QUEUE_FULL:
-      return F("Error 0x07: Pozyx cannot handle all the operations at once");
+      return ("Error 0x07: Pozyx cannot handle all the operations at once");
     case POZYX_ERROR_STARTUP_BUSFAULT:
-      return F("Error 0x08: Internal bus error");
+      return ("Error 0x08: Internal bus error");
     case POZYX_ERROR_FLASH_INVALID:
-      return F("Error 0x09: Flash memory is corrupted or invalid");
+      return ("Error 0x09: Flash memory is corrupted or invalid");
     case POZYX_ERROR_NOT_ENOUGH_ANCHORS:
-      return F("Error 0x0A: Not enough anchors available for positioning");
+      return ("Error 0x0A: Not enough anchors available for positioning");
     case POZYX_ERROR_DISCOVERY:
-      return F("Error 0x0B: Error during the Discovery process");
+      return ("Error 0x0B: Error during the Discovery process");
     case POZYX_ERROR_CALIBRATION:
-      return F("Error 0x0C: Error during the auto calibration process");
+      return ("Error 0x0C: Error during the auto calibration process");
     case POZYX_ERROR_FUNC_PARAM:
-      return F("Error 0x0D: Invalid function parameters for the register function");
+      return ("Error 0x0D: Invalid function parameters for the register function");
     case POZYX_ERROR_ANCHOR_NOT_FOUND:
-      return F("Error 0x0E: The coordinates of an anchor are not found");
+      return ("Error 0x0E: The coordinates of an anchor are not found");
     case POZYX_ERROR_GENERAL:
-      return F("Error 0xFF: General error");
+      return ("Error 0xFF: General error");
     default:
-      return F("Unknonw error");
+      return ("Unknonw error");
   }
 
 }
 
-int PozyxClass::setLed(int led_num, boolean state, uint16_t remote_id)
+int PozyxClass::setLed(int led_num, bool state, uint16_t remote_id)
 {
   assert(led_num >= 1);
   assert(led_num <= 4);
@@ -1325,7 +1337,7 @@ int PozyxClass::doAnchorCalibration(int dimension, int num_measurements, int num
   }
 
   status = regFunction(POZYX_DEVICES_CALIBRATE, (uint8_t *)&params, 2 + num_anchors * sizeof(uint16_t), NULL, 0);
-  Serial.println(status);
+  cout << status << endl;
   delay(POZYX_DELAY_LOCAL_FUNCTION);
   if (status == POZYX_SUCCESS && waitForFlag(POZYX_INT_STATUS_FUNC, 25000)){
     return POZYX_SUCCESS;
@@ -1408,22 +1420,18 @@ int PozyxClass::getDeviceRangeInfo(uint16_t device_id, device_range_t *device_ra
 void __attribute__((weak)) __assert (const char *func, const char *file, int line, const char *failedexpr)
 {
     // print out whatever you like here, function name, filename, line#, expression that failed.
-  if (Serial){
-    Serial.print("Assertion in function : ");
-    Serial.println(func);
-    Serial.print("Assertion failed : ");
-    Serial.println(failedexpr);
-    Serial.print("Filename: ");
-    Serial.println(file);
-    Serial.print("Line number: ");
-    Serial.println(line);
+  if (true){
+    cerr << "Assertion in function : " << func << endl;
+    cerr << "Assertion failed : " << failedexpr << endl;
+    cerr << "Filename: " << file << endl;
+    cerr << "Line number: " << line << endl;
 
     // platform independent delay to allow the string to be printed
     delay(10);
   }
 
     // halt after outputting information
-    abort();
+    return;
 }
 #else
 void __attribute__((weak)) __assert_pozyx (const char *__func, const char *__file, int __lineno)
