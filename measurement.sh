@@ -89,6 +89,11 @@ function quitScreens {
 		sleep 3
 		screen -S log -X quit
 	fi
+
+	# Reset errors
+	IMUERR=1
+	GPSERR=1
+
 }
 
 function check3G {
