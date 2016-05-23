@@ -4,15 +4,15 @@
 # Needed for rostopic
 source /opt/ros/indigo/setup.bash
 
-GPSTEMPFILE="/home/ubuntu/gpstemp.log"
-LOGFILE="/home/ubuntu/measurement.log"
-DATADIR="/home/ubuntu/data"
-ROSTOPICFILE="/home/ubuntu/rostmp.log"
+GPSTEMPFILE="/home/openkin/gpstemp.log"
+LOGFILE="/home/openkin/measurement.log"
+DATADIR="/home/openkin/data"
+ROSTOPICFILE="/home/openkin/rostmp.log"
 # empty logfile
 #> $LOGFILE
 
 # led connected
-LED=0
+LED=1
 LEDPID=0
 
 GRIVEPID=-1
@@ -49,7 +49,7 @@ function led_off {
 }
 
 if [ "$LED" -eq 0 ]; then
-	/usr/bin/sudo /usr/bin/python /home/ubuntu/openkin/led-pin.py > /home/ubuntu/led.log 2>&1 &
+	/usr/bin/sudo /usr/bin/python /home/openkin/openkin/led-pin.py > /home/openkin/led.log 2>&1 &
 	SUDOPID=$!
 	sleep 1
 	LEDPID=$(/bin/ps --ppid $SUDOPID -o pid=)
@@ -89,6 +89,11 @@ function quitScreens {
 		sleep 3
 		screen -S log -X quit
 	fi
+
+        # Reset errors
+        IMUERR=1
+        GPSERR=1
+
 }
 
 function check3G {
@@ -241,14 +246,14 @@ while true; do
 			if ! screen -list | grep -q "bag"; then
 				logger "Offline: Starting RECORDING"
 				screen -dmS bag
-				screen -r bag -X stuff $'\nrosbag record -a\n'
+				screen -r bag -X stuff $'\ncd ~/data\nrosbag record -a\n'
 				led_off
 			fi
 
 			if ! (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $GPSERR -eq 0 ]]; then
 				logger "Offline: Starting logger"
 				screen -dmS log
-				screen -r log -X stuff $'\nrosrun ascii_logger listener.py > /home/ubuntu/ascii.log\n'
+				screen -r log -X stuff $'\nrosrun ascii_logger listener.py > /home/openkin/ascii.log\n'
 				led_on
 			fi
 		else

@@ -16,7 +16,7 @@ import threading
 
 import time
 filename = time.strftime("%Y-%m-%d-%H-%M-%S")
-filename = "/home/ubuntu/data/" + filename + ".txt"
+filename = "/home/openkin/data/" + filename + ".txt"
 
 file = open(filename, "a")
 

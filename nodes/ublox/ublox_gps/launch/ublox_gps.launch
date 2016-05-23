@@ -1,5 +1,5 @@
 <launch>
-    <arg name="device" default="/dev/ttyAMA0"/>
+    <arg name="device" default="/dev/ttyS4"/>
     <arg name="gps" default="gps"/>
     <arg name="frame_id" default="$(arg gps)"/>
     <arg name="baudrate" default="57600"/>
