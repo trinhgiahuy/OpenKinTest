@@ -45,7 +45,7 @@ int PozyxClass::gpio_file;
 void PozyxClass::initI2C() {
 
   //int adapter_nr = 7; // minnowboard
-  i2c_file = open("/dev/i2c-7", O_RDWR);
+  i2c_file = open("/dev/i2c-8", O_RDWR);
   if (i2c_file < 0) {
     #ifdef DEBUG
     std::cerr << "Failed to open I2C device" << std::endl;
