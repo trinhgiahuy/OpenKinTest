@@ -119,12 +119,13 @@ def writeBuffer():
                 # test closest points for imu
                 if i == 0:
                     # first, check next
-                    while i+1 < len(buffer):
-                        if 'imuseq' in buffer[i+1]:
+                    a = i;
+                    while a+1 < len(buffer):
+                        if 'imuseq' in buffer[a+1]:
                             # join j to buffer[i+1]
-                            joins.append((i,i+1))
+                            joins.append((i,a+1))
                             break
-                        i += 1
+                        a += 1
                 elif i >= len(buffer)-50:
                     # end of buffer, save gps and previous imu for next round
                     leave = 55
