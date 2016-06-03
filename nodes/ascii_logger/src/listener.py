@@ -112,9 +112,9 @@ def writeBuffer():
 
     # check more than 20 samples in buffer
     # and find closest imu-points for gps-points
-    if len(buffer) > 120:
+    if len(buffer) > 60:
         for i, j in enumerate(buffer):
-            if 'gpsseq' in j:
+            if 'gpsseq' in j and 'imuseq' not in j:
                 #rospy.loginfo("gps in %s", i)
                 # test closest points for imu
                 if i == 0:
@@ -126,9 +126,9 @@ def writeBuffer():
                             joins.append((i,a+1))
                             break
                         a += 1
-                elif i >= len(buffer)-50:
+                elif i >= len(buffer)-20:
                     # end of buffer, save gps and previous imu for next round
-                    leave = 55
+                    leave = 24
                 else:
                     # if imu points
                     distp = 0
@@ -162,7 +162,7 @@ def writeBuffer():
                         joins.append((i, i+distn))
                     #else:
                         # No imu-points on sides, no join
-            elif 'iTOW' in j:
+            elif 'iTOW' in j and 'imuseq' not in j:
                 # merge navvelned
                 navvels.append(i)
                 #rospy.loginfo("navvel in %s", i)
@@ -171,9 +171,9 @@ def writeBuffer():
         tmpjoins = joins[:]
 
         for nav in navvels:
-            if nav >= len(buffer)-50:
+            if nav >= len(buffer)-20:
                 #rospy.loginfo("Skipped join: %s, len: %s", nav, len(buffer))
-                leave = 55
+                leave = 24
             else:
                 closest = -1
                 dist = 99999
