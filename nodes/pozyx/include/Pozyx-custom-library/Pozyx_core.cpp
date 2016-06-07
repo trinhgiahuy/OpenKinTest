@@ -42,10 +42,13 @@ int PozyxClass::_sw_version;       // pozyx software (firmware) version. (By upd
 int PozyxClass::i2c_file;
 int PozyxClass::gpio_file;
 
-void PozyxClass::initI2C() {
+void PozyxClass::initI2C(int adapter) {
+
+  std::stringstream ss;
+  ss << "/dev/i2c-" << adapter;
 
   //int adapter_nr = 7; // minnowboard
-  i2c_file = open("/dev/i2c-8", O_RDWR);
+  i2c_file = open(ss.str().c_str(), O_RDWR);
   if (i2c_file < 0) {
     #ifdef DEBUG
     std::cerr << "Failed to open I2C device" << std::endl;
@@ -121,7 +124,7 @@ bool PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms)
   return false;
 }
 
-int PozyxClass::begin(bool print_result, int mode, int interrupts, int interrupt_pin){
+int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, int interrupt_pin){
 
   int status = POZYX_SUCCESS;
 
@@ -130,7 +133,7 @@ int PozyxClass::begin(bool print_result, int mode, int interrupts, int interrupt
     std::cout << "------------" << std::endl;
   }
 
-  initI2C();
+  initI2C(adapter);
 
   // check if the mode parameter is valid
   if((mode != MODE_POLLING) && (mode != MODE_INTERRUPT))
@@ -896,5 +899,3 @@ int PozyxClass::i2cWriteRead(uint8_t* write_data, int write_len, uint8_t* read_d
 */
   return (POZYX_SUCCESS);  // return : no error
 }
-
-PozyxClass Pozyx;

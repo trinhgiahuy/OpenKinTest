@@ -1,8 +1,10 @@
 #!/bin/bash
-#TODO might be a good idea to start the nodes at the beginning and only  start/stop the bag recording
+#TODO might be a good idea to start the nodes at the beginning and only start/stop the bag recording
 
 # Needed for rostopic
-source /opt/ros/indigo/setup.bash
+#source /opt/ros/indigo/setup.bash
+source /opt/ros/kinetic/setup.bash
+#source ~/catkin_ws/devel/setup.bash
 
 GPSTEMPFILE="/home/openkin/gpstemp.log"
 LOGFILE="/home/openkin/measurement.log"
@@ -11,9 +13,11 @@ ROSTOPICFILE="/home/openkin/rostmp.log"
 # empty logfile
 #> $LOGFILE
 
-# led connected
+# led connected = 0, not = 1
 LED=1
 LEDPID=0
+
+#TODO: options for gps, imu, pozyx
 
 GRIVEPID=-1
 
@@ -22,6 +26,7 @@ UPLOADED=1
 
 IMUERR=1
 GPSERR=1
+POZYXERR=1
 
 TIMECORRECTED=1
 
@@ -63,16 +68,13 @@ fi
 
 function quitScreens {
 	led_off
-	if screen -list | grep -q "gps"; then
-		logger "Shutting down the gps"
 
-		screen -S gps -X quit
-	fi
 
-	if screen -list | grep -q "imu"; then
-		logger "Shutting down the imu"
-
-		screen -S imu -X quit
+	if screen -list | grep -q "log"; then
+		logger "Shutting down logger"
+		screen -S log -X stuff $'\003'
+		sleep 3
+		screen -S log -X quit
 	fi
 
 	if screen -list | grep -q "bag"; then
@@ -83,16 +85,25 @@ function quitScreens {
 		screen -S bag -X quit
 	fi
 
-	if screen -list | grep -q "log"; then
-		logger "Shutting down logger"
-		screen -S log -X stuff $'\003'
-		sleep 3
-		screen -S log -X quit
+	if screen -list | grep -q "pozyx"; then
+		logger "Shutting down the pozyx"
+		screen -S pozyx -X quit
 	fi
 
-        # Reset errors
-        IMUERR=1
-        GPSERR=1
+	if screen -list | grep -q "imu"; then
+		logger "Shutting down the imu"
+		screen -S imu -X quit
+	fi
+
+	if screen -list | grep -q "gps"; then
+		logger "Shutting down the gps"
+		screen -S gps -X quit
+	fi
+
+	# Reset errors
+	IMUERR=1
+	GPSERR=1
+	POZYXERR=1
 
 }
 
@@ -124,6 +135,17 @@ done
 
 #/dev/serial/by-id/usb-Xsens_Xsens_USB-serial_converter_XSUO65V1-if00-port0
 
+I2C_ADAPTER=0
+for i in {0..10}; do
+	if [ -e "$i" ]; then
+		sudo i2cdetect -y -r $i 0x4b 0x4b | grep -q 4b
+		if [ $? ]; then
+			I2C_ADAPTER=$i
+			break
+		fi
+	fi
+done
+
 while true; do
 
 	check3G
@@ -140,7 +162,7 @@ while true; do
 			TIMECORRECTED=0
 			logger "Time corrected"
 			for n in {1..50}; do
-                        	led_on
+				led_on
 				sleep 0.1
 				led_off
 				sleep 0.1
@@ -154,7 +176,7 @@ while true; do
 
 			#Uploading the data
 			logger "Waiting for everything to shut down"
-			while screen -list | grep "imu\|gps\|bag\|log"; do
+			while screen -list | grep "imu\|pozyx\|gps\|bag\|log"; do
 				sleep 2
 			done
 
@@ -197,21 +219,21 @@ while true; do
 			screen -r gps -X stuff $'\nrm '$GPSTEMPFILE$'\nroslaunch ublox_gps ublox_gps.launch 2> '$GPSTEMPFILE$'\n'
 
 			# should have time to error, if going to
-	                sleep 15
+			sleep 15
 
-	                # if file exists and not empty
-	                if [ -s $GPSTEMPFILE ]; then
+			# if file exists and not empty
+			if [ -s $GPSTEMPFILE ]; then
 				logger "Error on starting gps"
 				logger "$(cat $GPSTEMPFILE)"
-	                        screen -S gps -X quit
+				screen -S gps -X quit
 				led_off
-	                        # start over
-	                        continue
-	                elif [ ! -f $GPSTEMPFILE ]; then
+				# start over
+				continue
+			elif [ ! -f $GPSTEMPFILE ]; then
 				logger "GPSlog not found"
 				screen -S gps -X quit
 				led_off
-                                # start over
+				# start over
 				continue
 			fi
 
@@ -225,6 +247,20 @@ while true; do
 				IMUERR=1
 				led_off
 				screen -S imu -X quit
+			fi
+
+			if [ "$POZYXERR" -gt 10 ]; then
+				logger "Pozyx-errors more than 10, restaring Pozyx"
+				POZYXERR=1
+				led_off
+				screen -S pozyx -X quit
+			fi
+
+			if ! screen -list | grep -q "pozyx"; then
+				logger "Offline: Starting Pozyx"
+				screen -dmS pozyx
+				screen -r bag -X stuff $'\nsudo -s\nrosrun pozyx pozyx _adapter:='$I2C_ADAPTER$' > /home/openkin/data/pozyx.log 2>&1\n'
+				led_off
 			fi
 
 			if ! screen -list | grep -q "imu"; then
@@ -250,7 +286,7 @@ while true; do
 				led_off
 			fi
 
-			if ! (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $GPSERR -eq 0 ]]; then
+			if ! (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $GPSERR -eq 0 ]] && [[ $POZYXERR -eq 0 ]]; then
 				logger "Offline: Starting logger"
 				screen -dmS log
 				screen -r log -X stuff $'\nrosrun ascii_logger listener.py > /home/openkin/ascii.log\n'
@@ -274,6 +310,13 @@ while true; do
 		else
 			#logger "zeroing imuerr"
 			IMUERR=0
+		fi
+
+		if ! grep -q "^/pozyx/data$" $ROSTOPICFILE; then
+			logger "/pozyx/data not found"
+			((POZYXERR++))
+		else
+			POZYXERR=0
 		fi
 
 		if ! (grep -q "^/gps/navsol$" $ROSTOPICFILE && grep -q "^/gps/fix$" $ROSTOPICFILE && grep -q "^/gps/navposllh$" $ROSTOPICFILE && grep -q "^/gps/navvelned$" $ROSTOPICFILE); then

@@ -8,6 +8,8 @@ find_package(catkin REQUIRED COMPONENTS
   ublox_msgs
   xsens_driver
   rospy
+  sensor_msgs
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions

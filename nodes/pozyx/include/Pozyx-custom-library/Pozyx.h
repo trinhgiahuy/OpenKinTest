@@ -239,7 +239,7 @@ private:
     static int i2c_file;
     static int gpio_file;
 
-    static void initI2C();
+    static void initI2C(int adapter);
 
     /**
     * Function: i2cWriteWrite
@@ -317,7 +317,7 @@ public:
     * @retval #POZYX_SUCCESS success.
     * @retval #POZYX_FAIL function failed.
     */
-    static int begin(bool print_result = false, int mode = MODE_INTERRUPT,  int interrupts = POZYX_INT_MASK_ALL, int interrupt_pin = POZYX_INT_PIN0);
+    static int begin(int adapter, bool print_result = false, int mode = MODE_INTERRUPT,  int interrupts = POZYX_INT_MASK_ALL, int interrupt_pin = POZYX_INT_PIN0);
 
     /**
     * Read from the registers of the connected Pozyx shield.

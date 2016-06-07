@@ -4,7 +4,8 @@
 
 import rospy
 from std_msgs.msg import String
-from sensor_msgs.msg import Imu, NavSatFix
+from geometry_msgs.msg import PointStamped
+from sensor_msgs.msg import Imu, NavSatFix, MagneticField
 from ublox_msgs.msg import NavSOL, NavVELNED
 
 from decimal import *
@@ -30,7 +31,7 @@ def imucallback(data):
 
     #rospy.loginfo(rospy.get_caller_id() + 'Imu-data: %s', str(data))
     #rospy.loginfo('IMU angular_vel: %f %f %f', data.angular_velocity.x, data.angular_velocity.y, data.angular_velocity.z)
-    
+
     point = {'timestamp.secs': data.header.stamp.secs,
              'timestamp.nsecs': data.header.stamp.nsecs,
              'imuseq': data.header.seq,
@@ -55,7 +56,7 @@ def imucallback(data):
     if counter > 30:
         counter = 0
         writeBuffer()
-    
+
 def gpscallback(data):
     global buffer, bufferlock
 
@@ -94,6 +95,20 @@ def navvelnedcallback(data):
     buffer.append(point)
     bufferlock.release()
 
+def poscallback(data):
+    global buffer, bufferlock
+
+    point = {'posseq': data.header.seq,
+             'timestamp.secs': data.header.stamp.secs,
+             'timestamp.nsecs': data.header.stamp.nsecs,
+             'pos.x': data.point.x,
+             'pos.y': data.point.y,
+             'pos.z': data.point.z}
+
+    bufferlock.acquire()
+    buffer.append(point)
+    bufferlock.release()
+
 def writeline(str_towrite):
     global file
     file.write(str_towrite+"\n")
@@ -104,7 +119,7 @@ def writeBuffer():
     # indexes of gps, imu -points to be joined
     joins = []
     # indexes of navvelned
-    navvels = [] 
+    navvels = []
     # how many points to leave for next round
     leave = 1
 
@@ -114,7 +129,7 @@ def writeBuffer():
     # and find closest imu-points for gps-points
     if len(buffer) > 120:
         for i, j in enumerate(buffer):
-            if 'gpsseq' in j:
+            if 'gpsseq' in j or 'posseq' in j:
                 #rospy.loginfo("gps in %s", i)
                 # test closest points for imu
                 if i == 0:
@@ -165,7 +180,7 @@ def writeBuffer():
                 # merge navvelned
                 navvels.append(i)
                 #rospy.loginfo("navvel in %s", i)
-        
+
 
         tmpjoins = joins[:]
 
@@ -183,7 +198,7 @@ def writeBuffer():
                 if closest != -1:
                     joins.append((nav, closest))
                     #rospy.loginfo("Join navvel: %s and imu: %s, len: %s", nav, closest, len(buffer))
-            
+
 
         # pair gps-data with imu-data
         for j in joins:
@@ -203,18 +218,23 @@ def writeBuffer():
                 buffer[j[1]]['heading'] = buffer[j[0]].get('heading', 'NaN')
                 buffer[j[1]]['sAcc'] = buffer[j[0]].get('sAcc', 'NaN')
                 buffer[j[1]]['cAcc'] = buffer[j[0]].get('cAcc', 'NaN')
-    
+            if not 'posseq' in buffer[j[1]] and 'posseq' in buffer[j[0]]:
+                buffer[j[1]]['posseq'] = buffer[j[0]].get('posseq', 'NaN')
+                buffer[j[1]]['pos.x'] = buffer[j[0]].get('pos.x', 'NaN')
+                buffer[j[1]]['pos.y'] = buffer[j[0]].get('pos.y', 'NaN')
+                buffer[j[1]]['pos.z'] = buffer[j[0]].get('pos.z', 'NaN')
+
             buffer[j[0]]['del'] = True
-    
+
             #rospy.loginfo("GPS: %s", buffer[j[1]])
 
 
         buffer = [x for x in buffer if not 'del' in x]
-    
+
         # write to file
         i = 0
         while (i < len(buffer)-leave):
-            line = "{0}\t{1}.{2:09d}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\t{17}\t{18}\t{19}\t{20}\t{21}\t{22}\t{23}\t{24}\t{25}".format(
+            line = "{0}\t{1}.{2:09d}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\t{17}\t{18}\t{19}\t{20}\t{21}\t{22}\t{23}\t{24}\t{25}\t{26}\t{27}\t{28}\t{29}".format(
               buffer[i].get('gpsseq', 'NaN'),
               buffer[i].get('timestamp.secs', 'NaN'),
               buffer[i].get('timestamp.nsecs', 'NaN'),
@@ -232,7 +252,7 @@ def writeBuffer():
               buffer[i].get('acc.x', 'NaN'),
               buffer[i].get('acc.y', 'NaN'),
               buffer[i].get('acc.z', 'NaN'),
-    
+
               # 17
               buffer[i].get('iTOW', 'NaN'),
               buffer[i].get('velN', 'NaN'),
@@ -242,9 +262,15 @@ def writeBuffer():
               buffer[i].get('gSpeed', 'NaN'),
               buffer[i].get('heading', 'NaN'),
               buffer[i].get('sAcc', 'NaN'),
-              buffer[i].get('cAcc', 'NaN')
+              buffer[i].get('cAcc', 'NaN'),
+
+              # 26
+              buffer[i].get('posseq', 'NaN'),
+              buffer[i].get('pos.x', 'NaN'),
+              buffer[i].get('pos.y', 'NaN'),
+              buffer[i].get('pos.z', 'NaN'),
             )
-            
+
             #rospy.loginfo(line)
 
             writeline(line)
@@ -265,6 +291,10 @@ def listener():
     rospy.Subscriber('imu/data', Imu, imucallback)
     rospy.Subscriber('gps/fix', NavSatFix, gpscallback)
     rospy.Subscriber('gps/navvelned', NavVELNED, navvelnedcallback)
+    rospy.Subscriber('pozyx/data', Imu, imucallback)
+    rospy.Subscriber('pozyx/pos', PointStamped, poscallback)
+    #rospy.Subscriber('pozyx/mag', MagneticField, magcallback)
+
 
     rospy.loginfo('Starting logging')
 

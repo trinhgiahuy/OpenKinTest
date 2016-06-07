@@ -23,6 +23,9 @@ public:
 	void spin();
 
 private:
+
+	PozyxClass Pozyx;
+
 	ros::NodeHandle nh_;
 	ros::NodeHandle private_nh_;
 
@@ -36,6 +39,8 @@ private:
 
 	ros::Time last_update_;
 
+	int adapter;
+
 	int list_size_i;
 	uint16_t devices[MAX_ANCHORS_IN_LIST];
 
@@ -44,6 +49,9 @@ private:
 PozyxROS::PozyxROS() :
 	nh_(), private_nh_("~")
 {
+
+	private_nh_.param("adapter", adapter, int(1));
+
 	imu_pub_ = nh_.advertise<sensor_msgs::Imu>("pozyx/data",10);
 
 	magnetic_pub_ = nh_.advertise<sensor_msgs::MagneticField>("pozyx/mag",10,false);
@@ -70,7 +78,7 @@ PozyxROS::PozyxROS() :
 		}
 	}
 
-	if(Pozyx.begin(true, MODE_INTERRUPT, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
+	if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
     std::cerr << "ERROR: Unable to connect to POZYX shield" << std::endl;
     std::cerr << "Reset required" << std::endl;
     delay(100);
@@ -79,9 +87,11 @@ PozyxROS::PozyxROS() :
 
 	bool done = false;
 
+	Pozyx.clearDevices();
+
 	int disc_status;
-	if ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 3, 10)) == POZYX_SUCCESS) {
-		//delay(1000);
+	if ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 3, 20)) == POZYX_SUCCESS) {
+		delay(3000);
 
 		if (Pozyx.getDeviceIds(devices) == POZYX_SUCCESS) {
 			uint8_t list_size;
@@ -235,9 +245,12 @@ int main(int argc, char** argv) {
 
 	ROS_INFO("Pozyx Node for ROS");
 
-	PozyxROS pozros;
-	pozros.spin();
-
+	try {
+		PozyxROS pozros;
+		pozros.spin();
+	} catch (int e) {
+		std::cerr << "Error: " << e << std::endl;
+	}
 	return 0;
 }
 
