@@ -7,10 +7,12 @@
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/MagneticField.h>
 #include <geometry_msgs/PointStamped.h>
+#include <pozyx/StringStamped.h>
 
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 #define MG_2_MPSS 0.00980665
 #define DEG_2_RAD 0.01745329252
@@ -34,6 +36,7 @@ private:
 	ros::Publisher imu_pub_;
 	ros::Publisher magnetic_pub_;
 	ros::Publisher pos_pub_;
+	ros::Publisher range_pub_;
 
 	std::string imu_frame_id_;
 
@@ -51,12 +54,6 @@ PozyxROS::PozyxROS() :
 {
 
 	private_nh_.param("adapter", adapter, int(1));
-
-	imu_pub_ = nh_.advertise<sensor_msgs::Imu>("pozyx/data",10);
-
-	magnetic_pub_ = nh_.advertise<sensor_msgs::MagneticField>("pozyx/mag",10,false);
-
-	pos_pub_ = nh_.advertise<geometry_msgs::PointStamped>("pozyx/pos",10,false);
 
 	std::vector<double> orientation_covariance, angular_velocity_covariance, linear_acceleration_covariance;
 
@@ -90,43 +87,60 @@ PozyxROS::PozyxROS() :
 	Pozyx.clearDevices();
 
 	int disc_status;
-	if ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 3, 20)) == POZYX_SUCCESS) {
-		delay(3000);
+	while ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 3, 20)) != POZYX_SUCCESS) {
+		delay(1000);
+		std::cerr << "Retrying discovery" << std::endl;
+	}
+	//if ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 3, 20)) == POZYX_SUCCESS) {
+	// Needed for discovery to not timeout or not find anything
+	delay(3000);
 
-		if (Pozyx.getDeviceIds(devices) == POZYX_SUCCESS) {
-			uint8_t list_size;
+	if (Pozyx.getDeviceIds(devices) == POZYX_SUCCESS) {
+		uint8_t list_size;
 
-			if (Pozyx.getDeviceListSize(&list_size) == POZYX_SUCCESS) {
-				list_size_i = (int)list_size;
-				if (list_size_i > 6) {
-					list_size_i = 6;
-				}
-				std::cout << "Device list size: " << list_size_i << std::endl;
-				if (Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i, devices) == POZYX_SUCCESS) {
-					if (Pozyx.setUpdateInterval(101) == POZYX_SUCCESS) {
-						done = true;
-					} else {
-						std::cerr << "Couldn't start positioning" << std::endl;
-					}
+		if (Pozyx.getDeviceListSize(&list_size) == POZYX_SUCCESS) {
+			list_size_i = (int)list_size;
+			if (list_size_i > 6) {
+				list_size_i = 6;
+			}
+			std::cout << "Device list size: " << list_size_i << std::endl;
+
+			// sort array
+			std::sort(devices, devices + list_size_i);
+
+			if (Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i, devices) == POZYX_SUCCESS) {
+				if (Pozyx.setUpdateInterval(101) == POZYX_SUCCESS) {
+					done = true;
 				} else {
-					std::cerr << "Couldn't calibrate" << std::endl;
+					std::cerr << "Couldn't start positioning" << std::endl;
 				}
 			} else {
-				std::cerr << "Couldn't get device list size" << std::endl;
+				std::cerr << "Couldn't calibrate" << std::endl;
 			}
-
 		} else {
-			std::cerr << "Couldn't get devices" << std::endl;
+			std::cerr << "Couldn't get device list size" << std::endl;
 		}
-	} else if (disc_status == POZYX_TIMEOUT) {
+
+	} else {
+		std::cerr << "Couldn't get devices" << std::endl;
+	}
+	/*} else if (disc_status == POZYX_TIMEOUT) {
 		std::cerr << "Couldn't discover (timeout)" << std::endl;
 	} else {
 		std::cerr << "Couldn't discover" << std::endl;
-	}
+	}*/
 
 	if (!done) {
 		throw 2;
 	}
+
+	imu_pub_ = nh_.advertise<sensor_msgs::Imu>("pozyx/data",10,false);
+
+	magnetic_pub_ = nh_.advertise<sensor_msgs::MagneticField>("pozyx/mag",10,false);
+
+	pos_pub_ = nh_.advertise<geometry_msgs::PointStamped>("pozyx/pos",10,false);
+
+	range_pub_ = nh_.advertise<pozyx::StringStamped>("pozyx/range",10,false);
 }
 
 void PozyxROS::update() {
@@ -136,8 +150,10 @@ void PozyxROS::update() {
 
 		int16_t sensor_data[12];
 		int32_t pos_data[3];
+		device_range_t ranges[list_size_i];
 		coordinates_t pos;
 		bool pos_error = false;
+		ros::Time current_time;
 
 
 		// wait until this device gives an interrupt
@@ -145,7 +161,7 @@ void PozyxROS::update() {
     {
       // we received an interrupt from pozyx telling us new IMU data is ready, now let's read it!
       Pozyx.regRead(POZYX_ACCEL_X, (uint8_t*)&sensor_data, 9*sizeof(int16_t));
-			ros::Time current_time = ros::Time::now();
+			current_time = ros::Time::now();
 			Pozyx.regRead(POZYX_QUAT_W, (uint8_t*)&sensor_data[9], 4*sizeof(int16_t));
       // also read out the calibration status
       //Pozyx.regRead(POZYX_CALIB_STATUS, &calib_status, 1);
@@ -153,6 +169,10 @@ void PozyxROS::update() {
 			// Read last position (might be duplicate) -- change 3->9 to get error & covariance
 
 			Pozyx.regRead(POZYX_POS_X, (uint8_t*)&pos_data, 3*sizeof(int32_t));
+
+			for (int i = 0; i < list_size_i; i++) {
+				Pozyx.getDeviceRangeInfo(devices[i], &ranges[i]);
+			}
 
 			/*if (Pozyx.doPositioning(&pos, POZYX_2D, 0) != POZYX_SUCCESS) {
 				pos_error = true;
@@ -167,7 +187,7 @@ void PozyxROS::update() {
       continue;
     }
 
-		ros::Time current_time = ros::Time::now();
+		//ros::Time current_time = ros::Time::now();
 
 		// print out the presure (this is not an int16 but rather an uint32
 		//uint32_t pressure = ((uint32_t)sensor_data[0]) + (((uint32_t)sensor_data[1])<<16);
@@ -199,6 +219,19 @@ void PozyxROS::update() {
 		msg.magnetic_field.z = (double)sensor_data[5] / (16 * 37);
 
 		magnetic_pub_.publish(msg);
+
+		pozyx::StringStamped range_msg;
+		std::stringstream ss;
+
+		for (int i = 0; i < list_size_i; i++) {
+			ss << "0x" << std::hex << std::setfill('0') << std::setw(4) << devices[i] << std::dec << "_" << ranges[i].timestamp << "_" << ranges[i].distance << "_" << ranges[i].RSS << "|";
+		}
+
+		range_msg.data = ss.str();
+		range_msg.header.frame_id = imu_frame_id_;
+		range_msg.header.stamp = current_time;
+
+		range_pub_.publish(range_msg);
 
 		if (!pos_error) {
 

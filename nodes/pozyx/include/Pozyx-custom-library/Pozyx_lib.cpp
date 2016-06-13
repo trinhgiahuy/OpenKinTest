@@ -148,7 +148,7 @@ int PozyxClass::getUpdateInterval(uint16_t *ms, uint16_t remote_id)
 
 int PozyxClass::setUpdateInterval(uint16_t ms, uint16_t remote_id)
 {
-  assert(ms > 100);
+  assert(ms >= 100);
   assert(ms <= 60000);
 
   int status;

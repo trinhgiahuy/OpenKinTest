@@ -137,12 +137,10 @@ done
 
 I2C_ADAPTER=0
 for i in {0..10}; do
-	if [ -e "$i" ]; then
-		sudo i2cdetect -y -r $i 0x4b 0x4b | grep -q 4b
-		if [ $? ]; then
-			I2C_ADAPTER=$i
-			break
-		fi
+	sudo i2cdetect -y -r $i 0x4b 0x4b | grep -q 4b
+	if [ $? -eq 0 ]; then
+		I2C_ADAPTER=$i
+		break
 	fi
 done
 
@@ -259,7 +257,7 @@ while true; do
 			if ! screen -list | grep -q "pozyx"; then
 				logger "Offline: Starting Pozyx"
 				screen -dmS pozyx
-				screen -r bag -X stuff $'\nsudo -s\nrosrun pozyx pozyx _adapter:='$I2C_ADAPTER$' > /home/openkin/data/pozyx.log 2>&1\n'
+				screen -r pozyx -X stuff $'\nsudo -s\nrosrun pozyx pozyx _adapter:='$I2C_ADAPTER$' > /home/openkin/data/pozyx.log 2>&1\n'
 				led_off
 			fi
 

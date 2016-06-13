@@ -6,6 +6,7 @@ project(ascii_logger)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   ublox_msgs
+  pozyx
   xsens_driver
   rospy
   sensor_msgs

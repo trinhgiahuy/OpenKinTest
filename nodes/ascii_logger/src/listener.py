@@ -7,6 +7,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import PointStamped
 from sensor_msgs.msg import Imu, NavSatFix, MagneticField
 from ublox_msgs.msg import NavSOL, NavVELNED
+from pozyx.msg import StringStamped
 
 from decimal import *
 getcontext().prec = 100
@@ -26,7 +27,13 @@ bufferlock = threading.Lock()
 
 counter = 0
 
-def imucallback(data):
+def pozyxcallback(data):
+    imucallback(data, True)
+
+def xsenscallback(data):
+    imucallback(data, False)
+
+def imucallback(data, pozyx):
     global buffer, counter, bufferlock
 
     #rospy.loginfo(rospy.get_caller_id() + 'Imu-data: %s', str(data))
@@ -44,7 +51,8 @@ def imucallback(data):
              'ori.w': data.orientation.w,
              'acc.x': data.linear_acceleration.x,
              'acc.y': data.linear_acceleration.y,
-             'acc.z': data.linear_acceleration.z}
+             'acc.z': data.linear_acceleration.z,
+             'pozyx': "1" if pozyx else "0"}
 
     # append to buffer
     bufferlock.acquire()
@@ -109,6 +117,18 @@ def poscallback(data):
     buffer.append(point)
     bufferlock.release()
 
+def rangecallback(data):
+    global buffer, bufferlock
+
+    point = {'rangeseq': data.header.seq,
+             'timestamp.secs': data.header.stamp.secs,
+             'timestamp.nsecs': data.header.stamp.nsecs,
+             'ranges': data.data}
+
+    bufferlock.acquire()
+    buffer.append(point)
+    bufferlock.release()
+
 def writeline(str_towrite):
     global file
     file.write(str_towrite+"\n")
@@ -129,7 +149,7 @@ def writeBuffer():
     # and find closest imu-points for gps-points
     if len(buffer) > 120:
         for i, j in enumerate(buffer):
-            if 'gpsseq' in j or 'posseq' in j:
+            if 'gpsseq' in j or 'posseq' in j or 'rangeseq' in j:
                 #rospy.loginfo("gps in %s", i)
                 # test closest points for imu
                 if i == 0:
@@ -223,6 +243,9 @@ def writeBuffer():
                 buffer[j[1]]['pos.x'] = buffer[j[0]].get('pos.x', 'NaN')
                 buffer[j[1]]['pos.y'] = buffer[j[0]].get('pos.y', 'NaN')
                 buffer[j[1]]['pos.z'] = buffer[j[0]].get('pos.z', 'NaN')
+            if not 'rangeseq' in buffer[j[1]] and 'rangeseq' in buffer[j[0]]:
+                buffer[j[1]]['rangeseq'] = buffer[j[0]].get('rangeseq', 'NaN')
+                buffer[j[1]]['ranges'] = buffer[j[0]].get('ranges', 'NaN')
 
             buffer[j[0]]['del'] = True
 
@@ -234,7 +257,7 @@ def writeBuffer():
         # write to file
         i = 0
         while (i < len(buffer)-leave):
-            line = "{0}\t{1}.{2:09d}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\t{17}\t{18}\t{19}\t{20}\t{21}\t{22}\t{23}\t{24}\t{25}\t{26}\t{27}\t{28}\t{29}".format(
+            line = "{0}\t{1}.{2:09d}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\t{17}\t{18}\t{19}\t{20}\t{21}\t{22}\t{23}\t{24}\t{25}\t{26}\t{27}\t{28}\t{29}\t{30}\t{31}".format(
               buffer[i].get('gpsseq', 'NaN'),
               buffer[i].get('timestamp.secs', 'NaN'),
               buffer[i].get('timestamp.nsecs', 'NaN'),
@@ -265,10 +288,14 @@ def writeBuffer():
               buffer[i].get('cAcc', 'NaN'),
 
               # 26
+              buffer[i].get('pozyx', 'NaN'),
               buffer[i].get('posseq', 'NaN'),
               buffer[i].get('pos.x', 'NaN'),
               buffer[i].get('pos.y', 'NaN'),
               buffer[i].get('pos.z', 'NaN'),
+
+              # 31 ranges
+              buffer[i].get('ranges', 'NaN')
             )
 
             #rospy.loginfo(line)
@@ -288,12 +315,13 @@ def listener():
     # run simultaneously.
     rospy.init_node('ascii_logger', anonymous=True)
 
-    rospy.Subscriber('imu/data', Imu, imucallback)
+    rospy.Subscriber('imu/data', Imu, xsenscallback)
     rospy.Subscriber('gps/fix', NavSatFix, gpscallback)
     rospy.Subscriber('gps/navvelned', NavVELNED, navvelnedcallback)
-    rospy.Subscriber('pozyx/data', Imu, imucallback)
+    rospy.Subscriber('pozyx/data', Imu, pozyxcallback)
     rospy.Subscriber('pozyx/pos', PointStamped, poscallback)
     #rospy.Subscriber('pozyx/mag', MagneticField, magcallback)
+    rospy.Subscriber('pozyx/range', StringStamped, rangecallback)
 
 
     rospy.loginfo('Starting logging')
