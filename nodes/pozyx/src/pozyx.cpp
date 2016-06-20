@@ -6,6 +6,7 @@
 #include <std_msgs/String.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/MagneticField.h>
+#include <sensor_msgs/PointCloud.h>
 #include <geometry_msgs/PointStamped.h>
 #include <pozyx/StringStamped.h>
 
@@ -13,6 +14,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <cmath>
 
 #define MG_2_MPSS 0.00980665
 #define DEG_2_RAD 0.01745329252
@@ -37,6 +39,7 @@ private:
 	ros::Publisher magnetic_pub_;
 	ros::Publisher pos_pub_;
 	ros::Publisher range_pub_;
+	ros::Publisher anchor_pub_;
 
 	std::string imu_frame_id_;
 
@@ -109,7 +112,7 @@ PozyxROS::PozyxROS() :
 			std::sort(devices, devices + list_size_i);
 
 			if (Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i, devices) == POZYX_SUCCESS) {
-				if (Pozyx.setUpdateInterval(101) == POZYX_SUCCESS) {
+				if (Pozyx.setUpdateInterval(100) == POZYX_SUCCESS) {
 					done = true;
 				} else {
 					std::cerr << "Couldn't start positioning" << std::endl;
@@ -141,10 +144,38 @@ PozyxROS::PozyxROS() :
 	pos_pub_ = nh_.advertise<geometry_msgs::PointStamped>("pozyx/pos",10,false);
 
 	range_pub_ = nh_.advertise<pozyx::StringStamped>("pozyx/range",10,false);
+
+	anchor_pub_ = nh_.advertise<sensor_msgs::PointCloud>("pozyx/anchors",10,false);
 }
 
 void PozyxROS::update() {
 	imu_frame_id_ = "pozyx";
+
+	coordinates_t device_coords[list_size_i];
+
+	for (int i = 0; i < list_size_i; i++) {
+		Pozyx.getDeviceCoordinates(devices[i], &device_coords[i]);
+	}
+
+	sensor_msgs::PointCloud anchors;
+	anchors.header.stamp = ros::Time::now();
+	anchors.header.frame_id = imu_frame_id_;
+
+	anchors.points.resize(list_size_i);
+
+	anchors.channels.resize(1);
+	anchors.channels[0].name = "identifiers";
+	anchors.channels[0].values.resize(list_size_i);
+
+	for (int i = 0; i < list_size_i; i++) {
+		anchors.points[i].x = (double)device_coords[i].x / 1000.0;
+		anchors.points[i].y = (double)device_coords[i].y / 1000.0;
+		anchors.points[i].z = (double)device_coords[i].z / 1000.0;
+		anchors.channels[0].values[i] = devices[i];
+	}
+
+	anchor_pub_.publish(anchors);
+
 	while (ros::ok()) {
 		// get imu data
 
@@ -224,7 +255,7 @@ void PozyxROS::update() {
 		std::stringstream ss;
 
 		for (int i = 0; i < list_size_i; i++) {
-			ss << "0x" << std::hex << std::setfill('0') << std::setw(4) << devices[i] << std::dec << "_" << ranges[i].timestamp << "_" << ranges[i].distance << "_" << ranges[i].RSS << "|";
+			ss << "s=uwb,t=" << std::hex << std::setfill('0') << std::setw(4) << devices[i] << std::dec << ",tu=" << ranges[i].timestamp << ",ts=" << current_time.toNSec() / 1000000 << ",d=" << ranges[i].distance << ",RSS=" << ranges[i].RSS << "|";
 		}
 
 		range_msg.data = ss.str();
@@ -233,20 +264,39 @@ void PozyxROS::update() {
 
 		range_pub_.publish(range_msg);
 
+		sensor_msgs::PointCloud anchors;
+		anchors.header.stamp = ros::Time::now();
+		anchors.header.frame_id = imu_frame_id_;
+
+		anchors.points.resize(list_size_i);
+
+		anchors.channels.resize(2);
+		anchors.channels[0].name = "identifiers";
+		anchors.channels[0].values.resize(list_size_i);
+
+		anchors.channels[1].name = "distance";
+		anchors.channels[1].values.resize(list_size_i);
+
+		for (int i = 0; i < list_size_i; i++) {
+			anchors.points[i].x = (double)device_coords[i].x / 1000.0;
+			anchors.points[i].y = (double)device_coords[i].y / 1000.0;
+			anchors.points[i].z = (double)device_coords[i].z / 1000.0;
+			anchors.channels[0].values[i] = devices[i];
+			anchors.channels[1].values[i] = ranges[i].distance;
+		}
+
+		anchor_pub_.publish(anchors);
+
 		if (!pos_error) {
 
-			/*uint32_t pos_x = ((uint32_t)pos_data[0]) + (((uint32_t)pos_data[1])<<16);
-			uint32_t pos_y = ((uint32_t)pos_data[2]) + (((uint32_t)pos_data[3])<<16);
-			uint32_t pos_z = ((uint32_t)pos_data[4]) + (((uint32_t)pos_data[5])<<16);
-			*/
 			geometry_msgs::PointStamped pos_msg;
 
 			pos_msg.header.stamp = current_time;
 			pos_msg.header.frame_id = imu_frame_id_;
 
-			pos_msg.point.x = pos_data[0];
-			pos_msg.point.y = pos_data[1];
-			pos_msg.point.z = pos_data[2];
+			pos_msg.point.x = pos_data[0] / 1000.0f;
+			pos_msg.point.y = pos_data[1] / 1000.0f;
+			pos_msg.point.z = pos_data[2] / 1000.0f;
 
 			pos_pub_.publish(pos_msg);
 
@@ -286,100 +336,3 @@ int main(int argc, char** argv) {
 	}
 	return 0;
 }
-
-/*
-int main(int argc, char **argv) {
-
-	uint32_t last_millis;
-
-	ros::init(argc, argv, "pozyx");
-
-	ros::NodeHandle n;
-
-	ros::Publisher pozyx_pub = n.advertise<std_msgs::String>("imu_data", 1000);
-
-	ros::Rate loop_rate(150);
-
-	if(Pozyx.begin(true, MODE_INTERRUPT, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
-    std::cerr << "ERROR: Unable to connect to POZYX shield" << std::endl;
-    std::cerr << "Reset required" << std::endl;
-    delay(100);
-    return -1;
-  }
-
-  last_millis = millis();
-  delay(10);
-
-	while (ros::ok()) {
-		std_msgs::String msg;
-
-		int16_t sensor_data[24];
-	  uint8_t calib_status = 0;
-	  int i, dt;
-
-		std::stringstream ss;
-
-		// wait until this device gives an interrupt
-    if (Pozyx.waitForFlag(POZYX_INT_STATUS_IMU, 8))
-    {
-
-      // we received an interrupt from pozyx telling us new IMU data is ready, now let's read it!
-      Pozyx.regRead(POZYX_PRESSURE, (uint8_t*)&sensor_data, 24*sizeof(int16_t));
-
-      // also read out the calibration status
-      Pozyx.regRead(POZYX_CALIB_STATUS, &calib_status, 1);
-
-    }else{
-
-      // we didn't receive an interrupt
-      uint8_t interrupt_status = 0;
-      Pozyx.regRead(POZYX_INT_STATUS, &interrupt_status, 1);
-
-      continue;
-    }
-
-		// print the measurement interval
-	  dt = millis() - last_millis;
-	  last_millis += dt;
-
-		ss << dt;
-
-		// print out the presure (this is not an int16 but rather an uint32
-	  uint32_t pressure = ((uint32_t)sensor_data[0]) + (((uint32_t)sensor_data[1])<<16);
-	  ss << "," << pressure;
-
-		// print out all remaining sensors
-	  for(i=2; i<24; i++){
-	    ss << "," << sensor_data[i];
-	  }
-
-		uint8_t res = 0;
-
-	  // finally, print out the calibration status (remotely this is not available and all equal to zero)
-	  ss << ",";
-	  res = calib_status&0x03;
-	  ss << (int)res;
-	  ss << ",";
-	  res = (calib_status&0x0C)>>2;
-	  ss << (int)res;
-	  ss << ",";
-	  res = (calib_status&0x30)>>4;
-	  ss << (int)res;
-	  ss << ",";
-	  res = (calib_status&0xC0)>>6;
-	  ss << (int)res;
-
-	  ss << std::endl;
-
-		msg.data = ss.str();
-
-		pozyx_pub.publish(msg);
-
-		ros::spinOnce();
-
-		loop_rate.sleep();
-	}
-
-	return 0;
-}
-*/
