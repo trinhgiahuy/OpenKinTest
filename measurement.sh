@@ -13,8 +13,8 @@ ROSTOPICFILE="/home/openkin/rostmp.log"
 # empty logfile
 #> $LOGFILE
 
-# led connected = 0, not = 1
-LED=1
+# led connected = 0, not = 1, pwm = 2
+LED=2
 LEDPID=0
 
 #TODO: options for gps, imu, pozyx
@@ -42,19 +42,68 @@ function logger {
 logger "Starting datalogger"
 
 function led_on {
-	if [ "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 0 && "$LEDPID" -ne 0 ]; then
 		/usr/bin/sudo kill -USR1 $LEDPID
+	fi
+
+	if [ "$LED" -eq 2 && "$LEDPID" -ne 0 ]; then
+		echo "ON" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
 	fi
 }
 
 function led_off {
-	if [ "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 0 && "$LEDPID" -ne 0 ]; then
 		/usr/bin/sudo kill -USR2 $LEDPID
+	fi
+
+	if [ "$LED" -eq 2 && "$LEDPID" -ne 0 ]; then
+		echo "OFF" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
+	fi
+
+}
+
+function led_blink {
+	if [ "$LED" -eq 0 && "$LEDPID" -ne 0 ]; then
+		for n in {1..10}; do
+			led_on
+			sleep 0.4
+			led_off
+			sleep 0.2
+		done
+	fi
+
+	if [ "$LED" -eq 2 && "$LEDPID" -ne 0 ]; then
+		for n in {1..10}; do
+			echo "BLINK" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
+		done
 	fi
 }
 
-if [ "$LED" -eq 0 ]; then
-	/usr/bin/sudo /usr/bin/python /home/openkin/openkin/led-pin.py > /home/openkin/led.log 2>&1 &
+function led_blink_f {
+	if [ "$LED" -eq 0 && "$LEDPID" -ne 0 ]; then
+		for n in {1..50}; do
+			led_on
+			sleep 0.1
+			led_off
+			sleep 0.1
+		done
+	fi
+
+	if [ "$LED" -eq 2 && "$LEDPID" -ne 0 ]; then
+		for n in {1..50}; do
+			echo "FASTER" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
+		done
+	fi
+}
+
+if [ "$LED" -eq 0 || "$LED" -eq 2 ]; then
+	if [ "$LED" -eq 0 ]; then
+		/usr/bin/sudo /usr/bin/python /home/openkin/openkin/led-pin.py > /home/openkin/led.log 2>&1 &
+	fi
+
+	if [ "$LED" -eq 2 ]; then
+		/usr/bin/sudo /bin/bash /home/openkin/openkin/led-linuxpwm.sh > /dev/null 2>&1 &
+	fi
 	SUDOPID=$!
 	sleep 1
 	LEDPID=$(/bin/ps --ppid $SUDOPID -o pid=)
@@ -159,12 +208,7 @@ while true; do
 		if [[ $TIMECORRECTED -ne 0 ]] && sudo ntpdate time1.mikes.fi; then
 			TIMECORRECTED=0
 			logger "Time corrected"
-			for n in {1..50}; do
-				led_on
-				sleep 0.1
-				led_off
-				sleep 0.1
-			done
+			led_blink_f
 		fi
 
 		# Stop IMU, GPS and recording
@@ -267,12 +311,7 @@ while true; do
 				# /dev/serial/by-id/usb-Xsens_Xsens_COM_port_00342762-if00
 				#screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py _device:=/dev/serial/by-id/usb-Xsens_Xsens_COM_port_00340764-if00\n'
 				# Alignment reset will be soon
-				for n in {1..10}; do
-                                	led_on
-                        	        sleep 0.4
-                	                led_off
-        	                        sleep 0.2
-	                        done
+				led_blink
 				screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py _device:='$XSENS$'\n'
 				led_off
 			fi
