@@ -4,9 +4,11 @@ if [ ! -f "/sys/class/pwm/pwmchip0/pwm0/period" ]; then
 	echo 0 > /sys/class/pwm/pwmchip0/export
 fi
 sleep 2
-echo 0 > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
 echo 2000 > /sys/class/pwm/pwmchip0/pwm0/period
+echo 0 > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
 echo 1 > /sys/class/pwm/pwmchip0/pwm0/enable
+
+rm /tmp/ledpipe
 
 if [ ! -p "/tmp/ledpipe" ]; then
 	mkfifo /tmp/ledpipe
@@ -50,6 +52,7 @@ function led_blink_f {
 #trap led_off SIGUSR2
 
 for (( ; ; )); do
+#echo "New round"
 
 while read SIGNAL; do
 	case "$SIGNAL" in
@@ -60,6 +63,7 @@ while read SIGNAL; do
 		*FASTER*)led_blink_f;;
 		*)echo "Signal $SIGNAL is unsupported" > /dev/stderr;;
 	esac
+#	echo $SIGNAL
 done < /tmp/ledpipe
 #wait
 #kill %1

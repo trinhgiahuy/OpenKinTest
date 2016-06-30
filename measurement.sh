@@ -17,6 +17,9 @@ ROSTOPICFILE="/home/openkin/rostmp.log"
 LED=2
 LEDPID=0
 
+# shutdown switch connected = 0, not = 1
+PWRSWITCH=0
+
 #TODO: options for gps, imu, pozyx
 
 GRIVEPID=-1
@@ -41,29 +44,33 @@ function logger {
 
 logger "Starting datalogger"
 
+if [ "$PWRSWITCH" -eq 0 ]; then
+	sudo /home/openkin/openkin/linux-shutdown/pwr-switch &
+fi
+
 function led_on {
-	if [ "$LED" -eq 0 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 0 ] && [ "$LEDPID" -ne 0 ]; then
 		/usr/bin/sudo kill -USR1 $LEDPID
 	fi
 
-	if [ "$LED" -eq 2 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 2 ] && [ "$LEDPID" -ne 0 ]; then
 		echo "ON" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
 	fi
 }
 
 function led_off {
-	if [ "$LED" -eq 0 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 0 ] && [ "$LEDPID" -ne 0 ]; then
 		/usr/bin/sudo kill -USR2 $LEDPID
 	fi
 
-	if [ "$LED" -eq 2 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 2 ] && [ "$LEDPID" -ne 0 ]; then
 		echo "OFF" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
 	fi
 
 }
 
 function led_blink {
-	if [ "$LED" -eq 0 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 0 ] && [ "$LEDPID" -ne 0 ]; then
 		for n in {1..10}; do
 			led_on
 			sleep 0.4
@@ -72,7 +79,7 @@ function led_blink {
 		done
 	fi
 
-	if [ "$LED" -eq 2 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 2 ] && [ "$LEDPID" -ne 0 ]; then
 		for n in {1..10}; do
 			echo "BLINK" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
 		done
@@ -80,7 +87,7 @@ function led_blink {
 }
 
 function led_blink_f {
-	if [ "$LED" -eq 0 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 0 ] && [ "$LEDPID" -ne 0 ]; then
 		for n in {1..50}; do
 			led_on
 			sleep 0.1
@@ -89,14 +96,14 @@ function led_blink_f {
 		done
 	fi
 
-	if [ "$LED" -eq 2 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 2 ] && [ "$LEDPID" -ne 0 ]; then
 		for n in {1..50}; do
 			echo "FASTER" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
 		done
 	fi
 }
 
-if [ "$LED" -eq 0 || "$LED" -eq 2 ]; then
+if [ "$LED" -eq 0 -o "$LED" -eq 2 ]; then
 	if [ "$LED" -eq 0 ]; then
 		/usr/bin/sudo /usr/bin/python /home/openkin/openkin/led-pin.py > /home/openkin/led.log 2>&1 &
 	fi
