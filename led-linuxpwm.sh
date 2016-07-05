@@ -1,51 +1,59 @@
 #!/bin/bash
 
-if [ ! -f "/sys/class/pwm/pwmchip0/pwm0/period" ]; then
-	echo 0 > /sys/class/pwm/pwmchip0/export
+if [ "$#" -ne 2 ]; then
+	echo "Not enough paramters!"
+	return 1
+fi
+
+NUM=$1
+CHIP=$2
+
+if [ ! -f "/sys/class/pwm/pwmchip$CHIP/pwm0/period" ]; then
+	echo 0 > /sys/class/pwm/pwmchip$CHIP/export
 fi
 sleep 2
-echo 2000 > /sys/class/pwm/pwmchip0/pwm0/period
-echo 0 > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
-echo 1 > /sys/class/pwm/pwmchip0/pwm0/enable
+echo 2000 > /sys/class/pwm/pwmchip$CHIP/pwm0/period
+echo 0 > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
+echo 1 > /sys/class/pwm/pwmchip$CHIP/pwm0/enable
 
-rm /tmp/ledpipe
+rm /tmp/ledpipe$NUM
 
-if [ ! -p "/tmp/ledpipe" ]; then
-	mkfifo /tmp/ledpipe
+if [ ! -p "/tmp/ledpipe$NUM" ]; then
+	mkfifo /tmp/ledpipe$NUM
 fi
 
 function led_on {
-	echo 2000 > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+	echo 2000 > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
 }
 
 function led_off {
-	echo 0 > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+	echo 0 > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
 }
 
 function led_blink {
 	for i in {1..2000..128}; do
-		echo $i > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+		echo $i > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
 		sleep 0.0008
 	done
 	sleep 0.3
 	for i in {2000..1..128}; do
-		echo $i > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+		echo $i > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
 		sleep 0.0008
 	done
 	sleep 0.15
-	echo 0 > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+	echo 0 > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
 }
 
 function led_blink_f {
 	for i in {1..2000..768}; do
-		echo $i > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+		echo $i > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
 		sleep 0.016
 	done
 	for i in {2000..1..768}; do
-		echo $i > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+		echo $i > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
 		sleep 0.016
 	done
-	echo 0 > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+	echo 0 > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
 }
 
 #trap led_on SIGUSR1
@@ -64,7 +72,7 @@ while read SIGNAL; do
 		*)echo "Signal $SIGNAL is unsupported" > /dev/stderr;;
 	esac
 #	echo $SIGNAL
-done < /tmp/ledpipe
+done < /tmp/ledpipe$NUM
 #wait
 #kill %1
 
