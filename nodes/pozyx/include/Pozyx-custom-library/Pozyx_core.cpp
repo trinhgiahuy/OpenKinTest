@@ -26,8 +26,10 @@ extern "C" {
   #include "Pozyx_definitions.h"
 }
 
+#define DEBUG
+
 #define BUFFER_LENGTH 32
-#define GPIO 338
+#define GPIO 17
 #define SYSFS_GPIO_DIR "/sys/class/gpio"
 #define POLL_TIMEOUT 3000 // 3 seconds
 
@@ -87,12 +89,15 @@ bool PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms)
   // stay in this loop until the event interrupt flag is set or until the the timer runs out
   while(millis()-timer < timeout_ms)
   {
+
+      uint8_t interrupt_status = 0;
+
     // in polling mode, we insert a small delay such that we don't swamp the i2c bus
     if( _mode == MODE_POLLING ){
       delay(1);
     }
-    //lseek(gpio_file, 0, SEEK_SET);
-    //read(gpio_file, buf, sizeof buf);
+    lseek(gpio_file, 0, SEEK_SET);
+    read(gpio_file, buf, sizeof buf);
     // TODO: more event interrupts, maybe poll in thread
     //if( (_interrupt == 1) || (_mode == MODE_POLLING))
     if( (_mode == MODE_POLLING) || (rc = poll(fdset, nfds, timeout)))
@@ -100,21 +105,24 @@ bool PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms)
       lseek(gpio_file, 0, SEEK_SET);
       read(gpio_file, buf, sizeof buf);
       #ifdef DEBUG
-      std::cout << "Polled " << millis() << ", rc: " << rc << ", revents: " << fdset[0].revents << std::endl;
+      std::cout << "Polled " << std::dec << millis() << ", rc: " << rc << ", revents: " << fdset[0].revents << std::endl;
       #endif
       //_interrupt = 0;
 
       // Read out the interrupt status register. After reading from this register, pozyx automatically clears the interrupt flags.
-      uint8_t interrupt_status = 0;
       regRead(POZYX_INT_STATUS, &interrupt_status, 1);
       if((interrupt_status & interrupt_flag) == interrupt_flag)
       {
+        #ifdef DEBUG
+        std::cout << "Got it " << std::dec << millis() << ", rc: " << rc << ", revents: " << fdset[0].revents << std::endl;
+        #endif
         // the interrupt we were waiting for arrived!
         return true;
       }
     } else {
       #ifdef DEBUG
-      std::cerr << "Error polling: " << rc << ", " << std::dec << millis() << std::endl;
+      std::cerr << "Error polling: " << rc << ", " << std::dec << millis() << ", " << std::hex << (int)interrupt_status << ", " << (int)interrupt_flag << std::endl;
+      //return true;
       #endif
     }
   }

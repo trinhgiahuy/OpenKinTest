@@ -51,7 +51,7 @@ void loop();
 
 int main()
 {
-  if(Pozyx.begin(true, MODE_INTERRUPT, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
+  if(Pozyx.begin(1, true, MODE_INTERRUPT, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
     std::cerr << "ERROR: Unable to connect to POZYX shield" << std::endl;
     std::cerr << "Reset required" << std::endl;
     delay(100);
@@ -103,7 +103,7 @@ void loop(){
   }else
   {
     // wait until this device gives an interrupt
-    if (Pozyx.waitForFlag(POZYX_INT_STATUS_IMU, 8))
+    if (Pozyx.waitForFlag(POZYX_INT_STATUS_IMU, 5000))
     {
       #ifdef TIMING
       std::cout << "0: " << std::chrono::duration_cast<second_> (clock_::now() - beginning_).count() << " s" << std::endl;

@@ -1337,12 +1337,14 @@ int PozyxClass::doAnchorCalibration(int dimension, int num_measurements, int num
   }
 
   status = regFunction(POZYX_DEVICES_CALIBRATE, (uint8_t *)&params, 2 + num_anchors * sizeof(uint16_t), NULL, 0);
-  cout << status << endl;
+  //cout << status << endl;
   delay(POZYX_DELAY_LOCAL_FUNCTION);
   if (status == POZYX_SUCCESS && waitForFlag(POZYX_INT_STATUS_FUNC, 25000)){
     return POZYX_SUCCESS;
   }
   else{
+    //return POZYX_TIMEOUT;
+    cout << "Error calibrating: 0x" << std::hex << status << endl;
     return POZYX_TIMEOUT;
   }
 

@@ -78,12 +78,12 @@ PozyxROS::PozyxROS() :
 		}
 	}
 
-	if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
-    std::cerr << "ERROR: Unable to connect to POZYX shield" << std::endl;
-    std::cerr << "Reset required" << std::endl;
-    delay(100);
-    throw 1;
-  }
+	if(Pozyx.begin(adapter, true, MODE_POLLING, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
+		std::cerr << "ERROR: Unable to connect to POZYX shield" << std::endl;
+		std::cerr << "Reset required" << std::endl;
+		delay(100);
+		throw 1;
+	}
 
 	bool done = false;
 
@@ -92,7 +92,7 @@ PozyxROS::PozyxROS() :
 	int disc_status;
 	while ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 3, 20)) != POZYX_SUCCESS) {
 		delay(1000);
-		std::cerr << "Retrying discovery" << std::endl;
+		std::cerr << "Retrying discovery (" << disc_status << ")" << std::endl;
 	}
 	//if ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 3, 20)) == POZYX_SUCCESS) {
 	// Needed for discovery to not timeout or not find anything
@@ -111,14 +111,15 @@ PozyxROS::PozyxROS() :
 			// sort array
 			std::sort(devices, devices + list_size_i);
 
-			if (Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i, devices) == POZYX_SUCCESS) {
+			int calib_status = 0;
+			if ((calib_status = Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i, devices)) == POZYX_SUCCESS) {
 				if (Pozyx.setUpdateInterval(100) == POZYX_SUCCESS) {
 					done = true;
 				} else {
 					std::cerr << "Couldn't start positioning" << std::endl;
 				}
 			} else {
-				std::cerr << "Couldn't calibrate" << std::endl;
+				std::cerr << "Couldn't calibrate (" << calib_status << ")" << std::endl;
 			}
 		} else {
 			std::cerr << "Couldn't get device list size" << std::endl;
@@ -188,14 +189,13 @@ void PozyxROS::update() {
 
 
 		// wait until this device gives an interrupt
-    if (Pozyx.waitForFlag(POZYX_INT_STATUS_IMU, 8))
-    {
-      // we received an interrupt from pozyx telling us new IMU data is ready, now let's read it!
-      Pozyx.regRead(POZYX_ACCEL_X, (uint8_t*)&sensor_data, 9*sizeof(int16_t));
+		if (Pozyx.waitForFlag(POZYX_INT_STATUS_IMU, 8)) {
+		// we received an interrupt from pozyx telling us new IMU data is ready, now let's read it!
+			Pozyx.regRead(POZYX_ACCEL_X, (uint8_t*)&sensor_data, 9*sizeof(int16_t));
 			current_time = ros::Time::now();
 			Pozyx.regRead(POZYX_QUAT_W, (uint8_t*)&sensor_data[9], 4*sizeof(int16_t));
-      // also read out the calibration status
-      //Pozyx.regRead(POZYX_CALIB_STATUS, &calib_status, 1);
+			// also read out the calibration status
+			//Pozyx.regRead(POZYX_CALIB_STATUS, &calib_status, 1);
 
 			// Read last position (might be duplicate) -- change 3->9 to get error & covariance
 
@@ -209,14 +209,14 @@ void PozyxROS::update() {
 				pos_error = true;
 			}*/
 
-    }else{
+		}else{
 
-      // we didn't receive an interrupt
-      //uint8_t interrupt_status = 0;
-      //Pozyx.regRead(POZYX_INT_STATUS, &interrupt_status, 1);
+			// we didn't receive an interrupt
+			//uint8_t interrupt_status = 0;
+			//Pozyx.regRead(POZYX_INT_STATUS, &interrupt_status, 1);
 
-      continue;
-    }
+			continue;
+		}
 
 		//ros::Time current_time = ros::Time::now();
 
