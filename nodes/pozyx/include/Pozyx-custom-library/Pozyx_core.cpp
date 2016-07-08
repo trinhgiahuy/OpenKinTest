@@ -14,11 +14,13 @@
 #include <cstring>
 #include <string>
 #include <sstream>
-#include <linux/i2c-dev.h>
+//#include <linux/i2c-dev.h>
+#include <pigpiod_if2.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <poll.h>
+//#include <iterator>
 
 using std::memcpy;
 
@@ -26,12 +28,15 @@ extern "C" {
   #include "Pozyx_definitions.h"
 }
 
-#define DEBUG
+//#define DEBUG
 
 #define BUFFER_LENGTH 32
 #define GPIO 17
 #define SYSFS_GPIO_DIR "/sys/class/gpio"
 #define POLL_TIMEOUT 3000 // 3 seconds
+
+#define SDA 2
+#define SCL 3
 
 //#define DEBUG
 
@@ -46,22 +51,35 @@ int PozyxClass::gpio_file;
 
 void PozyxClass::initI2C(int adapter) {
 
-  std::stringstream ss;
-  ss << "/dev/i2c-" << adapter;
+//  std::stringstream ss;
+//  ss << "/dev/i2c-" << adapter;
 
   //int adapter_nr = 7; // minnowboard
-  i2c_file = open(ss.str().c_str(), O_RDWR);
-  if (i2c_file < 0) {
-    #ifdef DEBUG
-    std::cerr << "Failed to open I2C device" << std::endl;
-    #endif
-  }
+//  i2c_file = open(ss.str().c_str(), O_RDWR);
+	// bit bang i2c
+	int i2c_file = pigpio_start(NULL, NULL);
+	if (i2c_file < 0) {
+		#ifdef DEBUG
+		std::cerr << "Failed to connect to pigpiod!" << std::endl;
+		#endif
+	}
+	int ok = bb_i2c_open(i2c_file, SDA, SCL, 400000); // default pins for i2c
+	if (ok != 0) {
+		#ifdef DEBUG
+		std::cerr << "Error opening i2c: " << ok << std::endl;
+		#endif
+	}
+//  if (i2c_file < 0) {
+//    #ifdef DEBUG
+//    std::cerr << "Failed to open I2C device" << std::endl;
+//    #endif
+//  }
 
-  if (ioctl(i2c_file, I2C_SLAVE, POZYX_I2C_ADDRESS) < 0) {
-    #ifdef DEBUG
-    std::cerr << "Failed to open I2C slave" << std::endl;
-    #endif
-  }
+//  if (ioctl(i2c_file, I2C_SLAVE, POZYX_I2C_ADDRESS) < 0) {
+//    #ifdef DEBUG
+//    std::cerr << "Failed to open I2C slave" << std::endl;
+//    #endif
+//  }
 }
 
 /**
@@ -95,9 +113,10 @@ bool PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms)
     // in polling mode, we insert a small delay such that we don't swamp the i2c bus
     if( _mode == MODE_POLLING ){
       delay(1);
-    }
-    lseek(gpio_file, 0, SEEK_SET);
-    read(gpio_file, buf, sizeof buf);
+    } else {
+      lseek(gpio_file, 0, SEEK_SET);
+      read(gpio_file, buf, sizeof buf);
+		}
     // TODO: more event interrupts, maybe poll in thread
     //if( (_interrupt == 1) || (_mode == MODE_POLLING))
     if( (_mode == MODE_POLLING) || (rc = poll(fdset, nfds, timeout)))
@@ -199,6 +218,10 @@ int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, 
   std::cerr << "Tag: " << std::dec << POZYX_TAG << std::endl;
   std::cerr << "Anchor: " << POZYX_ANCHOR << std::endl;*/
 
+  #ifdef DEBUG
+	std::cout << "Cheking type..." << std::endl;
+	#endif
+
   if(((int)_hw_version & POZYX_TYPE) == POZYX_TAG)
   {
     // check if the uwb, pressure sensor, accelerometer, magnetometer and gyroscope are working
@@ -218,6 +241,11 @@ int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, 
     #endif
     return status;
   }
+
+	#ifdef DEBUG
+  std::cout << "Setting interrupts..." << std::endl;
+	#endif
+
 
   // set everything ready for interrupts
   _interrupt = 0;
@@ -249,6 +277,10 @@ int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, 
     }
     */
 
+  	#ifdef DEBUG
+		std::cout << "Exporting gpio";
+		#endif
+
     // export gpio
     int fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
     if (fd < 0) {
@@ -257,6 +289,10 @@ int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, 
       #endif
       return POZYX_FAILURE;
     }
+
+		#ifdef DEBUG
+		std::cout << ".";
+		#endif
 
     char buf[5];
     sprintf(buf, "%d", GPIO+interrupt_pin);
@@ -275,12 +311,20 @@ int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, 
       return POZYX_FAILURE;
     }
 
+		#ifdef DEBUG
+		std::cout << ".";
+		#endif
+
     write(fd, "in", 3);
     close(fd);
 
     ss.str("");
     ss << SYSFS_GPIO_DIR << "/gpio" << (GPIO+interrupt_pin) << "/edge";
     std::string edge = ss.str();
+
+		#ifdef DEBUG
+		std::cout << ".";
+		#endif
 
     fd = open(edge.c_str(), O_WRONLY);
     if (fd < 0) {
@@ -290,12 +334,20 @@ int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, 
       return POZYX_FAILURE;
     }
 
+		#ifdef DEBUG
+		std::cout << ".";
+		#endif
+
     write(fd, "rising", 7);
     close(fd);
 
     ss.str("");
     ss << SYSFS_GPIO_DIR << "/gpio" << (GPIO+interrupt_pin) << "/value";
     std::string value = ss.str();
+
+		#ifdef DEBUG
+		std::cout << ".";
+		#endif
 
     //gpio_file = open(value.c_str(), O_RDONLY);
     gpio_file = open(value.c_str(), O_RDONLY | O_NONBLOCK);
@@ -305,6 +357,10 @@ int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, 
       #endif
       return POZYX_FAILURE;
     }
+
+		#ifdef DEBUG
+		std::cout << ".";
+		#endif
 
     // set the function that must be called upon an interrupt
     //attachInterrupt(interrupt_pin, IRQ, RISING);
@@ -321,6 +377,11 @@ int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, 
 
   // all done
   delay(POZYX_DELAY_LOCAL_WRITE);
+
+		#ifdef DEBUG
+		std::cout << "." << std::endl;
+		#endif
+
   return status;
 }
 
@@ -674,6 +735,52 @@ int PozyxClass::sendData(uint16_t destination, uint8_t *pData, int size)
   */
 int PozyxClass::i2cWriteWrite(const uint8_t reg_address, const uint8_t *pData, int size)
 {
+
+
+	#ifdef DEBUG
+	std::cout << "i2c write writing: " << size << std::endl;
+  #endif
+
+	// bit banged i2c
+
+  unsigned inLen = (unsigned)size+11;
+
+	char* inBuf = new char[64];
+	inBuf[0] = 0x04; // set address
+	inBuf[1] = 0x4b; // pozyx address
+  inBuf[2] = 0x02; // start
+  inBuf[3] = 0x07; // write
+  inBuf[4] = 0x01; // how many
+	inBuf[5] = (char)reg_address; // data
+  inBuf[6] = 0x02; // restart
+  inBuf[7] = 0x07; // write
+  inBuf[8] = (char)size; // how many
+  //std::copy(std::begin(pData), std::end(pData), std::next(inBuf, 9)); // data
+  memcpy(inBuf+9, pData, size);
+  inBuf[9+size] = 0x03; // stop
+  inBuf[10+size] = 0x00; // no more commands
+
+	unsigned outLen = 1;
+
+  char* outBuf = new char[1];
+
+	int bytes_read = bb_i2c_zip(i2c_file, SDA, inBuf, inLen, outBuf, outLen);
+
+	/*if (bytes_read != read_len) {
+		#ifdef DEBUG
+		std::cerr << "Error reading from I2C! Got " << bytes_read << std::endl;
+		#endif
+		return POZYX_FAILURE;
+	} else {*/
+		#ifdef DEBUG
+		std::cout << "Hopefully worked, returned " << bytes_read << std::endl;
+		#endif
+	//}
+
+	delete[] inBuf;
+  delete[] outBuf;
+
+/*
   int n, error, i;
 
   /*n = i2c_smbus_write_byte(i2c_file, reg_address);
@@ -689,7 +796,7 @@ int PozyxClass::i2cWriteWrite(const uint8_t reg_address, const uint8_t *pData, i
       return (POZYX_FAILURE);
     }
   }*/
-
+/*
   struct i2c_rdwr_ioctl_data io;
   struct i2c_msg msg[2];
   char buf[1] = {(char)reg_address};
@@ -714,7 +821,7 @@ int PozyxClass::i2cWriteWrite(const uint8_t reg_address, const uint8_t *pData, i
     return POZYX_FAILURE;
   }
 
-
+*/
   //Wire.beginTransmission(POZYX_I2C_ADDRESS);
   // write the starting register address
   /*n = Wire.write(reg_address);
@@ -742,6 +849,53 @@ int PozyxClass::i2cWriteWrite(const uint8_t reg_address, const uint8_t *pData, i
   */
 int PozyxClass::i2cWriteRead(uint8_t* write_data, int write_len, uint8_t* read_data, int read_len)
 {
+
+	#ifdef DEBUG
+  std::cout << "i2c write-reading: " << read_len << std::endl;
+	#endif
+
+	// bit banged i2c
+
+  unsigned inLen = (unsigned)write_len+10;
+
+	char* inBuf = new char[128];
+	inBuf[0] = 0x04; // set address
+	inBuf[1] = 0x4b; // pozyx address
+  inBuf[2] = 0x02; // start
+  inBuf[3] = 0x07; // write
+  inBuf[4] = (char)write_len; // how many
+//	std::copy(std::begin(write_data), std::end(write_data), std::next(inBuf, 5)); // data
+  memcpy(inBuf+5, write_data, write_len);
+  inBuf[write_len+5] = 0x02; // restart
+  inBuf[write_len+6] = 0x06; // read
+  inBuf[write_len+7] = (char)read_len; // how many
+  inBuf[write_len+8] = 0x03; // stop
+  inBuf[write_len+9] = 0x00; // no more commands
+
+	unsigned outLen = (unsigned)read_len;
+
+  char* outBuf = new char[128];
+
+	int bytes_read = bb_i2c_zip(i2c_file, SDA, inBuf, inLen, outBuf, outLen);
+
+	if (bytes_read != read_len) {
+		#ifdef DEBUG
+		std::cerr << "Error reading from I2C! Got " << bytes_read << std::endl;
+		#endif
+		return POZYX_FAILURE;
+	} else {
+		#ifdef DEBUG
+		std::cout << "Got data, len: " << bytes_read << std::endl;
+		#endif
+		memcpy(read_data, outBuf, bytes_read);
+	}
+
+	delete[] inBuf;
+  delete[] outBuf;
+
+
+/*
+
   int i, n;
 
   struct i2c_rdwr_ioctl_data io;
@@ -770,7 +924,7 @@ int PozyxClass::i2cWriteRead(uint8_t* write_data, int write_len, uint8_t* read_d
     std::cout << "Got data, len: " << read_len << std::endl;
     #endif
   }
-
+*/
 /*
 
   if (write_len == 1) {

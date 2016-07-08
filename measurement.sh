@@ -2,8 +2,8 @@
 #TODO might be a good idea to start the nodes at the beginning and only start/stop the bag recording
 
 # Needed for rostopic
-#source /opt/ros/indigo/setup.bash
-source /opt/ros/kinetic/setup.bash
+source /opt/ros/indigo/setup.bash
+#source /opt/ros/kinetic/setup.bash
 #source ~/catkin_ws/devel/setup.bash
 
 GPSTEMPFILE="/home/openkin/gpstemp.log"
@@ -14,7 +14,7 @@ ROSTOPICFILE="/home/openkin/rostmp.log"
 #> $LOGFILE
 
 # led connected = 0, not = 1, pwm = 2
-LED=2
+LED=0
 LEDPID=0
 
 #TODO: options for gps, imu, pozyx
@@ -42,28 +42,28 @@ function logger {
 logger "Starting datalogger"
 
 function led_on {
-	if [ "$LED" -eq 0 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 0 ] && [ "$LEDPID" -ne 0 ]; then
 		/usr/bin/sudo kill -USR1 $LEDPID
 	fi
 
-	if [ "$LED" -eq 2 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 2 ] && [ "$LEDPID" -ne 0 ]; then
 		echo "ON" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
 	fi
 }
 
 function led_off {
-	if [ "$LED" -eq 0 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 0 ] && [ "$LEDPID" -ne 0 ]; then
 		/usr/bin/sudo kill -USR2 $LEDPID
 	fi
 
-	if [ "$LED" -eq 2 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 2 ] && [ "$LEDPID" -ne 0 ]; then
 		echo "OFF" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
 	fi
 
 }
 
 function led_blink {
-	if [ "$LED" -eq 0 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 0 ] && [ "$LEDPID" -ne 0 ]; then
 		for n in {1..10}; do
 			led_on
 			sleep 0.4
@@ -72,7 +72,7 @@ function led_blink {
 		done
 	fi
 
-	if [ "$LED" -eq 2 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 2 ] && [ "$LEDPID" -ne 0 ]; then
 		for n in {1..10}; do
 			echo "BLINK" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
 		done
@@ -80,7 +80,7 @@ function led_blink {
 }
 
 function led_blink_f {
-	if [ "$LED" -eq 0 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 0 ] && [ "$LEDPID" -ne 0 ]; then
 		for n in {1..50}; do
 			led_on
 			sleep 0.1
@@ -89,20 +89,20 @@ function led_blink_f {
 		done
 	fi
 
-	if [ "$LED" -eq 2 && "$LEDPID" -ne 0 ]; then
+	if [ "$LED" -eq 2 ] && [ "$LEDPID" -ne 0 ]; then
 		for n in {1..50}; do
 			echo "FASTER" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
 		done
 	fi
 }
 
-if [ "$LED" -eq 0 || "$LED" -eq 2 ]; then
+if [ "$LED" -eq 0 -o "$LED" -eq 2 ]; then
 	if [ "$LED" -eq 0 ]; then
-		/usr/bin/sudo /usr/bin/python /home/openkin/openkin/led-pin.py > /home/openkin/led.log 2>&1 &
+		/usr/bin/sudo /usr/bin/python /home/ubuntu/openkin/led-pin.py > /home/openkin/led.log 2>&1 &
 	fi
 
 	if [ "$LED" -eq 2 ]; then
-		/usr/bin/sudo /bin/bash /home/openkin/openkin/led-linuxpwm.sh > /dev/null 2>&1 &
+		/usr/bin/sudo /bin/bash /home/ubuntu/openkin/led-linuxpwm.sh > /dev/null 2>&1 &
 	fi
 	SUDOPID=$!
 	sleep 1
@@ -166,32 +166,35 @@ function check3G {
 	fi
 }
 
-# Get Xsens device
-XSENS=""
-#for f in /dev/serial/by-id/usb-Xsens_Xsens_COM_port*; do
-for f in /dev/serial/by-id/usb-Xsens_Xsens_*; do
-
-    ## Check if the glob gets expanded to existing files.
-    ## If not, f here will be exactly the pattern above
-    ## and the exists test will evaluate to false.
-    if [ -e "$f" ]; then
-         XSENS=$f
-    fi
-
-    ## This is all we needed to know, so we can break after the first iteration
-    break
-done
+## Get Xsens device
+#XSENS=""
+##for f in /dev/serial/by-id/usb-Xsens_Xsens_COM_port*; do
+#for f in /dev/serial/by-id/usb-Xsens_Xsens_*; do
+#
+#    ## Check if the glob gets expanded to existing files.
+#    ## If not, f here will be exactly the pattern above
+#    ## and the exists test will evaluate to false.
+#    if [ -e "$f" ]; then
+#         XSENS=$f
+#    fi
+#
+#    ## This is all we needed to know, so we can break after the first iteration
+#    break
+#done
 
 #/dev/serial/by-id/usb-Xsens_Xsens_USB-serial_converter_XSUO65V1-if00-port0
 
-I2C_ADAPTER=0
-for i in {0..10}; do
-	sudo i2cdetect -y -r $i 0x4b 0x4b | grep -q 4b
-	if [ $? -eq 0 ]; then
-		I2C_ADAPTER=$i
-		break
-	fi
-done
+#I2C_ADAPTER=0
+#for i in {0..10}; do
+#	sudo i2cdetect -y -r $i 0x4b 0x4b | grep -q 4b
+#	if [ $? -eq 0 ]; then
+#		I2C_ADAPTER=$i
+#		break
+#	fi
+#done
+
+
+/usr/bin/sudo /usr/local/bin/pigpiod
 
 while true; do
 
@@ -312,7 +315,7 @@ while true; do
 				#screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py _device:=/dev/serial/by-id/usb-Xsens_Xsens_COM_port_00340764-if00\n'
 				# Alignment reset will be soon
 				led_blink
-				screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py _device:='$XSENS$'\n'
+				screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py\n'
 				led_off
 			fi
 

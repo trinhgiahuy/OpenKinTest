@@ -78,7 +78,7 @@ PozyxROS::PozyxROS() :
 		}
 	}
 
-	if(Pozyx.begin(adapter, true, MODE_POLLING, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
+	if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
 		std::cerr << "ERROR: Unable to connect to POZYX shield" << std::endl;
 		std::cerr << "Reset required" << std::endl;
 		delay(100);
