@@ -2,14 +2,14 @@
 #TODO might be a good idea to start the nodes at the beginning and only start/stop the bag recording
 
 # Needed for rostopic
-source /opt/ros/indigo/setup.bash
-#source /opt/ros/kinetic/setup.bash
+#source /opt/ros/indigo/setup.bash
+source /opt/ros/kinetic/setup.bash
 #source ~/catkin_ws/devel/setup.bash
 
-GPSTEMPFILE="/home/openkin/gpstemp.log"
-LOGFILE="/home/openkin/measurement.log"
-DATADIR="/home/openkin/data"
-ROSTOPICFILE="/home/openkin/rostmp.log"
+GPSTEMPFILE="/home/pi/gpstemp.log"
+LOGFILE="/home/pi/measurement.log"
+DATADIR="/home/pi/data"
+ROSTOPICFILE="/home/pi/rostmp.log"
 # empty logfile
 #> $LOGFILE
 
@@ -98,11 +98,11 @@ function led_blink_f {
 
 if [ "$LED" -eq 0 -o "$LED" -eq 2 ]; then
 	if [ "$LED" -eq 0 ]; then
-		/usr/bin/sudo /usr/bin/python /home/ubuntu/openkin/led-pin.py > /home/openkin/led.log 2>&1 &
+		/usr/bin/sudo /usr/bin/python /home/pi/openkin/led-pin.py > /home/pi/led.log 2>&1 &
 	fi
 
 	if [ "$LED" -eq 2 ]; then
-		/usr/bin/sudo /bin/bash /home/ubuntu/openkin/led-linuxpwm.sh > /dev/null 2>&1 &
+		/usr/bin/sudo /bin/bash /home/pi/openkin/led-linuxpwm.sh > /dev/null 2>&1 &
 	fi
 	SUDOPID=$!
 	sleep 1
@@ -195,6 +195,8 @@ function check3G {
 
 
 /usr/bin/sudo /usr/local/bin/pigpiod
+
+logger "Starting loop"
 
 while true; do
 
@@ -304,7 +306,8 @@ while true; do
 			if ! screen -list | grep -q "pozyx"; then
 				logger "Offline: Starting Pozyx"
 				screen -dmS pozyx
-				screen -r pozyx -X stuff $'\nsudo -s\nrosrun pozyx pozyx _adapter:='$I2C_ADAPTER$' > /home/openkin/data/pozyx.log 2>&1\n'
+				#screen -r pozyx -X stuff $'\nsudo -s\nrosrun pozyx pozyx _adapter:='$I2C_ADAPTER$' > /home/pi/data/pozyx.log 2>&1\n'
+				screen -r pozyx -X stuff $'\nrosrun pozyx pozyx > /home/pi/data/pozyx.log 2>&1\n'
 				led_off
 			fi
 
@@ -329,7 +332,7 @@ while true; do
 			if ! (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $GPSERR -eq 0 ]] && [[ $POZYXERR -eq 0 ]]; then
 				logger "Offline: Starting logger"
 				screen -dmS log
-				screen -r log -X stuff $'\nrosrun ascii_logger listener.py > /home/openkin/ascii.log\n'
+				screen -r log -X stuff $'\nrosrun ascii_logger listener.py > /home/pi/ascii.log\n'
 				led_on
 			fi
 		else
