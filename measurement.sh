@@ -28,8 +28,8 @@ LED[2]=1
 LEDGPIO[2]=0
 LEDPID[2]=0
 
-# linux-shutdown switch connected = 0, not = 1
-PWRSWITCH=1
+# linux-shutdown switch connected = 0, not = 1, rpi python = 2
+PWRSWITCH=2
 
 #TODO: options for gps, imu, pozyx
 
@@ -57,7 +57,9 @@ function logger {
 logger "Starting datalogger"
 
 if [ "$PWRSWITCH" -eq 0 ]; then
-	sudo /home/pi/openkin/linux-shutdown/pwr-switch &
+	/usr/bin/sudo /home/pi/openkin/linux-shutdown/pwr-switch &
+elif [ "$PWRSWITCH" -eq 2 ]; then
+	/usr/bin/sudo /usr/bin/python /home/pi/openkin/shutdown_flip.py &
 fi
 
 function led_on {
