@@ -136,6 +136,7 @@ for i in {0..2}; do
 		LEDPID[$i]=$(/bin/ps --ppid ${SUDOPID[$i]} -o pid=)
 		echo ${LEDPID[$i]}
 		logger "Led $i connected"
+		sleep 2
 		led_on $i
 		sleep 1
 		led_off $i

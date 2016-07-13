@@ -145,6 +145,8 @@ def writeBuffer():
 
     bufferlock.acquire()
 
+    buffer = sorted(buffer, key=lambda x: x['timestamp.secs']+(1e-9*x['timestamp.nsecs']));
+
     # check more than 20 samples in buffer
     # and find closest imu-points for gps-points
     if len(buffer) > 120:
@@ -180,7 +182,7 @@ def writeBuffer():
                     if prev_imu and next_imu:
                         if abs((buffer[i-distp]['timestamp.secs']+(1e-9*buffer[i-distp]['timestamp.nsecs'])) -
                            (buffer[i]['timestamp.secs']+(1e-9*buffer[i]['timestamp.nsecs']))) < \
-                           abs((buffer[i]['timestamp.secs']+(1e-9*buffer[i]['timestamp.nsecs'])) -
+                           abs((buffer[i+distn]['timestamp.secs']+(1e-9*buffer[i+distn]['timestamp.nsecs'])) -
                            (buffer[i]['timestamp.secs']+(1e-9*buffer[i]['timestamp.nsecs']))):
                             # previous closer
                             joins.append((i, i-distp))
