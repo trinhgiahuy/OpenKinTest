@@ -145,11 +145,47 @@ def writeBuffer():
 
     bufferlock.acquire()
 
-    buffer = sorted(buffer, key=lambda x: x['timestamp.secs']+(1e-9*x['timestamp.nsecs']));
-
     # check more than 20 samples in buffer
     # and find closest imu-points for gps-points
     if len(buffer) > 120:
+
+        for i, j in enumerate(buffer):
+            if 'iTOW' in j:
+                distp = 0
+                distn = 0
+                prev_time = False
+                next_time = False
+                while not prev_time and (i-distp-1) >= 0:
+                    distp += 1
+                    prev_time = 'timestamp.secs' in buffer[i-distp]
+
+                while not next_time and (i+distn+1) < len(buffer):
+                    distn += 1
+                    next_time = 'timestamp.secs' in buffer[i+distn]
+
+                if not prev_time and next_time and i < len(buffer)-50:
+                    buffer[i]['timestamp.secs'] = buffer[i+distn]['timestamp.secs']
+                    if buffer[i+distn]['timestamp.nsecs'] > 0:
+                        buffer[i]['timestamp.nscs'] = buffer[i+distn]['timestamp.nsecs']-1
+                    else:
+                        buffer[i]['timestamp.nsecs'] = 999999
+                        buffer[i]['timestamp.secs'] -= 1
+                elif i >= len(buffer)-50:
+                    # leave for next round
+                    continue
+                elif prev_time:
+                    buffer[i]['timestamp.secs'] = buffer[i-distp]['timestamp.secs']
+                    if buffer[i-distp]['timestamp.nsecs'] >= 999999:
+                        buffer[i]['timestamp.nscs'] = buffer[i-distp]['timestamp.nsecs']+1
+                    else:
+                        buffer[i]['timestamp.nsecs'] = 0
+                        buffer[i]['timestamp.secs'] += 1
+                #else:
+                    # no times around?
+
+        buffer = sorted(buffer, key=lambda x: x['timestamp.secs']+(1e-9*x['timestamp.nsecs']));
+
+
         for i, j in enumerate(buffer):
             if 'gpsseq' in j or 'posseq' in j or 'rangeseq' in j:
                 #rospy.loginfo("gps in %s", i)
@@ -214,7 +250,8 @@ def writeBuffer():
                 closest = -1
                 dist = 99999
                 for j in tmpjoins:
-                    if abs(j[1]-nav) < dist:
+                    # navvels only to gps points
+                    if 'gpsseq' in buffer[j[1]] and abs(j[1]-nav) < dist:
                         closest = j[1]
                         dist = abs(closest-nav)
                 if closest != -1:
