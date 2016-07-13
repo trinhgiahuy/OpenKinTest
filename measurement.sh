@@ -13,9 +13,23 @@ ROSTOPICFILE="/home/pi/rostmp.log"
 # empty logfile
 #> $LOGFILE
 
-# led connected = 0, not = 1, pwm = 2
-LED=0
-LEDPID=0
+# primary led connected (linux-gpio) = 0, not = 1, pwm = 2, rpigpio = 3
+LED[0]=3
+# GPIO pin or pwm device number
+LEDGPIO[0]=24
+LEDPID[0]=0
+
+# secondary led connected = 0, not = 1, pwm = 2, rpigpio = 3
+LED[1]=1
+LEDGPIO[1]=0
+LEDPID[1]=0
+
+LED[2]=1
+LEDGPIO[2]=0
+LEDPID[2]=0
+
+# linux-shutdown switch connected = 0, not = 1
+PWRSWITCH=1
 
 #TODO: options for gps, imu, pozyx
 
@@ -23,6 +37,7 @@ GRIVEPID=-1
 
 STOPPED=0
 UPLOADED=1
+STARTEDUPLOAD=1
 
 IMUERR=1
 GPSERR=1
@@ -41,83 +56,97 @@ function logger {
 
 logger "Starting datalogger"
 
+if [ "$PWRSWITCH" -eq 0 ]; then
+	sudo /home/pi/openkin/linux-shutdown/pwr-switch &
+fi
+
 function led_on {
-	if [ "$LED" -eq 0 ] && [ "$LEDPID" -ne 0 ]; then
-		/usr/bin/sudo kill -USR1 $LEDPID
+	if [ "${LED[$1]}" -eq 3 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
+		/usr/bin/sudo kill -USR1 ${LEDPID[$1]}
 	fi
 
-	if [ "$LED" -eq 2 ] && [ "$LEDPID" -ne 0 ]; then
-		echo "ON" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
+	if [ "${LED[$1]}" -eq 2 -o "${LED[$1]}" -eq 0 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
+		echo "ON" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe$1
 	fi
 }
 
 function led_off {
-	if [ "$LED" -eq 0 ] && [ "$LEDPID" -ne 0 ]; then
-		/usr/bin/sudo kill -USR2 $LEDPID
+	if [ "${LED[$1]}" -eq 3 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
+		/usr/bin/sudo kill -USR2 ${LEDPID[$1]}
 	fi
 
-	if [ "$LED" -eq 2 ] && [ "$LEDPID" -ne 0 ]; then
-		echo "OFF" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
+	if [ "${LED[$1]}" -eq 2 -o "${LED[$1]}" -eq 0 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
+		echo "OFF" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe$1
 	fi
 
 }
 
 function led_blink {
-	if [ "$LED" -eq 0 ] && [ "$LEDPID" -ne 0 ]; then
+	if [ "${LED[$1]}" -eq 3 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
 		for n in {1..10}; do
-			led_on
+			led_on $1
 			sleep 0.4
-			led_off
+			led_off $1
 			sleep 0.2
 		done
 	fi
 
-	if [ "$LED" -eq 2 ] && [ "$LEDPID" -ne 0 ]; then
+	if [ "${LED[$1]}" -eq 2 -o "${LED[$1]}" -eq 0 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
 		for n in {1..10}; do
-			echo "BLINK" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
+			echo "BLINK" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe$1
 		done
 	fi
 }
 
 function led_blink_f {
-	if [ "$LED" -eq 0 ] && [ "$LEDPID" -ne 0 ]; then
-		for n in {1..50}; do
-			led_on
+	if [ "${LED[$1]}" -eq 3 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
+		for n in {1..30}; do
+			led_on $1
 			sleep 0.1
-			led_off
+			led_off $1
 			sleep 0.1
 		done
 	fi
 
-	if [ "$LED" -eq 2 ] && [ "$LEDPID" -ne 0 ]; then
-		for n in {1..50}; do
-			echo "FASTER" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe
+	if [ "${LED[$1]}" -eq 2 -o "${LED[$1]}" -eq 0 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
+		for n in {1..30}; do
+			echo "FASTER" | /usr/bin/sudo /usr/bin/tee /tmp/ledpipe$1
 		done
 	fi
 }
 
-if [ "$LED" -eq 0 -o "$LED" -eq 2 ]; then
-	if [ "$LED" -eq 0 ]; then
-		/usr/bin/sudo /usr/bin/python /home/pi/openkin/led-pin.py > /home/pi/led.log 2>&1 &
-	fi
 
-	if [ "$LED" -eq 2 ]; then
-		/usr/bin/sudo /bin/bash /home/pi/openkin/led-linuxpwm.sh > /dev/null 2>&1 &
-	fi
-	SUDOPID=$!
-	sleep 1
-	LEDPID=$(/bin/ps --ppid $SUDOPID -o pid=)
-	echo $LEDPID
-	logger "Led connected"
-	led_on
-	sleep 1
-	led_off
-fi
+# start led controllers
+for i in {0..2}; do
+	if [ "${LED[$i]}" -eq 3 -o "${LED[$i]}" -eq 2 -o "${LED[$i]}" -eq 0 ]; then
+		if [ "${LED[$i]}" -eq 3 ]; then
+			/usr/bin/sudo /usr/bin/python /home/pi/openkin/led-pin.py ${LEDGPIO[$i]} > /home/pi/led.log 2>&1 &
+		fi
 
+		if [ "${LED[$i]}" -eq 2 ]; then
+			/usr/bin/sudo /bin/bash /home/pi/openkin/led-linuxpwm.sh $i ${LEDGPIO[$i]} > /dev/null 2>&1 &
+		fi
+
+		if [ "${LED[$i]}" -eq 0 ]; then
+			/usr/bin/sudo /bin/bash /home/pi/openkin/led-linuxgpio.sh $i ${LEDGPIO[$i]} > /dev/null 2>&1 &
+		fi
+
+		SUDOPID[$i]=$!
+		sleep 1
+		LEDPID[$i]=$(/bin/ps --ppid ${SUDOPID[$i]} -o pid=)
+		echo ${LEDPID[$i]}
+		logger "Led $i connected"
+		sleep 2
+		led_on $i
+		sleep 1
+		led_off $i
+	fi
+done
 
 function quitScreens {
-	led_off
-
+	led_off 0
+	led_off 2
+	led_on 1
 
 	if screen -list | grep -q "log"; then
 		logger "Shutting down logger"
@@ -193,17 +222,15 @@ function check3G {
 #	fi
 #done
 
-
 /usr/bin/sudo /usr/local/bin/pigpiod
 
 logger "Starting loop"
-
 while true; do
 
 	check3G
 
 	# enough timeout for 3g
-	nc -w 30 -z 8.8.8.8 53  >/dev/null 2>&1
+	nc -w 30 -z 8.8.8.8 53  &> /dev/null
 	online=$?
 	if [ -f "online" ]; then
 		online="$(cat online)"
@@ -213,7 +240,10 @@ while true; do
 		if [[ $TIMECORRECTED -ne 0 ]] && sudo ntpdate time1.mikes.fi; then
 			TIMECORRECTED=0
 			logger "Time corrected"
-			led_blink_f
+			led_blink_f 0
+			led_on 1
+		elif [ "$TIMECORRECTED" -ne 0 ]; then
+			logger "Failed to update time"
 		fi
 
 		# Stop IMU, GPS and recording
@@ -233,14 +263,23 @@ while true; do
 
 
 		if [ "$UPLOADED" -ne 0 ]; then
-			if ! ps -p $GRIVEPID > /dev/null 2>&1; then
+			if [ "$STARTEDUPLOAD" -ne 0 ] && ! ps -p $GRIVEPID > /dev/null 2>&1; then
+				STARTEDUPLOAD=0
 				logger "Uploading the data"
 				#screen -r grive -X stuff $'\ngrive\n'
-				# upload in subshell, wait for finish (should we?)
+				# upload in subshell
+				led_blink 1
 				(cd $DATADIR; grive >> $LOGFILE) & >> $LOGFILE
 				GRIVEPID=$!
+			elif ps -p $GRIVEPID > /dev/null 2>&1; then
+				led_blink 1
+				sleep 2
+			else
+				UPLOADED=0
+				STARTEDUPLOAD=1
+				logger "Done uploading!"
 			fi
-			UPLOADED=0
+			#UPLOADED=0
 		fi
 	else
 
@@ -273,13 +312,15 @@ while true; do
 				logger "Error on starting gps"
 				logger "$(cat $GPSTEMPFILE)"
 				screen -S gps -X quit
-				led_off
+				led_off 0
+				led_off 2
 				# start over
 				continue
 			elif [ ! -f $GPSTEMPFILE ]; then
 				logger "GPSlog not found"
 				screen -S gps -X quit
-				led_off
+				led_off 0
+				led_off 2
 				# start over
 				continue
 			fi
@@ -292,14 +333,16 @@ while true; do
 			if [ "$IMUERR" -gt 10 ]; then
 				logger "IMU-errors more than 10, restaring IMU"
 				IMUERR=1
-				led_off
+				led_off 0
+				led_off 2
 				screen -S imu -X quit
 			fi
 
 			if [ "$POZYXERR" -gt 10 ]; then
 				logger "Pozyx-errors more than 10, restaring Pozyx"
 				POZYXERR=1
-				led_off
+				led_off 0
+				led_off 2
 				screen -S pozyx -X quit
 			fi
 
@@ -308,7 +351,8 @@ while true; do
 				screen -dmS pozyx
 				#screen -r pozyx -X stuff $'\nsudo -s\nrosrun pozyx pozyx _adapter:='$I2C_ADAPTER$' > /home/pi/data/pozyx.log 2>&1\n'
 				screen -r pozyx -X stuff $'\nrosrun pozyx pozyx > /home/pi/data/pozyx.log 2>&1\n'
-				led_off
+				led_off 0
+				led_off 2
 			fi
 
 			if ! screen -list | grep -q "imu"; then
@@ -317,23 +361,26 @@ while true; do
 				# /dev/serial/by-id/usb-Xsens_Xsens_COM_port_00342762-if00
 				#screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py _device:=/dev/serial/by-id/usb-Xsens_Xsens_COM_port_00340764-if00\n'
 				# Alignment reset will be soon
-				led_blink
+				led_blink 0
 				screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py\n'
-				led_off
+				led_off 0
+				led_off 2
 			fi
 
 			if ! screen -list | grep -q "bag"; then
 				logger "Offline: Starting RECORDING"
 				screen -dmS bag
 				screen -r bag -X stuff $'\ncd ~/data\nrosbag record -a\n'
-				led_off
+				led_off 0
+				led_off 2
 			fi
 
 			if ! (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $GPSERR -eq 0 ]] && [[ $POZYXERR -eq 0 ]]; then
 				logger "Offline: Starting logger"
 				screen -dmS log
 				screen -r log -X stuff $'\nrosrun ascii_logger listener.py > /home/pi/ascii.log\n'
-				led_on
+				led_on 2
+				led_on 0
 			fi
 		else
 			logger "GPS wasn't running!"
