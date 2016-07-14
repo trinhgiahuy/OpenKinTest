@@ -61,7 +61,7 @@ def imucallback(data, pozyx):
 
     # write buffer to file every now and then
     counter += 1
-    if counter > 30:
+    if counter > 120:
         counter = 0
         writeBuffer()
 
@@ -149,7 +149,7 @@ def writeBuffer():
 
     # check more than 20 samples in buffer
     # and find closest imu-points for gps-points
-    if len(buffer) > 120:
+    if len(buffer) > 320:
         #rospy.loginfo(">120")
         for i, j in enumerate(buffer):
             if 'iTOW' in j:
