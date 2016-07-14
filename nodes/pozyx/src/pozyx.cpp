@@ -137,15 +137,15 @@ PozyxROS::PozyxROS() :
 		throw 2;
 	}
 
-	imu_pub_ = nh_.advertise<sensor_msgs::Imu>("pozyx/data",10,false);
+	imu_pub_ = nh_.advertise<sensor_msgs::Imu>("pozyx/data",200,false);
 
-	magnetic_pub_ = nh_.advertise<sensor_msgs::MagneticField>("pozyx/mag",10,false);
+	magnetic_pub_ = nh_.advertise<sensor_msgs::MagneticField>("pozyx/mag",100,false);
 
-	pos_pub_ = nh_.advertise<geometry_msgs::PointStamped>("pozyx/pos",10,false);
+	pos_pub_ = nh_.advertise<geometry_msgs::PointStamped>("pozyx/pos",100,false);
 
-	range_pub_ = nh_.advertise<pozyx::StringStamped>("pozyx/range",10,false);
+	range_pub_ = nh_.advertise<pozyx::StringStamped>("pozyx/range",100,false);
 
-	anchor_pub_ = nh_.advertise<sensor_msgs::PointCloud>("pozyx/anchors",10,false);
+	anchor_pub_ = nh_.advertise<sensor_msgs::PointCloud>("pozyx/anchors",100,false);
 }
 
 void PozyxROS::update() {
