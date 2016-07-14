@@ -196,24 +196,29 @@ function check3G {
 	fi
 }
 
-#logger "Finding XSens..."
-# Get Xsens device
-#XSENS=""
-#for f in /dev/serial/by-id/usb-Xsens_Xsens_COM_port*; do
-#for f in /dev/serial/by-id/usb-Xsens_Xsens_*; do
+function findXsens {
 
-    ## Check if the glob gets expanded to existing files.
-    ## If not, f here will be exactly the pattern above
-    ## and the exists test will evaluate to false.
-#    if [ -e "$f" ]; then
-#         XSENS=$f
-#    fi
+	logger "Finding XSens..."
+	# Get Xsens device
+	XSENS=""
+	#for f in /dev/serial/by-id/usb-Xsens_Xsens_COM_port*; do
+	for f in /dev/serial/by-id/usb-Xsens_Xsens_*; do
 
-    ## This is all we needed to know, so we can break after the first iteration
-#    break
-#done
+	    ## Check if the glob gets expanded to existing files.
+	    ## If not, f here will be exactly the pattern above
+	    ## and the exists test will evaluate to false.
+	    if [ -e "$f" ]; then
+	         XSENS=$f
+	    fi
 
-#/dev/serial/by-id/usb-Xsens_Xsens_USB-serial_converter_XSUO65V1-if00-port0
+	    ## This is all we needed to know, so we can break after the first iteration
+	    break
+	done
+
+	#/dev/serial/by-id/usb-Xsens_Xsens_USB-serial_converter_XSUO65V1-if00-port0
+}
+
+findXsens
 
 logger "Finding Pozyx..."
 I2C_ADAPTER=0
@@ -362,7 +367,12 @@ while true; do
 				#screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py _device:=/dev/serial/by-id/usb-Xsens_Xsens_COM_port_00340764-if00\n'
 				# Alignment reset will be soon
 				led_blink 0
-				screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py\n'
+				#screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py\n'
+				if [ "$XSENS" -eq "" ]; then
+					findXsens
+				else
+					screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py _device:='$XSENS$'\n'
+				fi
 				led_off 0
 				led_off 2
 			fi
