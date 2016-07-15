@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <poll.h>
+#include <ctime>
 
 using std::memcpy;
 
@@ -32,6 +33,7 @@ extern "C" {
 #define POLL_TIMEOUT 3000 // 3 seconds
 
 //#define DEBUG
+#define PRINTERRORS
 
 int PozyxClass::_interrupt = 0;
 int PozyxClass::_mode;
@@ -42,6 +44,19 @@ int PozyxClass::_sw_version;       // pozyx software (firmware) version. (By upd
 int PozyxClass::i2c_file;
 int PozyxClass::gpio_file;
 
+void printTime(bool cerr = false) {
+  time_t rawtime;
+  struct tm * timeinfo;
+
+  time (&rawtime);
+  timeinfo = localtime (&rawtime);
+  if (cerr) {
+    std::cerr << std::dec << "[" << mktime(timeinfo) << "] ";
+  } else {
+    std::cout << std::dec << "[" << mktime(timeinfo) << "] ";
+  }
+}
+
 void PozyxClass::initI2C(int adapter) {
 
   std::stringstream ss;
@@ -50,13 +65,15 @@ void PozyxClass::initI2C(int adapter) {
   //int adapter_nr = 7; // minnowboard
   i2c_file = open(ss.str().c_str(), O_RDWR);
   if (i2c_file < 0) {
-    #ifdef DEBUG
+    #ifdef PRINTERRORS
+    printTime(true);
     std::cerr << "Failed to open I2C device" << std::endl;
     #endif
   }
 
   if (ioctl(i2c_file, I2C_SLAVE, POZYX_I2C_ADDRESS) < 0) {
-    #ifdef DEBUG
+    #ifdef PRINTERRORS
+    printTime(true);
     std::cerr << "Failed to open I2C slave" << std::endl;
     #endif
   }
@@ -100,6 +117,7 @@ bool PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms)
       lseek(gpio_file, 0, SEEK_SET);
       read(gpio_file, buf, sizeof buf);
       #ifdef DEBUG
+      printTime();
       std::cout << "Polled " << millis() << ", rc: " << rc << ", revents: " << fdset[0].revents << std::endl;
       #endif
       //_interrupt = 0;
@@ -113,7 +131,8 @@ bool PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms)
         return true;
       }
     } else {
-      #ifdef DEBUG
+      #ifdef PRINTERRORS
+      printTime(true);
       std::cerr << "Error polling: " << rc << ", " << std::dec << millis() << std::endl;
       #endif
     }
@@ -206,7 +225,8 @@ int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, 
       status = POZYX_FAILURE;
     }
     #ifdef DEBUG
-    std::cerr << "Return from type check" << std::endl;
+    printTime();
+    std::cout << "Return from type check" << std::endl;
     #endif
     return status;
   }
@@ -244,7 +264,8 @@ int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, 
     // export gpio
     int fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
     if (fd < 0) {
-      #ifdef DEBUG
+      #ifdef PRINTERRORS
+      printTime(true);
       std::cerr << "Error interrupting 1" << std::endl;
       #endif
       return POZYX_FAILURE;
@@ -261,7 +282,8 @@ int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, 
 
     fd = open(dir.c_str(), O_WRONLY);
     if (fd < 0) {
-      #ifdef DEBUG
+      #ifdef PRINTERRORS
+      printTime(true);
       std::cerr << "Error interrupting 2" << std::endl;
       #endif
       return POZYX_FAILURE;
@@ -276,7 +298,8 @@ int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, 
 
     fd = open(edge.c_str(), O_WRONLY);
     if (fd < 0) {
-      #ifdef DEBUG
+      #ifdef PRINTERRORS
+      printTime(true);
       std::cerr << "Error interrupting 3" << std::endl;
       #endif
       return POZYX_FAILURE;
@@ -292,7 +315,8 @@ int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, 
     //gpio_file = open(value.c_str(), O_RDONLY);
     gpio_file = open(value.c_str(), O_RDONLY | O_NONBLOCK);
     if (gpio_file < 0) {
-      #ifdef DEBUG
+      #ifdef PRINTERRORS
+      printTime(true);
       std::cerr << "Error interrupting 4" << std::endl;
       #endif
       return POZYX_FAILURE;
@@ -700,7 +724,8 @@ int PozyxClass::i2cWriteWrite(const uint8_t reg_address, const uint8_t *pData, i
   io.nmsgs = 2;
 
   if (ioctl(i2c_file, I2C_RDWR, &io) < 0) {
-    #ifdef DEBUG
+    #ifdef PRINTERRORS
+    printTime(true);
     std::cerr << "Error repeated writing to I2C" << std::endl;
     #endif
     return POZYX_FAILURE;
@@ -753,12 +778,14 @@ int PozyxClass::i2cWriteRead(uint8_t* write_data, int write_len, uint8_t* read_d
   io.nmsgs = 2;
 
   if (ioctl(i2c_file, I2C_RDWR, &io) < 0) {
-    #ifdef DEBUG
+    #ifdef PRINTERRORS
+    printTime(true);
     std::cerr << "Error repeated read from I2C" << std::endl;
     #endif
     return POZYX_FAILURE;
   } else {
     #ifdef DEBUG
+    printTime();
     std::cout << "Got data, len: " << read_len << std::endl;
     #endif
   }

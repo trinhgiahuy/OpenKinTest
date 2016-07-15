@@ -290,6 +290,8 @@ while true; do
 	else
 
 		UPLOADED=1
+		GRIVEPID=0
+		STARTEDUPLOAD=1
 
 #		if [ "$GRIVEPID" -ne -1 ]; then
 #			logger "Stopping GRIVE, measuring, $GRIVEPID"
