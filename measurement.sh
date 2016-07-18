@@ -417,8 +417,8 @@ while true; do
 			IMUERR=0
 		fi
 
-		if ! grep -q "^/pozyx/data$" $ROSTOPICFILE; then
-			logger "/pozyx/data not found"
+		if ! grep -q "^/pozyx/.*$" $ROSTOPICFILE; then
+			logger "/pozyx/.* not found"
 			((POZYXERR++))
 		else
 			POZYXERR=0
