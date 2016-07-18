@@ -194,7 +194,7 @@ def writeBuffer():
 	#rospy.loginfo("Sorted")
 
         for i, j in enumerate(buffer):
-            if 'gpsseq' in j or 'posseq' in j or 'rangeseq' in j:
+            if ('gpsseq' in j or 'posseq' in j or 'rangeseq' in j) and not 'imuseq' in j:
                 #rospy.loginfo("fusable in %s", i)
                 # test closest points for imu
                 if i == 0:
