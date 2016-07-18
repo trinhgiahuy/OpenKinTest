@@ -35,11 +35,11 @@ private:
 
 	sensor_msgs::Imu imu_msg;
 
-	ros::Publisher imu_pub_;
-	ros::Publisher magnetic_pub_;
+	//ros::Publisher imu_pub_;
+	//ros::Publisher magnetic_pub_;
 	ros::Publisher pos_pub_;
 	ros::Publisher range_pub_;
-	ros::Publisher anchor_pub_;
+	//ros::Publisher anchor_pub_;
 
 	std::string imu_frame_id_;
 
@@ -58,6 +58,7 @@ PozyxROS::PozyxROS() :
 
 	private_nh_.param("adapter", adapter, int(1));
 
+	/*
 	std::vector<double> orientation_covariance, angular_velocity_covariance, linear_acceleration_covariance;
 
 	if (orientation_covariance.size() == 9) {
@@ -77,8 +78,10 @@ PozyxROS::PozyxROS() :
 			imu_msg.linear_acceleration_covariance[i] = linear_acceleration_covariance[i];
 		}
 	}
+	*/
 
-	if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
+	//if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
+	if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_POS, 0) == POZYX_FAILURE){
     std::cerr << "ERROR: Unable to connect to POZYX shield" << std::endl;
     std::cerr << "Reset required" << std::endl;
     delay(100);
@@ -137,20 +140,21 @@ PozyxROS::PozyxROS() :
 		throw 2;
 	}
 
-	imu_pub_ = nh_.advertise<sensor_msgs::Imu>("pozyx/data",200,false);
+	//imu_pub_ = nh_.advertise<sensor_msgs::Imu>("pozyx/data",200,false);
 
-	magnetic_pub_ = nh_.advertise<sensor_msgs::MagneticField>("pozyx/mag",100,false);
+	//magnetic_pub_ = nh_.advertise<sensor_msgs::MagneticField>("pozyx/mag",100,false);
 
 	pos_pub_ = nh_.advertise<geometry_msgs::PointStamped>("pozyx/pos",100,false);
 
 	range_pub_ = nh_.advertise<pozyx::StringStamped>("pozyx/range",100,false);
 
-	anchor_pub_ = nh_.advertise<sensor_msgs::PointCloud>("pozyx/anchors",100,false);
+	//anchor_pub_ = nh_.advertise<sensor_msgs::PointCloud>("pozyx/anchors",100,false);
 }
 
 void PozyxROS::update() {
 	imu_frame_id_ = "pozyx";
 
+	/*
 	coordinates_t device_coords[list_size_i];
 
 	for (int i = 0; i < list_size_i; i++) {
@@ -175,11 +179,12 @@ void PozyxROS::update() {
 	}
 
 	anchor_pub_.publish(anchors);
+	*/
 
 	while (ros::ok()) {
 		// get imu data
 
-		int16_t sensor_data[12];
+		//int16_t sensor_data[12];
 		int32_t pos_data[3];
 		device_range_t ranges[list_size_i];
 		coordinates_t pos;
@@ -188,12 +193,12 @@ void PozyxROS::update() {
 
 
 		// wait until this device gives an interrupt
-    if (Pozyx.waitForFlag(POZYX_INT_STATUS_IMU, 8))
+    if (Pozyx.waitForFlag(POZYX_INT_STATUS_POS, 300))
     {
       // we received an interrupt from pozyx telling us new IMU data is ready, now let's read it!
-      Pozyx.regRead(POZYX_ACCEL_X, (uint8_t*)&sensor_data, 9*sizeof(int16_t));
+      //Pozyx.regRead(POZYX_ACCEL_X, (uint8_t*)&sensor_data, 9*sizeof(int16_t));
 			current_time = ros::Time::now();
-			Pozyx.regRead(POZYX_QUAT_W, (uint8_t*)&sensor_data[9], 4*sizeof(int16_t));
+			//Pozyx.regRead(POZYX_QUAT_W, (uint8_t*)&sensor_data[9], 4*sizeof(int16_t));
       // also read out the calibration status
       //Pozyx.regRead(POZYX_CALIB_STATUS, &calib_status, 1);
 
@@ -223,6 +228,7 @@ void PozyxROS::update() {
 		// print out the presure (this is not an int16 but rather an uint32
 		//uint32_t pressure = ((uint32_t)sensor_data[0]) + (((uint32_t)sensor_data[1])<<16);
 
+		/*
 		imu_msg.header.stamp = current_time;
 		imu_msg.header.frame_id = imu_frame_id_;
 		imu_msg.orientation.x = (double)sensor_data[10] / 16384;
@@ -250,6 +256,7 @@ void PozyxROS::update() {
 		msg.magnetic_field.z = (double)sensor_data[5] / (16 * 37);
 
 		magnetic_pub_.publish(msg);
+		*/
 
 		pozyx::StringStamped range_msg;
 		std::stringstream ss;
@@ -264,6 +271,7 @@ void PozyxROS::update() {
 
 		range_pub_.publish(range_msg);
 
+		/*
 		sensor_msgs::PointCloud anchors;
 		anchors.header.stamp = ros::Time::now();
 		anchors.header.frame_id = imu_frame_id_;
@@ -286,6 +294,7 @@ void PozyxROS::update() {
 		}
 
 		anchor_pub_.publish(anchors);
+		*/
 
 		if (!pos_error) {
 
