@@ -141,7 +141,7 @@ def writeBuffer():
     # indexes of navvelned
     navvels = []
     # how many points to leave for next round
-    leave = 1
+    leave = 55
 
     #rospy.loginfo("Running algo")
 
@@ -149,10 +149,10 @@ def writeBuffer():
 
     # check more than 20 samples in buffer
     # and find closest imu-points for gps-points
-    if len(buffer) > 320:
+    if len(buffer) > 120:
         #rospy.loginfo(">120")
         for i, j in enumerate(buffer):
-            if 'iTOW' in j:
+            if 'iTOW' in j and not 'timestamp.secs' in j:
                 #rospy.loginfo("found navvel")
                 distp = 0
                 distn = 0
@@ -166,7 +166,7 @@ def writeBuffer():
                     distn += 1
                     next_time = 'timestamp.secs' in buffer[i+distn] and not 'iTOW' in buffer[i+distn]
 
-                if not prev_time and next_time and i < len(buffer)-50:
+                if not prev_time and next_time:
                     buffer[i]['timestamp.secs'] = buffer[i+distn]['timestamp.secs']
                     if buffer[i+distn]['timestamp.nsecs'] > 0:
                         buffer[i]['timestamp.nsecs'] = buffer[i+distn]['timestamp.nsecs']-1
@@ -197,17 +197,10 @@ def writeBuffer():
             if ('gpsseq' in j or 'posseq' in j or 'rangeseq' in j) and not 'imuseq' in j:
                 #rospy.loginfo("fusable in %s", i)
                 # test closest points for imu
-                if i == 0:
-                    # first, check next
-                    while i+1 < len(buffer):
-                        if 'imuseq' in buffer[i+1]:
-                            # join j to buffer[i+1]
-                            joins.append((i,i+1))
-                            break
-                        i += 1
-                elif i >= len(buffer)-50:
+                if i >= len(buffer)-50:
                     # end of buffer, save gps and previous imu for next round
-                    leave = 55
+                    #leave = 55
+                    continue
                 else:
                     # if imu points
                     distp = 0
@@ -241,7 +234,7 @@ def writeBuffer():
                         joins.append((i, i+distn))
                     #else:
                         # No imu-points on sides, no join
-            elif 'iTOW' in j:
+            elif 'iTOW' in j and 'imuseq' not in j:
                 # merge navvelned
                 navvels.append(i)
                 #rospy.loginfo("navvel in %s", i)
@@ -251,7 +244,8 @@ def writeBuffer():
         for nav in navvels:
             if nav >= len(buffer)-50:
                 #rospy.loginfo("Skipped join: %s, len: %s", nav, len(buffer))
-                leave = 55
+                #leave = 55
+                continue
             else:
                 closest = -1
                 dist = 99999
@@ -268,6 +262,12 @@ def writeBuffer():
         # pair gps-data with imu-data
         for j in joins:
             #rospy.loginfo("Join2: %s and %s, len: %s", j[0], j[1], len(buffer))
+            if not 'imuseq' in buffer[j[1]]:
+                rospy.loginfo("No imuseq in fusing point!: %s", buffer[j[1]])
+                continue
+            if 'imuseq' in buffer[j[0]]:
+                rospy.loginfo("Imuseq to be deleted!: %s", buffer[j[0]])
+                continue
             if not 'gpsseq' in buffer[j[1]] and 'gpsseq' in buffer[j[0]]:
                 buffer[j[1]]['gpsseq'] = buffer[j[0]].get('gpsseq', 'NaN')
                 buffer[j[1]]['latitude'] = buffer[j[0]].get('latitude', 'NaN')
