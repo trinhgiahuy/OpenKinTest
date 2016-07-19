@@ -81,12 +81,12 @@ PozyxROS::PozyxROS() :
 	*/
 
 	//if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
-	if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_POS, 0) == POZYX_FAILURE){
-    std::cerr << "ERROR: Unable to connect to POZYX shield" << std::endl;
-    std::cerr << "Reset required" << std::endl;
-    delay(100);
-    throw 1;
-  }
+	if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_POS | POZYX_INT_MASK_FUNC, 0) == POZYX_FAILURE){
+		std::cerr << "ERROR: Unable to connect to POZYX shield" << std::endl;
+		std::cerr << "Reset required" << std::endl;
+		delay(100);
+		throw 1;
+	}
 
 	bool done = false;
 

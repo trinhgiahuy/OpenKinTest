@@ -30,7 +30,7 @@ extern "C" {
 #define BUFFER_LENGTH 32
 #define GPIO 338
 #define SYSFS_GPIO_DIR "/sys/class/gpio"
-#define POLL_TIMEOUT 3000 // 3 seconds
+#define POLL_TIMEOUT 6000 // 3 seconds
 
 //#define DEBUG
 #define PRINTERRORS
