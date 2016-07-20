@@ -27,7 +27,7 @@
 */
 
 #include <xsensdeviceapi.h> // The Xsens device API header
-#include "conio.h"			// For non ANSI _kbhit() and _getch()
+//#include "conio.h"			// For non ANSI _kbhit() and _getch()
 
 #include <string>
 #include <stdexcept>
@@ -39,6 +39,10 @@
 #include <utility>
 
 #include <xsens/xsmutex.h>
+
+#include <ros/ros.h>
+#include <sensor_msgs/Imu.h>
+#include <ctime>
 
 /*! \brief Stream insertion operator overload for XsPortInfo */
 std::ostream& operator << (std::ostream& out, XsPortInfo const & p)
@@ -208,10 +212,27 @@ private:
 //----------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-	(void)argc;
-	(void)argv;
-	const int desiredUpdateRate = 150;	// Use 75 Hz update rate for MTWs
+	//(void)argc;
+	//(void)argv;
+	const int desiredUpdateRate = 100;	// Use 75 Hz update rate for MTWs
 	const int desiredRadioChannel = 19;	// Use radio channel 19 for wireless master.
+
+	ros::init(argc, argv, "MTw_node");
+	ROS_INFO("XSens MTw node for ROS");
+
+	ros::NodeHandle nh_;
+	ros::NodeHandle private_nh_("~");
+
+	sensor_msgs::Imu imu_msg;
+
+	ros::Publisher imu_pub_;
+
+	std::string imu_frame_id_ = "mtw_node";
+
+	ros::Time last_update_;
+
+	int num;
+	private_nh_.param("num", num, int(1));
 
 	WirelessMasterCallback wirelessMasterCallback; // Callback for wireless master
 	std::vector<MtwCallback*> mtwCallbacks; // Callbacks for mtw devices
@@ -313,6 +334,7 @@ int main(int argc, char* argv[])
 
 		bool waitForConnections = true;
 		size_t connectedMTWCount = wirelessMasterCallback.getWirelessMTWs().size();
+		int counter = 0;
 		do
 		{
 			XsTime::msleep(100);
@@ -324,15 +346,20 @@ int main(int argc, char* argv[])
 				{
 					std::cout << "Number of connected MTWs: " << nextCount << ". Press 'Y' to start measurement." << std::endl;
 					connectedMTWCount = nextCount;
+					counter = 30;
 				}
 				else
 				{
 					break;
 				}
 			}
-			if (_kbhit())
+			/*if (_kbhit())
 			{
 				waitForConnections = (toupper((char)_getch()) != 'Y');
+			}*/
+			counter++;
+			if (counter >= 120) {
+				waitForConnections = false;
 			}
 		}
 		while (waitForConnections);
@@ -377,6 +404,8 @@ int main(int argc, char* argv[])
 			mtwDevices[i]->addCallbackHandler(mtwCallbacks[i]);
 		}
 
+		imu_pub_ = nh_.advertise<sensor_msgs::Imu>("imu/data",200,false);
+
 		std::cout << "\nMain loop. Press any key to quit\n" << std::endl;
 		std::cout << "Waiting for data available..." << std::endl;
 
@@ -385,9 +414,16 @@ int main(int argc, char* argv[])
 		std::vector<XsVector> calibGyro(mtwCallbacks.size()); // Calibrated gyroscope
 		std::vector<XsQuaternion> quaternions(mtwCallbacks.size()); // Orientation
 		std::vector<XsTimeStamp> timesOA(mtwCallbacks.size()); // Times of arrival
+		std::vector<XsUtcTime> utcTimes(mtwCallbacks.size()); // UTC times of packets
 		std::vector<uint16_t> packetCounters(mtwCallbacks.size()); // Packet counters
-		unsigned int printCounter = 0;
-		while (!_kbhit()) {
+		//unsigned int printCounter = 0;
+
+		/*time_t zero = 24*60*60L;
+		double time_diff = difftime(mktime(gmtime(&zero)), mktime(localtime(&zero)));
+
+		std::cout << "Time diff: " << time_diff << std::endl;*/
+
+		while (ros::ok()) {
 			XsTime::msleep(0);
 
 			bool newDataAvailable = false;
@@ -402,6 +438,7 @@ int main(int argc, char* argv[])
 					calibGyro[i] = packet->calibratedGyroscopeData();
 					quaternions[i] = packet->orientationQuaternion();
 					timesOA[i] = packet->timeOfArrival();
+					utcTimes[i] = packet->utcTime();
 					packetCounters[i] = packet->packetCounter();
 					mtwCallbacks[i]->deleteOldestPacket();
 				}
@@ -409,29 +446,70 @@ int main(int argc, char* argv[])
 
 			if (newDataAvailable)
 			{
-				// Don't print too often for performance. Console output is very slow.
-				if (printCounter % 25 == 0)
+				for (size_t i = 0; i < mtwCallbacks.size(); ++i)
 				{
-					for (size_t i = 0; i < mtwCallbacks.size(); ++i)
-					{
-						std::cout << "[" << i << "]: ID: " << mtwCallbacks[i]->device().deviceId().toString().toStdString()
-								  << ", Roll: " << std::setw(7) << std::fixed << std::setprecision(2) << eulerData[i].roll()
-								  << ", Pitch: " << std::setw(7) << std::fixed << std::setprecision(2) << eulerData[i].pitch()
-								  << ", Yaw: " <<  std::setw(7) << std::fixed << std::setprecision(2) << eulerData[i].yaw()
-						                  << std::endl << std::setprecision(14)
-						                  << ", Acc: " << calibAcc[i][0] << ", " << calibAcc[i][1] << ", " << calibAcc[i][2]
-						                  << ", Gyro: " << calibGyro[i][0] << ", " << calibGyro[i][1] << ", " << calibGyro[i][2]
-						                  << ", TOA: " << timesOA[i].msTime()
-						                  << ", Counter: " << packetCounters[i] << std::endl
-						                  << ", Orientation: " << quaternions[i].x() << ", " << quaternions[i].y() << ", " << quaternions[i].z() << ", " << quaternions[i].w()
-								  << "\n";
-					}
+					ros::Time toa;
+					uint64_t nsecs = (uint64_t)timesOA[i].msTime();
+					nsecs *= 1000000;
+					toa.fromNSec(nsecs);
+
+					/*struct tm * timeparts;
+					timeparts->tm_year = utcTimes[i].m_year - 1900;
+					timeparts->tm_mon = utcTimes[i].m_month - 1;
+					timeparts->tm_mday = utcTimes[i].m_day;
+					timeparts->tm_hour = utcTimes[i].m_hour;
+					timeparts->tm_min = utcTimes[i].m_minute;
+					timeparts->tm_sec = utcTimes[i].m_second;*/
+
+					/*std::cout << utcTimes[i].m_year << ", "
+					<< utcTimes[i].m_month << ", "
+					<< utcTimes[i].m_day << ", "
+					<< utcTimes[i].m_hour << ", "
+					<< utcTimes[i].m_minute << ", "
+					<< utcTimes[i].m_second << ", " << std::endl;
+
+					uint64_t time2;
+					//time2 = (uint64_t)mktime(timeparts);
+					//time2 *= 1e9;
+					//time2 += utcTimes[i].m_nano;
+
+					//toa.fromNSec(time2);*/
+
+					imu_msg.header.stamp = toa;
+					imu_msg.header.frame_id = imu_frame_id_;
+
+					imu_msg.orientation.x = quaternions[i].x();
+					imu_msg.orientation.y = quaternions[i].y();
+					imu_msg.orientation.z = quaternions[i].z();
+					imu_msg.orientation.w = quaternions[i].w();
+
+					imu_msg.angular_velocity.x = calibGyro[i][0];
+					imu_msg.angular_velocity.y = calibGyro[i][1];
+					imu_msg.angular_velocity.z = calibGyro[i][2];
+
+					imu_msg.linear_acceleration.x = calibAcc[i][0];
+					imu_msg.linear_acceleration.y = calibAcc[i][1];
+					imu_msg.linear_acceleration.z = calibAcc[i][2];
+
+					imu_pub_.publish(imu_msg);
+
+					/*std::cout << "[" << i << "]: ID: " << mtwCallbacks[i]->device().deviceId().toString().toStdString()
+					<< ", Roll: " << std::setw(7) << std::fixed << std::setprecision(2) << eulerData[i].roll()
+					<< ", Pitch: " << std::setw(7) << std::fixed << std::setprecision(2) << eulerData[i].pitch()
+					<< ", Yaw: " <<  std::setw(7) << std::fixed << std::setprecision(2) << eulerData[i].yaw()
+					<< std::endl << std::setprecision(14)
+					<< ", Acc: " << calibAcc[i][0] << ", " << calibAcc[i][1] << ", " << calibAcc[i][2]
+					<< ", Gyro: " << calibGyro[i][0] << ", " << calibGyro[i][1] << ", " << calibGyro[i][2]
+					<< ", TOA: " << timesOA[i].msTime()
+					<< ", Counter: " << packetCounters[i] << std::endl
+					<< ", Orientation: " << quaternions[i].x() << ", " << quaternions[i].y() << ", " << quaternions[i].z() << ", " << quaternions[i].w()
+					<< "\n";*/
+
 				}
-				++printCounter;
 			}
 
 		}
-		(void)_getch();
+		//(void)_getch();
 
 		std::cout << "Setting config mode..." << std::endl;
 		if (!wirelessMasterDevice->gotoConfig())
@@ -454,11 +532,11 @@ int main(int argc, char* argv[])
 		std::cout << ex.what() << std::endl;
 		std::cout << "****ABORT****" << std::endl;
 	}
-	catch (...)
+	/*catch (...)
 	{
 		std::cout << "An unknown fatal error has occured. Aborting." << std::endl;
 		std::cout << "****ABORT****" << std::endl;
-	}
+	}*/
 
 	std::cout << "Closing XsControl..." << std::endl;
 	control->close();
@@ -470,6 +548,6 @@ int main(int argc, char* argv[])
 	}
 
 	std::cout << "Successful exit." << std::endl;
-	std::cout << "Press [ENTER] to continue." << std::endl; std::cin.get();
+	//std::cout << "Press [ENTER] to continue." << std::endl; std::cin.get();
 	return 0;
 }
