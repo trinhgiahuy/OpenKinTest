@@ -13,10 +13,10 @@ find_package(catkin REQUIRED roscpp std_msgs sensor_msgs message_generation)
 #	std_msgs
 #)
 
-#catkin_package(
-#	INCLUDE_DIRS include
+catkin_package(
+#	INCLUDE_DIRS /usr/local/xsens/include
 #	CATKIN_DEPENDS message_runtime
-#)
+)
 
 include_directories(${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} /usr/local/xsens/include)
 
