@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
 
 		XsString portname(device.c_str());
 
-		std::cout << "Finding wireless master..." << std::endl;
+		//std::cout << "Finding wireless master..." << std::endl;
 		//XsPortInfoArray::const_iterator wirelessMasterPort = detectedDevices.begin();
 		//while (wirelessMasterPort != detectedDevices.end() && !wirelessMasterPort->deviceId().isWirelessMaster())
 		//{
@@ -266,11 +266,12 @@ int main(int argc, char* argv[])
 		//}
 
 		XsPortInfo awinda(portname);
+		awinda.setBaudrate(XBR_2000k);
 
 //		if (awinda.deviceId().isWirelessMaster()) {
 //			std::cout << "Wireless master found @ " << awinda << std::endl;
 //		} else {
-			//throw std::runtime_error("Not wireless master");
+//			throw std::runtime_error("Not wireless master");
 //		}
 
 		std::cout << "Opening port... " << awinda.portName().toStdString() << ", " << awinda.baudrate() << std::endl;

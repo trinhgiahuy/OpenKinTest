@@ -271,10 +271,10 @@ function findXsens {
 		## If not, f here will be exactly the pattern above
 		## and the exists test will evaluate to false.
 		if [ -e "$f" ]; then
-			ID=$(udevadm info -n "$f" | grep -oP 'ID_MODEL_ID=\K.+$'])
+			ID=$(udevadm info -n "$f" | grep -oP 'ID_MODEL_ID=\K.+$')
 			if [ "$ID" = "d38b" ]; then
 				XSENS=$f
-			elif [ "$ID" -eq "d38d" ]; then
+			elif [ "$ID" = "d38d" ]; then
 				AWINDA=$(readlink -f "$f")
 			fi
 		fi
@@ -298,7 +298,9 @@ function findXsens {
 	#/dev/serial/by-id/usb-Xsens_Xsens_USB-serial_converter_XSUO65V1-if00-port0
 }
 
-findXsens
+if [ "$MTI" -eq 0 ] || [ "$MTW" -eq 0 ]; then
+	findXsens
+fi
 
 if [ "$POZYX" -eq 0 ] && [ "$LINUXI2C" -eq 0 ]; then
 	logger "Finding Pozyx..."
@@ -489,7 +491,12 @@ while true; do
 					screen -dmS mtw
 					# Alignment reset will be soon
 					led_blink 0
-					screen -r mtw -X stuff $'\nsudo -s\nrosrun mtw_node mtw_node _device:='"$AWINDA"$' &> '$MTWLOG$'\n'
+					if [ "$AWINDA" -eq "" ]; then
+						findXsens
+					else
+						#screen -r mtw -X stuff $'\nsudo -s\nrosrun mtw_node mtw_node _device:='"$AWINDA"$' &> '$MTWLOG$'\n'
+						screen -r mtw -X stuff $'\nrosrun mtw_node mtw_node _device:='"$AWINDA"$' &> '$MTWLOG$'\n'
+					fi
 					led_off 0
 					led_off 2
 				fi
