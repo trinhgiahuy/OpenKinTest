@@ -364,6 +364,10 @@ int main(int argc, char* argv[])
 		}
 		while (waitForConnections);
 
+		if (connectedMTWCount == 0) {
+			throw std::runtime_error("Couldn't find any MTw's");
+		}
+
 		std::cout << "Starting measurement..." << std::endl;
 		if (!wirelessMasterDevice->gotoMeasurement())
 		{
@@ -402,6 +406,7 @@ int main(int argc, char* argv[])
 		{
 			mtwCallbacks[i] = new MtwCallback(i, mtwDevices[i]);
 			mtwDevices[i]->addCallbackHandler(mtwCallbacks[i]);
+			mtwDevices[i]->resetOrientation(XRM_Alignment);
 		}
 
 		imu_pub_ = nh_.advertise<sensor_msgs::Imu>("imu/data",200,false);
