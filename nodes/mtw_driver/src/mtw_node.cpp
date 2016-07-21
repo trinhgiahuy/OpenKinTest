@@ -495,6 +495,7 @@ int main(int argc, char* argv[])
 
 					imu_msg.header.stamp = toa;
 					imu_msg.header.frame_id = imu_frame_id_;
+					imu_msg.header.seq = packetCounters[i];
 
 					imu_msg.orientation.x = quaternions[i].x();
 					imu_msg.orientation.y = quaternions[i].y();

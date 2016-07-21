@@ -232,6 +232,8 @@ function quitScreens {
 
 	if screen -list | grep -q "mtw"; then
 		logger "Shutting down the MTw"
+		screen -S log -X stuff $'\003'
+		sleep 3
 		screen -S mtw -X quit
 	fi
 
