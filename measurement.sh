@@ -4,8 +4,8 @@
 
 # Needed for rostopic etc
 #source /opt/ros/indigo/setup.bash
-source /opt/ros/kinetic/setup.bash
-#source ~/catkin_ws/devel/setup.bash
+#source /opt/ros/kinetic/setup.bash
+source ~/catkin_ws/devel/setup.bash
 
 HOME="/home/openkin"
 
@@ -92,6 +92,7 @@ if [ "$1" = "check" ]; then
 	testCmd rosrun
 	testCmd rosbag
 	testCmd $HOME/openkin/linux-shutdown/pwr-switch
+	testCmd readlink
 
 	exit 0
 fi
@@ -262,6 +263,7 @@ function findXsens {
 	logger "Finding XSens..."
 	# Get Xsens device
 	XSENS=""
+	AWINDA=""
 	#for f in /dev/serial/by-id/usb-Xsens_Xsens_COM_port*; do
 	for f in /dev/serial/by-id/usb-Xsens_Xsens_*; do
 
@@ -272,14 +274,24 @@ function findXsens {
 			ID=$(udevadm info -n "$f" | grep -oP 'ID_MODEL_ID=\K.+$'])
 			if [ "$ID" = "d38b" ]; then
 				XSENS=$f
-			#elif [ "$ID" -eq "d38d" ]; then
-				#awinda
+			elif [ "$ID" -eq "d38d" ]; then
+				AWINDA=$(readlink -f "$f")
 			fi
 		fi
 
 		## This is all we needed to know, so we can break after the first iteration
-		if [ "$XSENS" = "" ]; then
-			break
+		if [ "$MTI" -eq 0 ] && [ "$MTW" -eq 1 ]; then
+			if [ "$XSENS" != "" ]; then
+				break
+			fi
+		elif [ "$MTI" -eq 1 ] && [ "$MTW" -eq 0 ]; then
+			if [ "$AWINDA" != "" ]; then
+				break
+			fi
+		else
+			if [ "$AWINDA" != "" ] && [ "$XSENS" != "" ]; then
+				break
+			fi
 		fi
 	done
 
@@ -477,7 +489,7 @@ while true; do
 					screen -dmS mtw
 					# Alignment reset will be soon
 					led_blink 0
-					screen -r mtw -X stuff $'\nsudo -s\nrosrun mtw_node mtw_node &> '$MTWLOG$'\n'
+					screen -r mtw -X stuff $'\nsudo -s\nrosrun mtw_node mtw_node _device:='"$AWINDA"$' &> '$MTWLOG$'\n'
 					led_off 0
 					led_off 2
 				fi

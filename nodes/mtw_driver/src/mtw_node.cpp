@@ -234,6 +234,9 @@ int main(int argc, char* argv[])
 	int num;
 	private_nh_.param("num", num, int(1));
 
+	std::string device;
+	private_nh_.param<std::string>("device", device, "/dev/ttyUSB0");
+
 	WirelessMasterCallback wirelessMasterCallback; // Callback for wireless master
 	std::vector<MtwCallback*> mtwCallbacks; // Callbacks for mtw devices
 
@@ -247,34 +250,43 @@ int main(int argc, char* argv[])
 	try
 	{
 		std::cout << "Scanning ports..." << std::endl;
-		XsPortInfoArray detectedDevices = XsScanner::scanPorts();
+		//XsPortInfoArray detectedDevices = XsScanner::scanPorts();
+
+		XsString portname(device.c_str());
 
 		std::cout << "Finding wireless master..." << std::endl;
-		XsPortInfoArray::const_iterator wirelessMasterPort = detectedDevices.begin();
-		while (wirelessMasterPort != detectedDevices.end() && !wirelessMasterPort->deviceId().isWirelessMaster())
-		{
-			++wirelessMasterPort;
-		}
-		if (wirelessMasterPort == detectedDevices.end())
-		{
-			throw std::runtime_error("No wireless masters found");
-		}
-		std::cout << "Wireless master found @ " << *wirelessMasterPort << std::endl;
+		//XsPortInfoArray::const_iterator wirelessMasterPort = detectedDevices.begin();
+		//while (wirelessMasterPort != detectedDevices.end() && !wirelessMasterPort->deviceId().isWirelessMaster())
+		//{
+		//	++wirelessMasterPort;
+		//}
+		//if (wirelessMasterPort == detectedDevices.end())
+		//{
+		//	throw std::runtime_error("No wireless masters found");
+		//}
 
-		std::cout << "Opening port..." << std::endl;
-		if (!control->openPort(wirelessMasterPort->portName().toStdString(), wirelessMasterPort->baudrate()))
+		XsPortInfo awinda(portname);
+
+//		if (awinda.deviceId().isWirelessMaster()) {
+//			std::cout << "Wireless master found @ " << awinda << std::endl;
+//		} else {
+			//throw std::runtime_error("Not wireless master");
+//		}
+
+		std::cout << "Opening port... " << awinda.portName().toStdString() << ", " << awinda.baudrate() << std::endl;
+		if (!control->openPort(awinda))
 		{
 			std::ostringstream error;
-			error << "Failed to open port " << *wirelessMasterPort;
+			error << "Failed to open port " << portname;
 			throw std::runtime_error(error.str());
 		}
 
 		std::cout << "Getting XsDevice instance for wireless master..." << std::endl;
-		XsDevicePtr wirelessMasterDevice = control->device(wirelessMasterPort->deviceId());
+		XsDevicePtr wirelessMasterDevice = control->device(awinda.deviceId());
 		if (wirelessMasterDevice == 0)
 		{
 			std::ostringstream error;
-			error << "Failed to construct XsDevice instance: " << *wirelessMasterPort;
+			error << "Failed to construct XsDevice instance: " << portname;
 			throw std::runtime_error(error.str());
 		}
 
@@ -344,7 +356,7 @@ int main(int argc, char* argv[])
 				size_t nextCount = wirelessMasterCallback.getWirelessMTWs().size();
 				if (nextCount != connectedMTWCount)
 				{
-					std::cout << "Number of connected MTWs: " << nextCount << ". Press 'Y' to start measurement." << std::endl;
+					std::cout << "Number of connected MTWs: " << nextCount << std::endl;
 					connectedMTWCount = nextCount;
 					counter = 30;
 				}
@@ -412,7 +424,7 @@ int main(int argc, char* argv[])
 		imu_pub_ = nh_.advertise<sensor_msgs::Imu>("imu/data",200,false);
 
 		std::cout << "\nMain loop. Press any key to quit\n" << std::endl;
-		std::cout << "Waiting for data available..." << std::endl;
+		std::cout << "Outputting data..." << std::endl;
 
 		std::vector<XsEuler> eulerData(mtwCallbacks.size()); // Room to store euler data for each mtw
 		std::vector<XsVector> calibAcc(mtwCallbacks.size()); // Calibrated accelerations
