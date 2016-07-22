@@ -114,14 +114,22 @@ PozyxROS::PozyxROS() :
 			// sort array
 			std::sort(devices, devices + list_size_i);
 
-			if (Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i, devices) == POZYX_SUCCESS) {
-				if (Pozyx.setUpdateInterval(100) == POZYX_SUCCESS) {
-					done = true;
+			// Set to use all anchors
+			int status;
+			status = Pozyx.setSelectionOfAnchors(POZYX_ANCHOR_SEL_AUTO, list_size_i, NULL);
+			if (status == 1) {
+
+				if (Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i, devices) == POZYX_SUCCESS) {
+					if (Pozyx.setUpdateInterval(100) == POZYX_SUCCESS) {
+						done = true;
+					} else {
+						std::cerr << "Couldn't start positioning" << std::endl;
+					}
 				} else {
-					std::cerr << "Couldn't start positioning" << std::endl;
+					std::cerr << "Couldn't calibrate" << std::endl;
 				}
 			} else {
-				std::cerr << "Couldn't calibrate" << std::endl;
+				std::cerr << "Couldn't set anchor selection" << std::endl;
 			}
 		} else {
 			std::cerr << "Couldn't get device list size" << std::endl;
@@ -207,7 +215,10 @@ void PozyxROS::update() {
 			Pozyx.regRead(POZYX_POS_X, (uint8_t*)&pos_data, 3*sizeof(int32_t));
 
 			for (int i = 0; i < list_size_i; i++) {
-				Pozyx.getDeviceRangeInfo(devices[i], &ranges[i]);
+				int status;
+				if (status = Pozyx.getDeviceRangeInfo(devices[i], &ranges[i]) == 0) {
+					ranges[i].timestamp = 0;
+				}
 			}
 
 			/*if (Pozyx.doPositioning(&pos, POZYX_2D, 0) != POZYX_SUCCESS) {
@@ -262,7 +273,9 @@ void PozyxROS::update() {
 		std::stringstream ss;
 
 		for (int i = 0; i < list_size_i; i++) {
-			ss << "s=uwb,t=" << std::hex << std::setfill('0') << std::setw(4) << devices[i] << std::dec << ",tu=" << ranges[i].timestamp << ",ts=" << current_time.toNSec() / 1000000 << ",d=" << ranges[i].distance << ",RSS=" << ranges[i].RSS << "|";
+			if (ranges[i].timestamp != 0) {
+				ss << "s=uwb,t=" << std::hex << std::setfill('0') << std::setw(4) << devices[i] << std::dec << ",tu=" << ranges[i].timestamp << ",ts=" << current_time.toNSec() / 1000000 << ",d=" << ranges[i].distance << ",RSS=" << ranges[i].RSS << "|";
+			}
 		}
 
 		range_msg.data = ss.str();
