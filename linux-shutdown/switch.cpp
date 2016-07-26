@@ -14,7 +14,6 @@
 
 using namespace std;
 
-#define BUFFER_LENGTH 32
 #define GPIO 340
 #define SYSFS_GPIO_DIR "/sys/class/gpio"
 #define POLL_TIMEOUT -1
