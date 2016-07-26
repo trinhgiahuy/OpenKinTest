@@ -32,7 +32,14 @@ extern "C" {
   #include "Pozyx_definitions.h"
 }
 
-#define GPIO 17
+#ifdef MINNOW
+  #define GPIO 338
+#endif
+#ifdef RPI
+  #define GPIO 17
+  #define SDA 2
+  #define SCL 3
+#endif
 #define SYSFS_GPIO_DIR "/sys/class/gpio"
 #define POLL_TIMEOUT 6000 // 6 seconds
 
