@@ -101,7 +101,7 @@ PozyxROS::PozyxROS() :
 	// Needed for discovery to not timeout or not find anything
 	delay(3000);
 
-	if (Pozyx.getDeviceIds(devices) == POZYX_SUCCESS) {
+	if (Pozyx.getDeviceIds(devices, MAX_ANCHORS_IN_LIST) == POZYX_SUCCESS) {
 		uint8_t list_size;
 
 		if (Pozyx.getDeviceListSize(&list_size) == POZYX_SUCCESS) {
@@ -116,7 +116,7 @@ PozyxROS::PozyxROS() :
 
 			// Set to use all anchors
 			int status;
-			status = Pozyx.setSelectionOfAnchors(POZYX_ANCHOR_SEL_AUTO, list_size_i, NULL);
+			status = Pozyx.setSelectionOfAnchors(POZYX_ANCHOR_SEL_AUTO, list_size_i, 0);
 			if (status == 1) {
 
 				if (Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i, devices) == POZYX_SUCCESS) {

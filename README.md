@@ -28,7 +28,7 @@ This section describes the basic usage of the device
 
 # Connecting to the device
 Standard SSH conenction can be made to the device with ssh:
-    
+
     ssh ubuntu@[IP]
     Password: ubuntu
 
@@ -45,16 +45,25 @@ ROS driver for ublox
 
 See: https://github.com/KumarRobotics/ublox
 
-Both are added as subtrees to this repo, so updates can be fetched with commands:
+Pozyx Arduino library
+
+See: https://github.com/pozyxLabs/Pozyx-Arduino-library
+
+All are added as subtrees to this repo, so updates can be fetched with commands (from git root):
 
 ```
 git subtree pull --prefix nodes/ublox https://github.com/KumarRobotics/ublox.git master --squash
 ```
-
-and
+,
 
 ```
 git subtree pull --prefix nodes/ethzasl_xsens_driver https://github.com/ethz-asl/ethzasl_xsens_driver.git master --squash
+```
+and
+```
+git subtree pull --prefix nodes/pozyx/include/Pozyx-custom-library/ https://github.com/pozyxLabs/Pozyx-Arduino-library.git master --squash
+cd nodes/pozyx/ínclude
+patch -p0 < pozyx-arduino-to-linux.patch
 ```
 
 # Motion Fusion
