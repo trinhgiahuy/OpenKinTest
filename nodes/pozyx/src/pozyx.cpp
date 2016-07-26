@@ -95,13 +95,13 @@ PozyxROS::PozyxROS() :
 	int disc_status;
 	while ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 3, 20)) != POZYX_SUCCESS) {
 		delay(1000);
-		std::cerr << "Retrying discovery (" << disc_status << ")" << std::endl;
+		std::cerr << "Retrying discovery" << std::endl;
 	}
 	//if ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 3, 20)) == POZYX_SUCCESS) {
 	// Needed for discovery to not timeout or not find anything
 	delay(3000);
 
-	if (Pozyx.getDeviceIds(devices) == POZYX_SUCCESS) {
+	if (Pozyx.getDeviceIds(devices, MAX_ANCHORS_IN_LIST) == POZYX_SUCCESS) {
 		uint8_t list_size;
 
 		if (Pozyx.getDeviceListSize(&list_size) == POZYX_SUCCESS) {
@@ -114,15 +114,22 @@ PozyxROS::PozyxROS() :
 			// sort array
 			std::sort(devices, devices + list_size_i);
 
-			int calib_status = 0;
-			if ((calib_status = Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i, devices)) == POZYX_SUCCESS) {
-				if (Pozyx.setUpdateInterval(100) == POZYX_SUCCESS) {
-					done = true;
+			// Set to use all anchors
+			int status;
+			status = Pozyx.setSelectionOfAnchors(POZYX_ANCHOR_SEL_AUTO, list_size_i, 0);
+			if (status == 1) {
+
+				if (Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i, devices) == POZYX_SUCCESS) {
+					if (Pozyx.setUpdateInterval(100) == POZYX_SUCCESS) {
+						done = true;
+					} else {
+						std::cerr << "Couldn't start positioning" << std::endl;
+					}
 				} else {
-					std::cerr << "Couldn't start positioning" << std::endl;
+					std::cerr << "Couldn't calibrate" << std::endl;
 				}
 			} else {
-				std::cerr << "Couldn't calibrate (" << calib_status << ")" << std::endl;
+				std::cerr << "Couldn't set anchor selection" << std::endl;
 			}
 		} else {
 			std::cerr << "Couldn't get device list size" << std::endl;
@@ -194,7 +201,8 @@ void PozyxROS::update() {
 
 
 		// wait until this device gives an interrupt
-		if (Pozyx.waitForFlag(POZYX_INT_STATUS_POS, 300)) {
+		if (Pozyx.waitForFlag(POZYX_INT_STATUS_POS, 300))
+		{
 			// we received an interrupt from pozyx telling us new IMU data is ready, now let's read it!
 			//Pozyx.regRead(POZYX_ACCEL_X, (uint8_t*)&sensor_data, 9*sizeof(int16_t));
 			current_time = ros::Time::now();
@@ -207,7 +215,10 @@ void PozyxROS::update() {
 			Pozyx.regRead(POZYX_POS_X, (uint8_t*)&pos_data, 3*sizeof(int32_t));
 
 			for (int i = 0; i < list_size_i; i++) {
-				Pozyx.getDeviceRangeInfo(devices[i], &ranges[i]);
+				int status;
+				if (status = Pozyx.getDeviceRangeInfo(devices[i], &ranges[i]) == 0) {
+					ranges[i].timestamp = 0;
+				}
 			}
 
 			/*if (Pozyx.doPositioning(&pos, POZYX_2D, 0) != POZYX_SUCCESS) {
@@ -262,7 +273,9 @@ void PozyxROS::update() {
 		std::stringstream ss;
 
 		for (int i = 0; i < list_size_i; i++) {
-			ss << "s=uwb,t=" << std::hex << std::setfill('0') << std::setw(4) << devices[i] << std::dec << ",tu=" << ranges[i].timestamp << ",ts=" << current_time.toNSec() / 1000000 << ",d=" << ranges[i].distance << ",RSS=" << ranges[i].RSS << "|";
+			if (ranges[i].timestamp != 0) {
+				ss << "s=uwb,t=" << std::hex << std::setfill('0') << std::setw(4) << devices[i] << std::dec << ",tu=" << ranges[i].timestamp << ",ts=" << current_time.toNSec() / 1000000 << ",d=" << ranges[i].distance << ",RSS=" << ranges[i].RSS << "|";
+			}
 		}
 
 		range_msg.data = ss.str();
