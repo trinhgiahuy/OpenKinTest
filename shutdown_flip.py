@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 try:
 	import RPi.GPIO as GPIO
 except RuntimeError:
@@ -15,7 +17,7 @@ GPIO.setup(channel, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 # Wait for switch to be flipped
 GPIO.wait_for_edge(channel, GPIO.FALLING)
 
-os.system("rm /home/ubuntu/measurement.lock")
+os.system("rm /home/pi/measurement.lock")
 os.system("sudo shutdown -h now")
 
 GPIO.cleanup(channel)

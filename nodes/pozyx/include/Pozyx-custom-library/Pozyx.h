@@ -14,6 +14,14 @@
 #ifndef POZYX_h
 #define POZYX_h
 
+#define BUFFER_LENGTH 32
+
+#undef NULL
+#define NULL 0
+
+#define RPI
+#undef MINNOW
+
 #include <inttypes.h>
 #include <string>
 
@@ -21,10 +29,10 @@
 // assertions will check for wrong use of the library.
 
 // Define NDEBUG to remove the assertions: this will reduce codesize. Do this in your production code.
-//#define NDEBUG
+//#define NDEBUG 
 
 // enable printing of function name, filename, linenumber and failed expression. This takes a LOT of memory (too much for the Arduino UNO)
-#define __ASSERT_USE_STDERR
+#define __ASSERT_USE_STDERR 
 #include <assert.h>
 
 // overwrite the assertions to reduce codesize.
@@ -45,71 +53,69 @@ extern "C" {
 typedef float float32_t;
 
 
-/**
+/** 
 * The UWB settings type defines all attributes needed to set the UWB (communication) parameters
 */
-typedef struct __attribute__((packed))_UWB_settings {
+typedef struct __attribute__((packed))_UWB_settings {    
     /** The UWB channel number. Possible values are 1, 2, 3, 4, 5, 7. See the reg:POZYX_UWB_CHANNEL register for more information. */
-    uint8_t channel;
-    /** The bitrate. Possible values are
+    uint8_t channel;  
+    /** The bitrate. Possible values are 
     *
     * - 0: 110kbits/s
     * - 1: 850kbits/s
-    * - 2: 6.8Mbits/s.
+    * - 2: 6.8Mbits/s. 
     *
-    * See the reg:POZYX_UWB_RATES register for more information */
-    unsigned bitrate:6;
-    /** The UWB pulse repetition frequency (PRF). Possible values are
-    *
+    * See the reg:POZYX_UWB_RATES register for more information */              
+    unsigned bitrate:6; 
+    /** The UWB pulse repetition frequency (PRF). Possible values are 
+    * 
     * - 1: 16MHz
-    * - 2: 64MHz
+    * - 2: 64MHz 
     *
-    * See the reg:POZYX_UWB_RATES register for more information */
-    unsigned prf:2;
+    * See the reg:POZYX_UWB_RATES register for more information */                    
+    unsigned prf:2;                 
     /** The preabmle length. Possible values are:
     *
     * - 0x0C : 4096 symbols.
-    * - 0x28 : 2048 symbols.
-    * - 0x18 : 1536 symbols.
+    * - 0x28 : 2048 symbols. 
+    * - 0x18 : 1536 symbols. 
     * - 0x08 : 1024 symbols.
-    * - 0x34 : 512 symbols.
-    * - 0x24 : 256 symbols.
-    * - 0x14 : 128 symbols.
-    * - 0x04 : 64 symbols.
+    * - 0x34 : 512 symbols. 
+    * - 0x24 : 256 symbols. 
+    * - 0x14 : 128 symbols. 
+    * - 0x04 : 64 symbols.  
     *
     * See the reg:POZYX_UWB_PLEN register for more information.
-    */
-    uint8_t plen;
-    /** the transmit gain. The gain is given in double dBm, i.e., a gain of 2 equals 1dBm. See the reg:POZYX_UWB_GAIN register for more information.*/
-    int8_t gain;
-    /** The trim value for the UWB transceiver clock. The value must be lower than 32. See the reg:POZYX_UWB_XTALTRIM register for more information.*/
-    unsigned trim:8;
+    */ 
+    uint8_t plen;                   
+    /** The transmission gain in dB. Possible values are between 0dB and 33.5dB, with a resolution of 0.5dB. See the reg:POZYX_UWB_GAIN register for more information.*/
+    float gain_db;                                  
 }UWB_settings_t;
 
 /**
 * The coordinates type defines the coordinates of position result or anchor location
 */
-typedef struct __attribute__((packed))_coordinates {
+typedef struct __attribute__((packed))_coordinates {    
     /** The x-coordinate in mm */
-    int32_t x;
+    int32_t x;                      
     /** The y-coordinate in mm */
-    int32_t y;
+    int32_t y;                      
     /** The z-coordinate in mm */
-    int32_t z;
+    int32_t z;                      
 }coordinates_t;
 
-/**
- * A structure representing a 3D vector with floating points.
+/** 
+ * A structure representing a 3D vector with floating points. 
  * This type is used to represent most of the sensor values that have components in 3 dimensions.
  */
 typedef struct __attribute__((packed))_v3D_float32 {
     /** The x-coordinate of the vector */
-    float32_t x;
+    float32_t x;                      
     /** The y-coordinate of the vector */
-    float32_t y;
+    float32_t y;                      
     /** The z-coordinate of the vector */
-    float32_t z;
-}v3D_float32_t;
+    float32_t z;  
+}v3D_float32_t;    
 
 // some supporting types for specific sensors
 typedef v3D_float32_t acceleration_t;
@@ -122,7 +128,7 @@ typedef v3D_float32_t gravity_vector_t;
 /**
 * The position error type gives the resulting error covariance for a given position result
 */
-typedef struct __attribute__((packed))_pos_error {
+typedef struct __attribute__((packed))_pos_error {    
     /** The variance in the x-coordinate */
     int16_t x;
     /** The variance in the y-coordinate */
@@ -140,7 +146,7 @@ typedef struct __attribute__((packed))_pos_error {
 /**
 * The euler angles type holds the absolute orientation of the pozyx device using the Euler angles (yaw, pitch, roll) representation
 */
-typedef struct __attribute__((packed))_euler_angles {
+typedef struct __attribute__((packed))_euler_angles {    
     /** The heading (yaw) in degrees. */
     float32_t heading;
     /** The roll in degrees. */
@@ -152,7 +158,7 @@ typedef struct __attribute__((packed))_euler_angles {
 /**
 * The quaternion_t type holds the absolute orientation of the pozyx device using the a quaternion representation
 */
-typedef struct __attribute__((packed))_quaternion {
+typedef struct __attribute__((packed))_quaternion {    
     /** weight of the quaterion. */
     float32_t weight;
     /** x-coordinate of the quaterion. */
@@ -175,13 +181,13 @@ typedef struct __attribute__((packed))_sensor_raw {
     int16_t quaternion[4];
     int16_t linear_acceleration[3];
     int16_t gravity_vector[3];
-    uint8_t temperature;
+    uint8_t temperature;   
 }sensor_raw_t;
 
 /**
 * The sensor data type allows to read the whole sensor data in one datastructure with one call
 */
-typedef struct __attribute__((packed))_sensor_data {
+typedef struct __attribute__((packed))_sensor_data { 
     float32_t pressure;
     acceleration_t acceleration;
     magnetic_t magnetic;
@@ -190,16 +196,16 @@ typedef struct __attribute__((packed))_sensor_data {
     quaternion_t quaternion;
     linear_acceleration_t linear_acceleration;
     gravity_vector_t gravity_vector;
-    float32_t temperature;
+    float32_t temperature;   
 }sensor_data_t;
 
 /**
 * The device_coordinates_t type is used to describe a pozyx device required for the device list
 */
-typedef struct __attribute__((packed))_device_coordinates {
+typedef struct __attribute__((packed))_device_coordinates { 
     /** the unique 16-bit network id (by default this is the same as on the label of the device) */
     uint16_t network_id;
-    /** a flag indicating some aspects of the device such as anchor or tag.
+    /** a flag indicating some aspects of the device such as anchor or tag. 
      * Possible values are:
      *
      * - 1 : anchor
@@ -213,8 +219,8 @@ typedef struct __attribute__((packed))_device_coordinates {
 /**
 * The device range type stores all the attributes linked to a range measurement
 */
-typedef struct __attribute__((packed))_device_range {
-    /** The timestamp in ms of the range measurement. */
+typedef struct __attribute__((packed))_device_range {      
+    /** The timestamp in ms of the range measurement. */ 
     uint32_t timestamp;
     /** The distance in mm. */
     uint32_t distance;
@@ -233,29 +239,30 @@ private:
     static int _interrupt;          // variable to indicate that an interrupt has occured
 
 
-    static int _hw_version;         // Pozyx harware version
+    static int _hw_version;         // Pozyx harware version 
     static int _sw_version;         // Pozyx software (firmware) version. (By updating the firmware on the Pozyx device, this value can change)
 
     static int i2c_file;
+    static int gpio_file;
 
-    static void initI2C();
+    static void initI2C(int adapter);
 
     /**
     * Function: i2cWriteWrite
     * -----------------------
-    * Internal function that writes a number of bytes to a specfified Pozyx register
+    * Internal function that writes a number of bytes to a specfified Pozyx register 
     * This function implements the I2C interface as described in the datasheet on our website
     * Input values:
     *   @param reg_address Pozyx address to write to
     *   @param pData reference to the data that needs to be writen
     *   @param size size in byte of data to be written
-    *
+    *   
     * @return
     *   #POZYX_FAILURE: error occured during the process
     *   #POZYX_SUCCESS: successful execution of the function
     */
     static int i2cWriteWrite(const uint8_t reg_address, const uint8_t *pData, int size);
-
+       
     /**
     * Function: i2cWriteRead
     * ----------------------
@@ -266,7 +273,7 @@ private:
     *   @param write_len size in byte of data to be written
     *   @param read_data reference to the pointer where the read data should be stored
     *   @param read_len size in byte of data to be read
-    *
+    *   
     * @return
     *   POZYX_FAILURE: error occured during the process
     *   POZYX_SUCCESS: successful execution of the function
@@ -278,49 +285,63 @@ private:
     * ------------------
     * Internal function that sets the _interrupt variable on an Arduino interrupt
     */
-    static void IRQ();
+    static void IRQ(); 
 
-
-public:
-
-    /** \addtogroup core
-     *  @{
-     */
-
-    /**
-    * Wait until the Pozyx shields has raised a specfic event flag or until timeout.
-    * This functions halts the process flow until a specific event flag was raised by the Pozyx
-    * shield. The event flag is checked by reading the contents of the reg:POZYX_INT_STATUS register.
-    * This function can work in both polled and interupt mode
-    *
-    *   @param interrupt_flag the exepected Pozyx interrupt. Possible values are #POZYX_INT_STATUS_ERR,
-    *   #POZYX_INT_STATUS_POS, #POZYX_INT_STATUS_IMU, #POZYX_INT_STATUS_RX_DATA, #POZYX_INT_STATUS_FUNC, or combinations.
+    /**    
+    * This function calls the waitForFlag function in polling mode. After this, the previous mode is reset.
+    * 
+    *   @param interrupt_flag the exepected Pozyx interrupt. Possible values are #POZYX_INT_STATUS_ERR, 
+    *   #POZYX_INT_STATUS_POS, #POZYX_INT_STATUS_IMU, #POZYX_INT_STATUS_RX_DATA, #POZYX_INT_STATUS_FUNC, or combinations.  
     *   @param timeout_ms maximum waiting time in milliseconds for flag to occur
+    *   @param interrupt a pointer that will contain the value of the interrupt status register
     *
     * @retval #true event occured.
     * @retval #false event did not occur, this function timed out.
     */
-    static bool waitForFlag(uint8_t interrupt_flag, int timeout_ms);
+    static bool waitForFlag_safe(uint8_t interrupt_flag, int timeout_ms, uint8_t *interrupt = NULL);
+   
+
+public:
+
+    /** \addtogroup core 
+     *  @{
+     */
+
+    /**    
+    * Wait until the Pozyx shields has raised a specfic event flag or until timeout.
+    * This functions halts the process flow until a specific event flag was raised by the Pozyx
+    * shield. The event flag is checked by reading the contents of the reg:POZYX_INT_STATUS register.
+    * This function can work in both polled and interupt mode
+    * 
+    *   @param interrupt_flag the exepected Pozyx interrupt. Possible values are #POZYX_INT_STATUS_ERR, 
+    *   #POZYX_INT_STATUS_POS, #POZYX_INT_STATUS_IMU, #POZYX_INT_STATUS_RX_DATA, #POZYX_INT_STATUS_FUNC, or combinations.  
+    *   @param timeout_ms maximum waiting time in milliseconds for flag to occur
+    *   @param interrupt a pointer that will contain the value of the interrupt status register
+    *
+    * @retval #true event occured.
+    * @retval #false event did not occur, this function timed out.
+    */
+    static bool waitForFlag(uint8_t interrupt_flag, int timeout_ms, uint8_t *interrupt = 0);
 
     /**
-    * Initiates the Pozyx shield. This function initializes the pozyx device.
-    * It will verify that the device is functioning correctly by means of the self-test, and it will configure the interrupts.
+    * Initiates the Pozyx shield. This function initializes the pozyx device. 
+    * It will verify that the device is functioning correctly by means of the self-test, and it will configure the interrupts. 
     * See the register reg:POZYX_INT_MASK for more details about the interrupts.
-    *
+    * 
     * @param print_result outputs the result of the function to the Serial output
     * @param mode The modus of the system: #MODE_POLLING or #MODE_INTERRUPT
-    * @param interrupts defines which events trigger interrupts. This field is only required for #MODE_INTERRUPT. Possible
-    * values are bit-wise combinations of #POZYX_INT_MASK_ERR, #POZYX_INT_MASK_POS, #POZYX_INT_MASK_IMU, #POZYX_INT_MASK_RX_DATA and #POZYX_INT_MASK_FUNC. Use #POZYX_INT_MASK_ALL to trigger on all events.
-    * @param interrupt_pin Pozyx interrupt pin: #POZYX_INT_PIN0 or #POZYX_INT_PIN1. This field is only required for #MODE_INTERRUPT.
+    * @param interrupts defines which events trigger interrupts. This field is only required for #MODE_INTERRUPT. Possible 
+    * values are bit-wise combinations of #POZYX_INT_MASK_ERR, #POZYX_INT_MASK_POS, #POZYX_INT_MASK_IMU, #POZYX_INT_MASK_RX_DATA and #POZYX_INT_MASK_FUNC. Use #POZYX_INT_MASK_ALL to trigger on all events.   
+    * @param interrupt_pin Pozyx interrupt pin: #POZYX_INT_PIN0 or #POZYX_INT_PIN1. This field is only required for #MODE_INTERRUPT. 
     *
     * @retval #POZYX_SUCCESS success.
     * @retval #POZYX_FAIL function failed.
     */
-    static int begin(bool print_result = false, int mode = MODE_INTERRUPT,  int interrupts = POZYX_INT_MASK_ALL, int interrupt_pin = POZYX_INT_PIN0);
-
+    static int begin(int adapter, bool print_result = false, int mode = MODE_INTERRUPT,  int interrupts = POZYX_INT_MASK_ALL, int interrupt_pin = POZYX_INT_PIN0);
+   
     /**
     * Read from the registers of the connected Pozyx shield.
-    *
+    * 
     *   @param reg_address: the specific register address to start reading from
     *   @param pData: a pointer to the data thas will be read
     *   @param size: the number of bytes to read
@@ -332,7 +353,7 @@ public:
 
     /**
     * Write to the registers of the connected Pozyx shield.
-    *
+    * 
     *   @param reg_address: the specific register address to start writing to
     *   @param pData: a pointer to the data thas will be written
     *   @param size: the number of bytes to write
@@ -344,7 +365,7 @@ public:
 
     /**
     * Call a register funcion on the connected Pozyx shield.
-    *
+    * 
     *   @param reg_address: the specific register address of the function
     *   @param params: this is the pointer to a parameter array required for the specific function that is called
     *   @param param_size: the number of bytes in the params array
@@ -358,7 +379,7 @@ public:
 
     /**
     * Write to the registers on a remote Pozyx device (anchor or tag).
-    *
+    * 
     *   @param destination: this is the network id of the receiving Pozyx tag
     *   @param reg_address: the specific register address to start writing to
     *   @param pData: a pointer to the data thas will be written
@@ -366,12 +387,12 @@ public:
     *
     * @retval #POZYX_SUCCESS success.
     * @retval #POZYX_FAIL function failed.
-    */
+    */    
     static int remoteRegWrite(uint16_t destination, uint8_t reg_address, uint8_t *pData, int size);
 
     /**
     * Read from the registers on a remote Pozyx device (anchor or tag).
-    *
+    * 
     *   @param destination: this is the network id of the receiving Pozyx tag
     *   @param reg_address: the specific register address to start reading from
     *   @param pData: a pointer to the data thas will be read
@@ -385,7 +406,7 @@ public:
 
     /**
     * Call a register funcion on a remote Pozyx device (anchor or tag).
-    *
+    * 
     *   @param destination: this is the network id of the receiving Pozyx tag
     *   @param reg_address: the specific register address of the function
     *   @param params: this is the pointer to a parameter array required for the specific function that is called
@@ -399,18 +420,18 @@ public:
     */
     static int remoteRegFunction(uint16_t destination, uint8_t reg_address, uint8_t *params, int param_size, uint8_t *pData, int size);
 
-/** @}*/
+/** @}*/ 
 
-/** \addtogroup communication_functions
+/** \addtogroup communication_functions 
  *  @{
- */
+ */  
 
     /**
     * Wirelessly transmit data to a remote pozyx device.
     * This function combines writeTXBufferData and sendTXBufferData to write data to the transmit buffer and immediately transmit it.
     *
     *   @param destination the network id of the device that should receive the data. A value of 0 will result in a broadcast
-    *   @param pData pointer to the data that should be transmitted
+    *   @param pData pointer to the data that should be transmitted 
     *   @param size number of bytes to transmit
     *
     * @retval #POZYX_SUCCESS success.
@@ -436,7 +457,7 @@ public:
     /**
     * Wirelessly transmit data.
     * Wirelessly transmit the contents of the transmit buffer over UWB.
-    *
+    * 
     *   @param destination the network id of the device that should receive the data. A value of 0 will result in a broadcast.
     *
     * @retval #POZYX_SUCCESS success.
@@ -531,14 +552,14 @@ public:
     * In order to communicate, two pozyx devices must have exactly the same UWB settings.
     * Upon reset, the default UWB settings will be loaded.
     *
-    *   @param UWB_settings the new UWB settings
+    *   @param UWB_settings reference to the new UWB settings. If the gain_db is set to 0, it will automatically load the default gain value for the given uwb paramters.
     *   @param remote_id optional parameter that determines the remote device to be used
     *
     * @retval #POZYX_SUCCESS success.
     * @retval #POZYX_FAIL function failed.
     * @retval #POZYX_TIMEOUT function timed out, no response received.
     */
-    static int setUWBSettings(UWB_settings_t UWB_settings, uint16_t remote_id = 0);
+    static int setUWBSettings(UWB_settings_t *UWB_settings, uint16_t remote_id = 0);
 
     /**
     * Set the Ultra-wideband frequency channel.
@@ -573,13 +594,13 @@ public:
     * configure the UWB transmission power.
     *
     * @note setting a large TX gain may cause the system to fall out of regulation. Applications that require regulations must set an appropriate TX gain to meet the spectral mask of your region. This can be verified with a spectrum analyzer.
-    *
+    *   
     * This function configures the UWB transmission power gain. The default value is different for each UWB channel.
-    * Setting a larger transmit power will result in a larger range. For increased communication range (which is two-way), both the
+    * Setting a larger transmit power will result in a larger range. For increased communication range (which is two-way), both the 
     * transmitter and the receiver must set the appropriate transmit power.
     * Changing the UWB channel will reset the power to the default value.
     *
-    *   @param txgain_dB the transmission gain in dB. Possible values are between 0dB and 35dB, with a resolution of 0.5dB.
+    *   @param txgain_dB the transmission gain in dB. Possible values are between 0dB and 33.5dB, with a resolution of 0.5dB.
     *   @param remote_id optional parameter that determines the remote device to be used.
     *
     * @retval #POZYX_SUCCESS success.
@@ -590,11 +611,11 @@ public:
 
     /**
     * Obtain the UWB transmission power.
-    *
+    *  
     * This function obtains the configured UWB transmission power gain. The default value is different for each UWB channel.
     * Changing the UWB channel will reset the TX power to the default value.
     *
-    *   @param txgain_dB the configured transmission gain in dB. Possible values are between 0dB and 35dB, with a resolution of 0.5dB.
+    *   @param txgain_dB the configured transmission gain in dB. Possible values are between 0dB and 33.5dB, with a resolution of 0.5dB.
     *   @param remote_id optional parameter that determines the remote device to be used.
     *
     * @retval #POZYX_SUCCESS success.
@@ -603,16 +624,16 @@ public:
     */
     static int getTxPower(float* txgain_dB, uint16_t remote_id = 0);
 
-/** @}*/
+/** @}*/ 
 
 
-/** \addtogroup system_functions
+/** \addtogroup system_functions 
  *  @{
  */
-
+    
     /**
     * Obtain the who_am_i value.
-    * This function reads the reg:POZYX_WHO_AM_I register.
+    * This function reads the reg:POZYX_WHO_AM_I register. 
     *
     *   @param whoami: reference to the pointer where the read data should be stored e.g. whoami
     *   @param remote_id: optional parameter that determines the remote device to be read
@@ -622,10 +643,10 @@ public:
     * @retval #POZYX_TIMEOUT function timed out, no response received.
     */
     static int getWhoAmI(uint8_t *whoami, uint16_t remote_id = 0);
-
+    
     /**
     * Obtain the firmware version.
-    * This function reads the reg:POZYX_FIRMWARE_VER register.
+    * This function reads the reg:POZYX_FIRMWARE_VER register. 
     *
     *   @param firmware: reference to the pointer where the read data should be stored e.g. the firmware version
     *   @param remote_id: optional parameter that determines the remote device to be read
@@ -635,10 +656,10 @@ public:
     * @retval #POZYX_TIMEOUT function timed out, no response received.
     */
     static int getFirmwareVersion(uint8_t *firmware, uint16_t remote_id = 0);
-
+    
     /**
     * Obtain hte hardware version.
-    * This function reads the reg:POZYX_HARDWARE_VER register.
+    * This function reads the reg:POZYX_HARDWARE_VER register. 
     *
     *   @param data: reference to the pointer where the read data should be stored e.g. hardware version
     *   @param remote_id: optional parameter that determines the remote device to be read
@@ -648,10 +669,10 @@ public:
     * @retval #POZYX_TIMEOUT function timed out, no response received.
     */
     static int getHardwareVersion(uint8_t *hardware, uint16_t remote_id = 0);
-
+    
     /**
     * Obtain the selftest result.
-    * This function reads the reg:POZYX_ST_RESULT register.
+    * This function reads the reg:POZYX_ST_RESULT register. 
     *
     *   @param data: reference to the pointer where the read data should be stored e.g. the selftest result
     *   @param remote_id: optional parameter that determines the remote device to be read
@@ -661,10 +682,10 @@ public:
     * @retval #POZYX_TIMEOUT function timed out, no response received.
     */
     static int getSelftest(uint8_t *selftest, uint16_t remote_id = 0);
-
+    
     /**
     * Obtain the error code.
-    * This function reads the reg:POZYX_ERRORCODE register.
+    * This function reads the reg:POZYX_ERRORCODE register. 
     *
     *   @param data: reference to the pointer where the read data should be stored e.g. the error code
     *   @param remote_id: optional parameter that determines the remote device to be read
@@ -674,10 +695,10 @@ public:
     * @retval #POZYX_TIMEOUT function timed out, no response received.
     */
     static int getErrorCode(uint8_t *error_code, uint16_t remote_id = 0);
-
+    
     /**
     * Obtain the interrupt status.
-    * This function reads the reg:POZYX_INT_STATUS register.
+    * This function reads the reg:POZYX_INT_STATUS register. 
     *
     *   @param data: reference to the pointer where the read data should be stored e.g. the interrupt status
     *   @param remote_id: optional parameter that determines the remote device to be read
@@ -689,10 +710,10 @@ public:
     * @see waitForFlag
     */
     static int getInterruptStatus(uint8_t *interrupts, uint16_t remote_id = 0);
-
+    
     /**
     * Obtain the calibration status.
-    * This function reads the reg:POZYX_CALIB_STATUS register.
+    * This function reads the reg:POZYX_CALIB_STATUS register. 
     *
     *   @param data: reference to the pointer where the read data should be stored e.g. calibration status
     *   @param remote_id: optional parameter that determines the remote device to be read
@@ -705,10 +726,10 @@ public:
 
     /**
     * Obtain the digital value on one of the GPIO pins.
-    * Function to retieve the value of the given General Purpose Input/output pin (GPIO) on the target device
+    * Function to retieve the value of the given General Purpose Input/output pin (GPIO) on the target device 
     *
     *   @param gpio_num: the gpio pin to be set or retrieved. Possible values are 1, 2, 3 or 4.
-    *   @param value: the pointer that stores the value for the GPIO.
+    *   @param value: the pointer that stores the value for the GPIO. 
     *   @param remote_id: optional parameter that determines the remote device to be used
     *
     * @retval #POZYX_SUCCESS success.
@@ -721,7 +742,7 @@ public:
 
     /**
     * Set the digital value on one of the GPIO pins.
-    * Function to set or set the value of the given GPIO on the target device
+    * Function to set or set the value of the given GPIO on the target device 
     *
     *   @param gpio_num: the gpio pin to be set or retrieved. Possible values are 1, 2, 3 or 4.
     *   @param value: the value for the GPIO. Can be O (LOW) or 1 (HIGH).
@@ -736,7 +757,7 @@ public:
 
     /**
     * Trigger a software reset of the Pozyx device.
-    * Function that will trigger the reset of the system.
+    * Function that will trigger the reset of the system. 
     * This will reset all configuration values to the default values
     *
     *   @param remote_id: optional parameter that determines the remote device to be used.
@@ -746,8 +767,8 @@ public:
 
     /**
     * Function for turning the leds on and off.
-    * This function allows you to turn one of the 4 LEDs on the Pozyx board on or off.
-    * By default, the LEDs are controlled by the Pozyx system to give status information.
+    * This function allows you to turn one of the 4 LEDs on the Pozyx board on or off. 
+    * By default, the LEDs are controlled by the Pozyx system to give status information. 
     * This can be changed using the function setLedConfig.
     *
     *   @param led_num: the led number to be controlled, value between 1, 2, 3 or 4.
@@ -764,7 +785,7 @@ public:
 
     /**
     * Function to obtain the interrupt configuration.
-    * This functions obtains the interrupt mask from the register reg:POZYX_INT_MASK.
+    * This functions obtains the interrupt mask from the register reg:POZYX_INT_MASK. 
     * The interrupt mask is used to determine which event trigger an interrupt.
     *
     *   @param mask: the configured interrupt mask
@@ -775,13 +796,13 @@ public:
     * @retval #POZYX_TIMEOUT function timed out, no response received.
     */
     static int getInterruptMask(uint8_t *mask, uint16_t remote_id = 0);
-
+    
     /**
     * Function to configure the interrupts.
-    * Function to configure the interrupts by means of the interrupt mask from the register reg:POZYX_INT_MASK.
+    * Function to configure the interrupts by means of the interrupt mask from the register reg:POZYX_INT_MASK. 
     * The interrupt mask is used to determine which event trigger an interrupt.
     *
-    *   @param mask: reference to the interrupt mask to be written. Bit-wise combinations of the following flags are allowed: #POZYX_INT_MASK_ERR,
+    *   @param mask: reference to the interrupt mask to be written. Bit-wise combinations of the following flags are allowed: #POZYX_INT_MASK_ERR, 
     *   #POZYX_INT_MASK_POS, #POZYX_INT_MASK_IMU, #POZYX_INT_MASK_RX_DATA, #POZYX_INT_MASK_FUNC.
     *   @param remote_id: optional parameter that determines the remote device to be used
     *
@@ -794,7 +815,7 @@ public:
 
     /**
     * Obtain the pull configuration of a GPIO pin.
-    * Function to obtain the configured pin mode of the GPIO for the given pin number. This is performed by reading from
+    * Function to obtain the configured pin mode of the GPIO for the given pin number. This is performed by reading from 
     * the reg:POZYX_CONFIG_GPIO1 up to reg:POZYX_CONFIG_GPIO4 register.
     *
     *   @param gpio_num: the pin to update
@@ -809,11 +830,11 @@ public:
 
     /**
     * Obtain the pull configuration of a GPIO pin.
-    * Function to obtain the configured pull resistor of the GPIO for the given pin number. This is performed by reading from
+    * Function to obtain the configured pull resistor of the GPIO for the given pin number. This is performed by reading from 
     * the reg:POZYX_CONFIG_GPIO1 up to reg:POZYX_CONFIG_GPIO4 register.
     *
     *   @param gpio_num: the pin to update
-    *   @param pull: pull configuration of GPIO. Possible values are #POZYX_GPIO_NOPULL, #POZYX_GPIO_PULLUP, #POZYX_GPIO_PULLDOWN.
+    *   @param pull: pull configuration of GPIO. Possible values are #POZYX_GPIO_NOPULL, #POZYX_GPIO_PULLUP, #POZYX_GPIO_PULLDOWN. 
     *   @param remote_id: optional parameter that determines the remote device to be used
     *
     * @retval #POZYX_SUCCESS success.
@@ -825,12 +846,12 @@ public:
 
     /**
     * Configure the GPIOs.
-    * Function to set the configuration mode of the GPIO for the given pin number. This is performed by writing to
+    * Function to set the configuration mode of the GPIO for the given pin number. This is performed by writing to 
     * the reg:POZYX_CONFIG_GPIO1 up to reg:POZYX_CONFIG_GPIO4 register.
     *
     *   @param gpio_num: the GPIO pin to update. Possible values are 1, 2, 3 or 4.
     *   @param mode: the mode of GPIO. Possible values #POZYX_GPIO_DIGITAL_INPUT, #POZYX_GPIO_PUSHPULL, #POZYX_GPIO_OPENDRAIN
-    *   @param pull: pull configuration of GPIO. Possible values are #POZYX_GPIO_NOPULL, #POZYX_GPIO_PULLUP, #POZYX_GPIO_PULLDOWN.
+    *   @param pull: pull configuration of GPIO. Possible values are #POZYX_GPIO_NOPULL, #POZYX_GPIO_PULLUP, #POZYX_GPIO_PULLDOWN. 
     *   @param remote_id: optional parameter that determines the remote device to be used
     *
     * @retval #POZYX_SUCCESS success.
@@ -841,7 +862,7 @@ public:
 
     /**
     * Configure the LEDs.
-    * This function configures the 6 LEDs on the pozyx device by writing to the register reg:POZYX_LED_CTRL.
+    * This function configures the 6 LEDs on the pozyx device by writing to the register reg:POZYX_LED_CTRL. 
     * More specifically, the function configures which LEDs give system information. By default all the LEDs
     * will give system information.
     *
@@ -858,12 +879,12 @@ public:
 
 /** @}*/
 
-
-/** \addtogroup positioning_functions
+    
+/** \addtogroup positioning_functions 
  *  @{
  */
 
-
+    
     /**
     * Obtain the last coordinates of the device.
     * Retrieve the last coordinates of the device or the remote device. Note that this function does not
@@ -881,7 +902,7 @@ public:
     static int getCoordinates(coordinates_t *coordinates, uint16_t remote_id = 0);
 
     /**
-    * Set the coordinates of the device.
+    * Set the coordinates of the device. 
     * Manually set the coordinates of the device or the remote device.
     *
     *   @param coordinates coordinates to be set
@@ -896,7 +917,7 @@ public:
     static int setCoordinates(coordinates_t coordinates, uint16_t remote_id = 0);
 
     /**
-    * Obtain the last estimated position error covariance information.
+    * Obtain the last estimated position error covariance information. 
     * Retrieve the last error covariance of the position for the device or the remote device. Note that this function does not
     * trigger positioning.
     *
@@ -911,8 +932,8 @@ public:
 
     /**
     * Manually set which anchors to use for positioning.
-    * Function to manually set which anchors to use for positioning by calling the register function reg:POZYX_POS_SET_ANCHOR_IDS.
-    * Notice that the anchors specified are only used if this is configured with setSelectionOfAnchors. Furthermore, the anchors
+    * Function to manually set which anchors to use for positioning by calling the register function reg:POZYX_POS_SET_ANCHOR_IDS. 
+    * Notice that the anchors specified are only used if this is configured with setSelectionOfAnchors. Furthermore, the anchors 
     * specified in this functions must be available in the device list with their coordinates.
     *
     *   @param anchors[] an array with network id's of anchors to be used
@@ -929,7 +950,7 @@ public:
 
     /**
     * Obtain which anchors used for positioning.
-    * Function to retrieve the anchors that used for positioning by calling the register function reg:POZYX_POS_GET_ANCHOR_IDS.
+    * Function to retrieve the anchors that used for positioning by calling the register function reg:POZYX_POS_GET_ANCHOR_IDS. 
     * When in automatic anchor selection mode, the chosen anchors are listed here.
     *
     *   @param anchors[] an array with network id's of anchors manually set
@@ -974,17 +995,17 @@ public:
     * @see getUpdateInterval
     */
     static int setUpdateInterval(uint16_t ms, uint16_t remote_id = 0);
-
-
+  
+    
 
     /**
     * Obtain the configured positioning algorithm.
     * This function obtains the configured positioning algorithm by reading from the reg:POZYX_POS_ALG register.
-    *
-    *   @param algorithm pointer to the variable holding the algorithm used to determine position.
+    * 
+    *   @param algorithm pointer to the variable holding the algorithm used to determine position. 
     *   Possible values for the positioning algorithm are #POZYX_POS_ALG_UWB_ONLY and #POZYX_POS_ALG_LS.
     *   @param remote_id optional parameter that determines the remote device to be used
-    *
+    * 
     * @retval #POZYX_SUCCESS success.
     * @retval #POZYX_FAIL function failed.
     * @retval #POZYX_TIMEOUT function timed out, no response received.
@@ -996,10 +1017,10 @@ public:
     /**
     * Obtain the configured positioning dimension.
     * This function obtains the configuration of the physical dimension by reading from the reg:POZYX_POS_ALG register.
-    *
+    * 
     *   @param dimension pointer to physical dimension used for the algorithm. Possible values for the dimension are #POZYX_3D, #POZYX_2D or #POZYX_2_5D.
     *   @param remote_id optional parameter that determines the remote device to be used
-    *
+    * 
     * @retval #POZYX_SUCCESS success.
     * @retval #POZYX_FAIL function failed.
     * @retval #POZYX_TIMEOUT function timed out, no response received.
@@ -1014,17 +1035,17 @@ public:
     * This function configures the positioning algorithm and the desired physical dimension by writing to the
     * register reg:POZYX_POS_ALG.
     *
-    *   @param algorithm algorithm used to determine the position. Possible values are #POZYX_POS_ALG_UWB_ONLY and #POZYX_POS_ALG_LS.
+    *   @param algorithm algorithm used to determine the position. Possible values are #POZYX_POS_ALG_UWB_ONLY and #POZYX_POS_ALG_LS.  
     *   @param dimension physical dimension used for the algorithm. Possible values are #POZYX_3D, #POZYX_2D or #POZYX_2_5D.
     *   @param remote_id optional parameter that determines the remote device to be used
-    *
+    * 
     * @retval #POZYX_SUCCESS success.
     * @retval #POZYX_FAIL function failed.
     *
     * @see getPositionAlgorithm, getPositionDimension
     */
     static int setPositionAlgorithm(int algorithm = POZYX_POS_ALG_UWB_ONLY, int dimension = 0x0, uint16_t remote_id = 0);
-
+    
     /**
     * Obtain the anchor selection mode.
     * This function reads the anchor selection mode bit from the register reg:POZYX_POS_NUM_ANCHORS.
@@ -1051,7 +1072,7 @@ public:
     * @retval #POZYX_SUCCESS success.
     * @retval #POZYX_FAIL function failed.
     * @retval #POZYX_TIMEOUT function timed out, no response received.
-    */
+    */  
     static int getNumberOfAnchors(uint8_t *nr_anchors, uint16_t remote_id = 0);
 
 
@@ -1059,7 +1080,7 @@ public:
     * Configure how many anchors are used for positioning and how they are selected.
     * This function configures the number of anchors used for positioning. Theoretically, a larger
     * number of anchors leads to better positioning performance. However, in practice this is not always the case.
-    * The more anchors used for positioning, the longer the positioning process will take. Furthermore,
+    * The more anchors used for positioning, the longer the positioning process will take. Furthermore, 
     * it can be chosen which anchors are to be used: either a fixed set given by the user, or an automatic selection
     * between all the anchors in the internal device list.
     *
@@ -1071,7 +1092,7 @@ public:
     * @retval #POZYX_FAIL function failed.
     *
     * @see setPositioningAnchorIds to set the anchor IDs in manual anchor selection mode.
-    */
+    */  
     static int setSelectionOfAnchors(int mode, int nr_anchors, uint16_t remote_id = 0);
 
     /**
@@ -1088,7 +1109,7 @@ public:
     * @retval #POZYX_TIMEOUT function timed out, no response received.
     *
     * @see setOperationMode
-    */
+    */  
     static int getOperationMode(uint8_t *mode, uint16_t remote_id = 0);
 
 
@@ -1105,7 +1126,7 @@ public:
     * @retval #POZYX_FAIL function failed.
     *
     * @see getOperationMode
-    */
+    */    
     static int setOperationMode(uint8_t mode, uint16_t remote_id = 0);
 
 
@@ -1124,7 +1145,7 @@ public:
 /** @}*/
 
 
-/** \addtogroup sensor_data
+/** \addtogroup sensor_data 
  *  @{
  */
 
@@ -1155,7 +1176,7 @@ public:
 
     /**
     * Obtain all sensor data at once.
-    * This functions reads out the pressure, acceleration, magnetic field strength, angular velocity, orientation in Euler angles, the orientation as a quaternion,
+    * This functions reads out the pressure, acceleration, magnetic field strength, angular velocity, orientation in Euler angles, the orientation as a quaternion, 
     * the linear acceleration, the gravity vector and temperature.
     *
     *   @param sensor_data: reference to the sensor_data object
@@ -1168,7 +1189,7 @@ public:
     static int getAllSensorData(sensor_data_t *sensor_data, uint16_t remote_id = 0);
 
     /**
-    * Obtain the atmospheric pressure in Pascal.
+    * Obtain the atmospheric pressure in Pascal. 
     * This function reads out the pressure starting from the register POZYX_PRESSURE. The maximal update rate is 10Hz. The units are Pa.
     *
     *   @param pressure: reference to the pressure variable
@@ -1182,7 +1203,7 @@ public:
 
 
     /**
-    * Obtain the 3D acceleration vector in mg.
+    * Obtain the 3D acceleration vector in mg. 
     * This function reads out the acceleration data starting from the register reg:POZYX_ACCEL_X. The maximal update rate is 100Hz. The units are mg.
     * The vector is expressed in body coordinates (i.e., along axes of the device).
     *
@@ -1252,7 +1273,7 @@ public:
 
     /**
     * Obtain the 3D linear acceleration in mg.
-    * This function reads out the linear acceleration data starting from the register reg:POZYX_LIA_X.
+    * This function reads out the linear acceleration data starting from the register reg:POZYX_LIA_X. 
     * The Linear acceleration is the acceleration compensated for gravity.
     * The maximal update rate is 100Hz. The units are mg.
     * The vector is expressed in body coordinates (i.e., along axes of the device).
@@ -1282,7 +1303,7 @@ public:
 
     /**
     * Obtain the temperature in degrees Celcius.
-    * This function reads out the temperature from the register reg:POZYX_TEMPERATURE.
+    * This function reads out the temperature from the register reg:POZYX_TEMPERATURE. 
     * This function is unsupported in firmware version v0.9.
     *
     *   @param temperature: reference to the temperature variable
@@ -1296,21 +1317,21 @@ public:
 
 /** @}*/
 
-/** \addtogroup positioning_functions
+/** \addtogroup positioning_functions 
  *  @{
  */
     /**
     * Obtain the coordinates.
     * This function triggers the positioning algorithm to perform positioning with the given parameters.
     * By default it will automatically select 4 anchors from the internal device list. It will then perform
-    * ranging with these anchors and use the results to compute the coordinates.
+    * ranging with these anchors and use the results to compute the coordinates. 
     * This function requires that the coordinates for the anchors are stored in the internal device list.
     *
     * Please read the tutorial ready to localize to get started with positioning.
     *
     *   @param position: data object to store the result
     *   @param dimension: optional flag to specify the positioning dimension, possible options are #POZYX_2D, #POZYX_2_5D, and #POZYX_3D
-    *   @param height: optional parameter that is used for #POZYX_2_5D to give the height in mm of the tag
+    *   @param height: optional parameter that is used for #POZYX_2_5D to give the height in mm of the tag 
     *   @param algorithm: optional flag to specifiy the positioning algorithm to be used. Possible options are #POZYX_POS_ALG_UWB_ONLY and #POZYX_POS_ALG_LS
     *
     * @retval #POZYX_SUCCESS success.
@@ -1327,14 +1348,14 @@ public:
     *
     * This function triggers the positioning algorithm on a remote pozyx device to perform positioning with the given parameters.
     * By default it will automatically select 4 anchors from the internal device list on the remote device. The device will perform
-    * ranging with the anchors and use the results to compute the coordinates.
+    * ranging with the anchors and use the results to compute the coordinates. 
     * This function requires that the coordinates for the anchors are stored in the internal device list on the remote device.
     * After positioning is completed, the remote device will automatically transmit the result back.
     *
     *   @param remote_id: the remote device that will do the positioning
     *   @param position: data object to store the result
     *   @param dimension: optional flag to specify the positioning dimension, possible options are #POZYX_2D, #POZYX_2_5D, and #POZYX_3D
-    *   @param height: optional parameter that is used for #POZYX_2_5D to give the height in mm of the tag
+    *   @param height: optional parameter that is used for #POZYX_2_5D to give the height in mm of the tag 
     *   @param algorithm: optional flag to specifiy the positioning algorithm to be used
     *
     * @retval #POZYX_SUCCESS success.
@@ -1348,7 +1369,7 @@ public:
     * Trigger ranging with a remote device.
     * This function performs ranging with a remote device using the UWB signals.
     *
-    *   @param destination: the target device to do ranging with
+    *   @param destination: the target device to do ranging with 
     *   @param range: the pointer to where the resulting data will be stored
     *
     * @retval #POZYX_SUCCESS success.
@@ -1359,7 +1380,7 @@ public:
     static int doRanging(uint16_t destination, device_range_t *range);
 
     /**
-    * Trigger ranging between two remote devivces.
+    * Trigger ranging between two remote devivces.  
     * Function allowing to trigger ranging between two remote devices A and B. The ranging data is collected by
     * device A and transmitted back to the local device.
     *
@@ -1372,7 +1393,7 @@ public:
     *
     * @see doRanging, getDeviceRangeInfo
     */
-    static int doRemoteRanging(uint16_t device_from, uint16_t device_to, device_range_t *device_range);
+    static int doRemoteRanging(uint16_t device_from, uint16_t device_to, device_range_t *range);
 
     /**
     * Retrieve stored ranging information.
@@ -1387,11 +1408,11 @@ public:
     */
     static int getDeviceRangeInfo(uint16_t device_id, device_range_t *device_range, uint16_t remote_id = 0);
 
-/** @}*/
+/** @}*/  
 
-/** \addtogroup device_list
+/** \addtogroup device_list 
  *  @{
- */
+ */    
 
     /**
     * Obtain the number of devices stored internally.
@@ -1406,7 +1427,7 @@ public:
     * @see doDiscovery, doAnchorCalibration
     */
     static int getDeviceListSize(uint8_t *device_list_size, uint16_t remote_id = 0);
-
+   
 
     /**
     * Obtain the network IDs from all the devices in the device list.
@@ -1419,7 +1440,7 @@ public:
     * @retval #POZYX_SUCCESS success.
     * @retval #POZYX_FAIL function failed.
     */
-    static int getDeviceIds(uint16_t devices[], int size = MAX_ANCHORS_IN_LIST, uint16_t remote_id = 0);
+    static int getDeviceIds(uint16_t devices[], int size, uint16_t remote_id = 0);
 
     /**
     * Obtain the network IDs from all the anchors in the device list.
@@ -1432,8 +1453,8 @@ public:
     * @retval #POZYX_SUCCESS success.
     * @retval #POZYX_FAIL function failed.
     */
-    static int getAnchorIds(uint16_t anchors[], int size = MAX_ANCHORS_IN_LIST, uint16_t remote_id = 0);
-
+    static int getAnchorIds(uint16_t anchors[], int size, uint16_t remote_id = 0);
+    
     /**
     * Obtain the network IDs from all the tags in the device list.
     * Function to get all the network ids of the tags in the device list
@@ -1445,7 +1466,7 @@ public:
     * @retval #POZYX_SUCCESS success.
     * @retval #POZYX_FAIL function failed.
     */
-    static int getTagIds(uint16_t tags[], int size = MAX_ANCHORS_IN_LIST, uint16_t remote_id = 0);
+    static int getTagIds(uint16_t tags[], int size, uint16_t remote_id = 0);
 
     /**
     * Discover Pozyx devices in range.
@@ -1466,10 +1487,10 @@ public:
     /**
     * Automatically obtain the relative anchor positions.
     * This function triggers the automatic anchor calibration to obtain the relative coordinates of up to 6
-    * pozyx devices in range. This function can be used for quickly setting up the positioning system.
-    * The procedure may take several hundres of milliseconds depending on the number of devices in range and
-    * the number of range measurements requested. During the calibration proces LED 2 will be turned on.
-    * At the end of calibration the corresponding bit in the reg:POZYX_CALIB_STATUS register will be set.
+    * pozyx devices in range. This function can be used for quickly setting up the positioning system. 
+    * The procedure may take several hundres of milliseconds depending on the number of devices in range and 
+    * the number of range measurements requested. During the calibration proces LED 2 will be turned on. 
+    * At the end of calibration the corresponding bit in the reg:POZYX_CALIB_STATUS register will be set. 
     * The resulting coordinates are stored in the internal device list.
     * \n\n
     * Please read the tutorial Ready to Localize to learn how to use this function.
@@ -1477,7 +1498,7 @@ public:
     *   @param type dimension of the calibration, can be #POZYX_2D or #POZYX_2_5D
     *   @param measurements: The number of measurements per link. Recommended 10. Theoretically, a larger number should result in better calibration accuracy.
     *   @param anchor_num The number of anchors in the anchors[] array
-    *   @param anchors[] The anchors that determine the axis (see datasheet)
+    *   @param anchors[] The anchors that determine the axis (see datasheet)       
     *   @param heights The heights in mm of the anchors in the anchors[] array (only used for #POZYX_2_5D)
     *
     * @retval #POZYX_SUCCESS success.
@@ -1486,7 +1507,7 @@ public:
     * @see Please read the Ready to Localize tutorial to get started with this function.
     */
     static int doAnchorCalibration(int dimension = POZYX_2D, int num_measurements = 10, int num_anchors = 0, uint16_t anchors[] = 0,  int32_t heights[] = NULL);
-
+        
     /**
     * Empty the internal list of devices.
     * This function empties the internal list of devices.
@@ -1500,7 +1521,7 @@ public:
 
     /**
     * Manualy adds a device to the device list.
-    * This function can be used to manually add a device and its coordinates to the device list.
+    * This function can be used to manually add a device and its coordinates to the device list. 
     * Once the device is added, it can be used for positioning.
     *
     *   @param device_coordinates: the device information to be added
@@ -1524,7 +1545,7 @@ public:
     */
     static int getDeviceCoordinates(uint16_t device_id, coordinates_t *coordinates, uint16_t remote_id = 0);
 
-/** @}*/
+/** @}*/    
 
 };
 extern PozyxClass Pozyx;
