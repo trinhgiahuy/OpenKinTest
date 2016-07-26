@@ -6,17 +6,77 @@
 */
 
 #include "Pozyx.h"
-#include <Wire.h>
+#include "helpers.hh"
+#include <bitset>
+#include <iostream>
+#include <stdlib.h>
+#include <iomanip>
+#include <cstring>
+#include <string>
+#include <sstream>
+#include <linux/i2c-dev.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <poll.h>
+#include <ctime>
+
+using std::memcpy;
 
 extern "C" {
   #include "Pozyx_definitions.h"
 }
 
-int PozyxClass::_interrupt;
+#define GPIO 338
+#define SYSFS_GPIO_DIR "/sys/class/gpio"
+#define POLL_TIMEOUT 6000 // 3 seconds
+
+//#define DEBUG
+#define PRINTERRORS
+
+int PozyxClass::_interrupt = 0;
 int PozyxClass::_mode;
 
 int PozyxClass::_hw_version;       // pozyx harware version 
 int PozyxClass::_sw_version;       // pozyx software (firmware) version. (By updating the firmware on the pozyx device, this value can change);
+
+int PozyxClass::i2c_file;
+int PozyxClass::gpio_file;
+
+void printTime(bool cerr = false) {
+  time_t rawtime;
+  struct tm * timeinfo;
+
+  time (&rawtime);
+  timeinfo = localtime (&rawtime);
+  if (cerr) {
+    std::cerr << std::dec << "[" << mktime(timeinfo) << "] ";
+  } else {
+    std::cout << std::dec << "[" << mktime(timeinfo) << "] ";
+  }
+}
+
+void PozyxClass::initI2C(int adapter) {
+
+  std::stringstream ss;
+  ss << "/dev/i2c-" << adapter;
+
+  //int adapter_nr = 7; // minnowboard
+  i2c_file = open(ss.str().c_str(), O_RDWR);
+  if (i2c_file < 0) {
+    #ifdef PRINTERRORS
+    printTime(true);
+    std::cerr << "Failed to open I2C device" << std::endl;
+    #endif
+  }
+
+  if (ioctl(i2c_file, I2C_SLAVE, POZYX_I2C_ADDRESS) < 0) {
+    #ifdef PRINTERRORS
+    printTime(true);
+    std::cerr << "Failed to open I2C slave" << std::endl;
+    #endif
+  }
+}
 
 /**
  * The interrupt handler for the pozyx device: keeping it uber short!
@@ -26,11 +86,22 @@ void PozyxClass::IRQ()
   _interrupt = 1;  
 }
 
-boolean PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms, uint8_t *interrupt)
+bool PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms, uint8_t *interrupt)
 {
   long timer = millis();
   int status;
   
+  struct pollfd fdset[1];
+  int nfds = 1;
+  int timeout = POLL_TIMEOUT;
+
+  fdset[0].fd = gpio_file;
+  fdset[0].events = POLLPRI;
+
+  int rc = 0;
+
+  char buf[1];
+
   // stay in this loop until the event interrupt flag is set or until the the timer runs out
   while(millis()-timer < timeout_ms)
   {
@@ -38,10 +109,19 @@ boolean PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms, uint8_t 
     if( _mode == MODE_POLLING ){
       delay(1);
     }
-    
-    if( (_interrupt == 1) || (_mode == MODE_POLLING))
-    { 
-      _interrupt = 0;
+    //lseek(gpio_file, 0, SEEK_SET);
+    //read(gpio_file, buf, sizeof buf);
+    // TODO: more event interrupts, maybe poll in thread
+    //if( (_interrupt == 1) || (_mode == MODE_POLLING))
+    if( (_mode == MODE_POLLING) || (rc = poll(fdset, nfds, timeout)))
+    {
+      lseek(gpio_file, 0, SEEK_SET);
+      read(gpio_file, buf, sizeof buf);
+      #ifdef DEBUG
+      printTime();
+      std::cout << "Polled " << millis() << ", rc: " << rc << ", revents: " << fdset[0].revents << std::endl;
+      #endif
+      //_interrupt = 0;
       
       // Read out the interrupt status register. After reading from this register, pozyx automatically clears the interrupt flags.
       uint8_t interrupt_status = 0;
@@ -53,7 +133,12 @@ boolean PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms, uint8_t 
           *interrupt = interrupt_status;
         return true;
       }
-    }     
+    } else {
+      #ifdef PRINTERRORS
+      printTime(true);
+      std::cerr << "Error polling: " << rc << ", " << std::dec << millis() << std::endl;
+      #endif
+    }
   } 
   // too bad, pozyx didn't respond 
   // 1) pozyx can select from two pins to generate interrupts, make sure the correct pin is connected with the attachInterrupt() function.
@@ -61,23 +146,25 @@ boolean PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms, uint8_t 
   return false;  
 }
 
-boolean PozyxClass::waitForFlag_safe(uint8_t interrupt_flag, int timeout_ms, uint8_t *interrupt)
+bool PozyxClass::waitForFlag_safe(uint8_t interrupt_flag, int timeout_ms, uint8_t *interrupt)
 {
   int tmp = _mode;
   _mode = MODE_POLLING;
-  boolean result = waitForFlag(interrupt_flag, timeout_ms, interrupt);
+  bool result = waitForFlag(interrupt_flag, timeout_ms, interrupt);
   _mode = tmp;
   return result;
 }
 
-int PozyxClass::begin(boolean print_result, int mode, int interrupts, int interrupt_pin){
+int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, int interrupt_pin){
   
   int status = POZYX_SUCCESS;
 
   if(print_result){
-    Serial.println("Pozyx Shield");
-    Serial.println("------------");
+    std::cout << "Pozyx Shield" << std::endl;
+    std::cout << "------------" << std::endl;
   }
+
+  initI2C(adapter);
 
   // check if the mode parameter is valid
   if((mode != MODE_POLLING) && (mode != MODE_INTERRUPT)) 
@@ -87,7 +174,8 @@ int PozyxClass::begin(boolean print_result, int mode, int interrupts, int interr
   if((interrupt_pin != 0) && (interrupt_pin != 1)) 
     return POZYX_FAILURE;
 
-  Wire.begin();
+
+  //Wire.begin();
   
   // wait a bit until the pozyx board is up and running
   delay(250);
@@ -96,7 +184,7 @@ int PozyxClass::begin(boolean print_result, int mode, int interrupts, int interr
   
   uint8_t whoami, selftest;  
   uint8_t regs[3];
-  regs[2] = 0x12;
+  //regs[2] = 0x12;
   
   // we read out the first 3 register values: who_am_i, firmware_version and harware version, respectively.
   if(regRead(POZYX_WHO_AM_I, regs, 3) == POZYX_FAILURE){
@@ -107,12 +195,9 @@ int PozyxClass::begin(boolean print_result, int mode, int interrupts, int interr
   _hw_version = regs[2]; 
 
   if(print_result){
-    Serial.print("WhoAmI: 0x");
-    Serial.println(whoami, HEX);
-    Serial.print("SW ver.: ");
-    Serial.println(_sw_version);
-    Serial.print("HW ver.: ");
-    Serial.println(_hw_version);  
+    std::cout << "WhoAmI: 0x" << std::hex << (int)whoami << std::endl;
+    std::cout << "SW ver.: " << std::dec << (int)_sw_version << std::endl;
+    std::cout << "HW ver.: " << (int)_hw_version << std::endl;
   }
   // verify if the whoami is correct
   if(whoami != 0x43) {    
@@ -126,30 +211,131 @@ int PozyxClass::begin(boolean print_result, int mode, int interrupts, int interr
   } 
 
   if(print_result){
-    Serial.print("selftest: 0b");
-    Serial.println(selftest, BIN);
+    std::bitset<8> st(selftest);
+    std::cout << "selftest: 0b" << st << std::endl;
   }
 
-  if((_hw_version & POZYX_TYPE) == POZYX_TAG)
+  /*std::bitset<8> typec((int)_hw_version & POZYX_TYPE);
+  std::bitset<8> hwv((int)_hw_version);
+  std::cerr << "hw: 0b" << hwv << std::endl;
+  std::cerr << "typecheck: 0b" << typec << std::endl;
+  std::cerr << "Tag: " << std::dec << POZYX_TAG << std::endl;
+  std::cerr << "Anchor: " << POZYX_ANCHOR << std::endl;*/
+
+  if(((int)_hw_version & POZYX_TYPE) == POZYX_TAG)
   {
     // check if the uwb, pressure sensor, accelerometer, magnetometer and gyroscope are working
-    if(selftest != 0b00111111) {    
+    //if(selftest != 0b00111111) {
+    if(selftest != 0x3f) {
       status = POZYX_FAILURE;
     }
-  }else if((_hw_version & POZYX_TYPE) == POZYX_ANCHOR)
+  }else if(((int)_hw_version & POZYX_TYPE) == POZYX_ANCHOR)
   {
     // check if the uwb transceiver and pressure sensor are working
-    if(selftest != 0b0011000) {    
+    //if(selftest != 0b0011000) {
+    if(selftest != 0x18) {
       status = POZYX_FAILURE;
     }
+    #ifdef DEBUG
+    printTime();
+    std::cout << "Return from type check" << std::endl;
+    #endif
     return status;
   }
   
   // set everything ready for interrupts
   _interrupt = 0;
   if(_mode == MODE_INTERRUPT){
+
+    /*
+    if (gpio_request(GPIO+interrupt_pin, "Pozyx interrupt")) {
+      #ifdef DEBUG
+      std::cerr << "Error interruting" << std::endl;
+      #endif
+      return POZYX_FAILURE;
+    }
+
+    int irq = 0;
+    if ((irq = gpio_to_irq(GPIO+interrupt_pin)) < 0) {
+      #ifdef DEBUG
+      std::cerr << "Error interruting" << std::endl;
+      #endif
+      return POZYX_FAILURE;
+    }
+
+    int result = request_irq(irq, IRQ, IRQF_TRIGGER_RISING, "Pozyx interrupt", "Pozyx");
+
+    if (result) {
+      #ifdef DEBUG
+      std::cerr << "Error interrupting" << std::endl;
+      #endif
+      return POZYX_FAILURE;
+    }
+    */
+
+    // export gpio
+    int fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
+    if (fd < 0) {
+      #ifdef PRINTERRORS
+      printTime(true);
+      std::cerr << "Error interrupting 1" << std::endl;
+      #endif
+      return POZYX_FAILURE;
+    }
+
+    char buf[5];
+    sprintf(buf, "%d", GPIO+interrupt_pin);
+    write(fd, buf, 5);
+    close(fd);
+
+    std::stringstream ss;
+    ss << SYSFS_GPIO_DIR << "/gpio" << (GPIO+interrupt_pin) << "/direction";
+    std::string dir = ss.str();
+
+    fd = open(dir.c_str(), O_WRONLY);
+    if (fd < 0) {
+      #ifdef PRINTERRORS
+      printTime(true);
+      std::cerr << "Error interrupting 2" << std::endl;
+      #endif
+      return POZYX_FAILURE;
+    }
+
+    write(fd, "in", 3);
+    close(fd);
+
+    ss.str("");
+    ss << SYSFS_GPIO_DIR << "/gpio" << (GPIO+interrupt_pin) << "/edge";
+    std::string edge = ss.str();
+
+    fd = open(edge.c_str(), O_WRONLY);
+    if (fd < 0) {
+      #ifdef PRINTERRORS
+      printTime(true);
+      std::cerr << "Error interrupting 3" << std::endl;
+      #endif
+      return POZYX_FAILURE;
+    }
+
+    write(fd, "rising", 7);
+    close(fd);
+
+    ss.str("");
+    ss << SYSFS_GPIO_DIR << "/gpio" << (GPIO+interrupt_pin) << "/value";
+    std::string value = ss.str();
+
+    //gpio_file = open(value.c_str(), O_RDONLY);
+    gpio_file = open(value.c_str(), O_RDONLY | O_NONBLOCK);
+    if (gpio_file < 0) {
+      #ifdef PRINTERRORS
+      printTime(true);
+      std::cerr << "Error interrupting 4" << std::endl;
+      #endif
+      return POZYX_FAILURE;
+    }
+
     // set the function that must be called upon an interrupt
-    attachInterrupt(interrupt_pin, IRQ, RISING);
+    //attachInterrupt(interrupt_pin, IRQ, RISING);
 
     // use interrupt as provided and initiate the interrupt mask
     uint8_t int_mask = interrupts;
@@ -516,8 +702,48 @@ int PozyxClass::sendData(uint16_t destination, uint8_t *pData, int size)
   */
 int PozyxClass::i2cWriteWrite(const uint8_t reg_address, const uint8_t *pData, int size)
 {
-  int n, error;
+  int n, error, i;
 
+  /*n = i2c_smbus_write_byte(i2c_file, reg_address);
+
+  if (n != 0) {
+    return (POZYX_FAILURE);
+  }
+
+  for (i=0; i<size;) {
+    int data = i2c_smbus_write_byte(i2c_file, *(pData+i));
+
+    if (data != 0) {
+      return (POZYX_FAILURE);
+    }
+  }*/
+
+  struct i2c_rdwr_ioctl_data io;
+  struct i2c_msg msg[2];
+  char buf[1] = {(char)reg_address};
+
+  msg[0].addr = POZYX_I2C_ADDRESS;
+  msg[0].flags = 0;
+  msg[0].len = 1;
+  msg[0].buf = buf;
+
+  msg[1].addr = POZYX_I2C_ADDRESS;
+  msg[1].flags = I2C_M_NOSTART;
+  msg[1].len = size;
+  msg[1].buf = (char*)pData;
+
+  io.msgs = msg;
+  io.nmsgs = 2;
+
+  if (ioctl(i2c_file, I2C_RDWR, &io) < 0) {
+    #ifdef PRINTERRORS
+    printTime(true);
+    std::cerr << "Error repeated writing to I2C" << std::endl;
+    #endif
+    return POZYX_FAILURE;
+  }
+
+/*
   Wire.beginTransmission(POZYX_I2C_ADDRESS);
   // write the starting register address
   n = Wire.write(reg_address);        
@@ -537,6 +763,7 @@ int PozyxClass::i2cWriteWrite(const uint8_t reg_address, const uint8_t *pData, i
   if (error != 0)
     return (POZYX_FAILURE);
 
+*/
   return (POZYX_SUCCESS);         // return : no error
 }
 
@@ -547,6 +774,141 @@ int PozyxClass::i2cWriteRead(uint8_t* write_data, int write_len, uint8_t* read_d
 {
   int i, n;
 
+  struct i2c_rdwr_ioctl_data io;
+  struct i2c_msg msg[2];
+
+  msg[0].addr = POZYX_I2C_ADDRESS;
+  msg[0].flags = 0;
+  msg[0].len = write_len;
+  msg[0].buf = (char*)write_data;
+
+  msg[1].addr = POZYX_I2C_ADDRESS;
+  msg[1].flags = I2C_M_NOSTART | I2C_M_RD;
+  msg[1].len = read_len;
+  msg[1].buf = (char*)read_data;
+
+  io.msgs = msg;
+  io.nmsgs = 2;
+
+  if (ioctl(i2c_file, I2C_RDWR, &io) < 0) {
+    #ifdef PRINTERRORS
+    printTime(true);
+    std::cerr << "Error repeated read from I2C" << std::endl;
+    #endif
+    return POZYX_FAILURE;
+  } else {
+    #ifdef DEBUG
+    printTime();
+    std::cout << "Got data, len: " << read_len << std::endl;
+    #endif
+  }
+
+/*
+
+  if (write_len == 1) {
+      for (i=0; i<read_len;i++) {
+        n = i2c_smbus_read_byte_data(i2c_file, *write_data+i);
+        #ifdef DEBUG
+        std::cerr << "Read byte: " << std::dec << n << " == 0x" << std::hex << n << std::endl;
+        #endif
+
+        if (n == -1) {
+          #ifdef DEBUG
+          std::cerr << "Failed to read data from I2C" << std::endl;
+          #endif
+
+          return (POZYX_FAILURE);
+        } else {
+          read_data[i] = (uint8_t)n;
+        }
+      }
+  } else {
+
+    uint8_t data_ex[32];
+    for (i=0; i<write_len-1; i++) {
+      data_ex[i] = write_data[i+1];
+    }
+
+    #ifdef DEBUG
+    std::cout << "DEBUG: function call with " << std::dec << (int)(write_len)-1 << " parameters" << std::endl;
+    std::cout << "Write: " << std::hex << (int)write_data[0];
+    for (i=1; i<write_len; i++) {
+      std::cout << ", " << std::hex << (int)write_data[i];
+    }
+    std::cout << std::endl;
+    #endif
+
+    struct i2c_rdwr_ioctl_data io;
+    struct i2c_msg msg[2];
+
+    msg[0].addr = POZYX_I2C_ADDRESS;
+    msg[0].flags = 0;
+    msg[0].len = write_len;
+    msg[0].buf = (char*)write_data;
+
+    msg[1].addr = POZYX_I2C_ADDRESS;
+    msg[1].flags = I2C_M_RD | I2C_M_NOSTART;
+    msg[1].len = read_len;
+    msg[1].buf = (char*)read_data;
+
+    io.msgs = msg;
+    io.nmsgs = 2;
+
+    if (ioctl(i2c_file, I2C_RDWR, &io) < 0) {
+      #ifdef DEBUG
+      std::cerr << "Error reading/writing to I2C" << std::endl;
+      #endif
+      return POZYX_FAILURE;
+    } else {
+      #ifdef DEBUG
+      std::cout << "Got data: " << std::hex;
+      for (i=0; i<read_len;i++) {
+        std::cout << (int)read_data[i] << ", ";
+      }
+      std::cout << std::endl;
+      #endif
+    }
+
+    //n = i2c_smbus_block_process_call(i2c_file, write_data[0], (uint8_t)write_len, data_ex);
+    */
+/*
+    if (n != read_len) {
+      std::cerr << "Wrong amount of data received: " << n << ", should be " << read_len << std::endl;
+      return (POZYX_FAILURE);
+    }
+
+    for (i=0; i<read_len; i++) {
+      read_data[i] = data_ex[i];
+    }
+*/
+/*
+    //std::cerr << "Not implemented" << std::endl;
+    //return (POZYX_FAILURE);
+  }
+*/
+/*
+  for (i=0; i<write_len; i++) {
+    n = i2c_smbus_write_byte(file, *(write_data+i));
+  }
+
+  if (n != 0) {
+    std::cerr << "Failed to write to I2C" << std::endl;
+    return (POZYX_FAILURE);
+  }
+
+  for (i=0; i<read_len;) {
+    int data = i2c_smbus_read_byte(file);
+
+    if (data == -1) {
+      std::cerr << "Failed to read from I2C" << std::endl;
+      return (POZYX_FAILURE);
+    } else {
+      std::cerr << "Read data: " << data << std::endl;
+      read_data[i++] = (uint8_t)data;
+    }
+  }
+*/
+/*
   Wire.beginTransmission(POZYX_I2C_ADDRESS);
   for(i=0; i<write_len; i++){
     n = Wire.write(*(write_data+i));  // write parameter bytes
@@ -576,7 +938,6 @@ int PozyxClass::i2cWriteRead(uint8_t* write_data, int write_len, uint8_t* read_d
     return (POZYX_FAILURE);
   }
 
+*/
   return (POZYX_SUCCESS);  // return : no error
 }
-
-PozyxClass Pozyx;
