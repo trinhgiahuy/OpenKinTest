@@ -19,6 +19,9 @@
 #undef NULL
 #define NULL 0
 
+#define RPI
+#undef MINNOW
+
 #include <inttypes.h>
 #include <string>
 
