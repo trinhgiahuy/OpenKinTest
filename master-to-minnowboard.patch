@@ -1,0 +1,85 @@
+diff --git a/measurement.sh b/measurement.sh
+index ea7b968..3bbe701 100755
+--- a/measurement.sh
++++ b/measurement.sh
+@@ -7,7 +7,7 @@
+ #source /opt/ros/kinetic/setup.bash
+ source ~/catkin_ws/devel/setup.bash
+ 
+-HOME="/home/pi"
++HOME="/home/openkin"
+ 
+ GPSTEMPFILE="$HOME/gpstemp.log"
+ LOGFILE="$HOME/measurement.log"
+@@ -24,33 +24,33 @@ LEDLOG="$HOME/led.log"
+ GPS=0
+ 
+ # wireless MTw connected = 0, not = 1
+-MTW=1
++MTW=0
+ 
+ # wired MTi connected = 0, not = 1
+-MTI=0
++MTI=1
+ 
+ # Pozyx connected = 0, not = 1
+ POZYX=0
+ # Linux I2C device = 0, not (pigpiod) = 1
+-LINUXI2C=1
++LINUXI2C=0
+ 
+ # primary led connected (linux-gpio) = 0, not = 1, pwm = 2, rpigpio = 3
+-LED[0]=3
++LED[0]=2
+ # GPIO pin or pwm device number
+-LEDGPIO[0]=24
++LEDGPIO[0]=0
+ LEDPID[0]=0
+ 
+ # secondary led connected = 0, not = 1, pwm = 2, rpigpio = 3
+-LED[1]=1
+-LEDGPIO[1]=0
++LED[1]=0
++LEDGPIO[1]=474
+ LEDPID[1]=0
+ 
+-LED[2]=1
+-LEDGPIO[2]=0
++LED[2]=2
++LEDGPIO[2]=1
+ LEDPID[2]=0
+ 
+ # linux-shutdown switch connected = 0, not = 1, rpi python = 2
+-PWRSWITCH=2
++PWRSWITCH=0
+ 
+ # CONFIGURATION ENDS HERE
+ 
+diff --git a/nodes/pozyx/CMakeLists.txt b/nodes/pozyx/CMakeLists.txt
+index 0e00264..7c556d8 100644
+--- a/nodes/pozyx/CMakeLists.txt
++++ b/nodes/pozyx/CMakeLists.txt
+@@ -23,7 +23,7 @@ include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+ add_executable(pozyx src/pozyx.cpp)
+ add_library(pozyx-lib include/Pozyx-custom-library/Pozyx_core.cpp include/Pozyx-custom-library/Pozyx_lib.cpp include/Pozyx-custom-library/helpers.cpp)
+ 
+-target_link_libraries(pozyx pozyx-lib pigpiod_if2 rt)
++target_link_libraries(pozyx pozyx-lib rt)
+ 
+ target_link_libraries(pozyx
+         ${catkin_LIBRARIES}
+diff --git a/nodes/pozyx/include/Pozyx-custom-library/Pozyx.h b/nodes/pozyx/include/Pozyx-custom-library/Pozyx.h
+index 938b4cc..e744027 100644
+--- a/nodes/pozyx/include/Pozyx-custom-library/Pozyx.h
++++ b/nodes/pozyx/include/Pozyx-custom-library/Pozyx.h
+@@ -19,8 +19,8 @@
+ #undef NULL
+ #define NULL 0
+ 
+-#define RPI
+-#undef MINNOW
++#undef RPI
++#define MINNOW
+ 
+ #include <inttypes.h>
+ #include <string>
