@@ -224,6 +224,8 @@ function quitScreens {
 
 	if screen -list | grep -q "pozyx"; then
 		logger "Shutting down the pozyx"
+		screen -S pozyx -X stuff $'\003'
+		sleep 5
 		screen -S pozyx -X quit
 	fi
 
