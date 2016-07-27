@@ -2,11 +2,12 @@
 
 uint32_t millis() {
   long ms;
-  time_t s;
+  long s;
   struct timespec spec;
   clock_gettime(CLOCK_REALTIME, &spec);
-  s = spec.tv_sec;
-  ms = round(spec.tv_nsec / 1.0e6);
+  s = (long)spec.tv_sec;
+  ms = (long)spec.tv_nsec;
+  ms = (ms / 1000000L);
   return (uint32_t) (s*1000 + ms);
 }
 

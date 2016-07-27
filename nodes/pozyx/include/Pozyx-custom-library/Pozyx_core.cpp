@@ -137,20 +137,21 @@ bool PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms, uint8_t *in
   {
     // in polling mode, we insert a small delay such that we don't swamp the i2c bus
     if( _mode == MODE_POLLING ){
-      delay(1);
+      delay(3);
     } else {
       lseek(gpio_file, 0, SEEK_SET);
       read(gpio_file, buf, sizeof buf);
     }
-    // TODO: more event interrupts, maybe poll in thread
     //if( (_interrupt == 1) || (_mode == MODE_POLLING))
-    if( (_mode == MODE_POLLING) || (rc = poll(fdset, nfds, timeout)))
+    if( (_mode == MODE_POLLING) || (rc = poll(fdset, nfds, timeout_ms)))
     {
-      lseek(gpio_file, 0, SEEK_SET);
-      read(gpio_file, buf, sizeof buf);
+      if (_mode == MODE_INTERRUPT) {
+        lseek(gpio_file, 0, SEEK_SET);
+        read(gpio_file, buf, sizeof buf);
+      }
       #ifdef DEBUG
       printTime();
-      std::cout << "Polled " << std::dec << millis() << ", rc: " << rc << ", revents: " << fdset[0].revents << std::endl;
+      std::cout << "Polled (" << (_mode == MODE_POLLING) << ")" << std::dec << millis() << ", rc: " << rc << ", revents: " << fdset[0].revents << std::endl;
       #endif
       //_interrupt = 0;
       
@@ -163,11 +164,19 @@ bool PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms, uint8_t *in
         if(interrupt != NULL)
           *interrupt = interrupt_status;
         return true;
+      } else {
+	// wrong interrupt
+        #ifdef PRINTERRORS
+          //std::cerr << "Interrupt status: " << std::hex << (int)interrupt_status << ", " << (int)interrupt_flag << ", " << (int)status << std::dec << std::endl;
+        #endif
       }
     } else {
       #ifdef PRINTERRORS
+      int i_status;
+      uint8_t istatus = 0;
+      i_status = regRead(POZYX_INT_STATUS, &istatus, 1);
       printTime(true);
-      std::cerr << "Error polling: " << rc << ", " << std::dec << millis() << std::endl;
+      std::cerr << "Error polling (" << (_mode == MODE_POLLING) << "): " << i_status << ", 0x" << std::hex << (int)istatus << ", rc: " << std::dec << rc << ", " << std::dec << millis() << std::endl;
       #endif
     }
   } 

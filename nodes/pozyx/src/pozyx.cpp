@@ -15,16 +15,19 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <csignal>
 
 #define MG_2_MPSS 0.00980665
 #define DEG_2_RAD 0.01745329252
+
+sig_atomic_t sigcaught = 0;
 
 class PozyxROS {
 public:
 	PozyxROS();
 
 	void update();
-	void spin();
+	void reset();
 
 private:
 
@@ -51,6 +54,11 @@ private:
 	uint16_t devices[MAX_ANCHORS_IN_LIST];
 
 };
+
+void PozyxROS::reset() {
+	Pozyx.resetSystem();
+	return;
+}
 
 PozyxROS::PozyxROS() :
 	nh_(), private_nh_("~")
@@ -81,7 +89,8 @@ PozyxROS::PozyxROS() :
 	*/
 
 	//if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
-	if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_POS | POZYX_INT_MASK_FUNC, 0) == POZYX_FAILURE){
+//	if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_POS | POZYX_INT_MASK_FUNC | POZYX_INT_MASK_ERR , 0) == POZYX_FAILURE){
+	if(Pozyx.begin(adapter, true, MODE_INTERRUPT, 0x1F , 0) == POZYX_FAILURE){
 		std::cerr << "ERROR: Unable to connect to POZYX shield" << std::endl;
 		std::cerr << "Reset required" << std::endl;
 		delay(100);
@@ -90,53 +99,61 @@ PozyxROS::PozyxROS() :
 
 	bool done = false;
 
-	Pozyx.clearDevices();
+	std::cout << "Resetting system..." << std::endl;
+	Pozyx.resetSystem();
+	delay(1000);
+	//Pozyx.clearDevices();
+	Pozyx.setInterruptMask(POZYX_INT_MASK_POS | POZYX_INT_MASK_FUNC);
 
-	int disc_status;
-	while ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 3, 20)) != POZYX_SUCCESS) {
-		delay(1000);
-		std::cerr << "Retrying discovery" << std::endl;
+	int disc_status = 0;
+	std::cout << "Discovering..." << std::endl;
+	while ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 9, 30)) != POZYX_SUCCESS) {
+		std::cerr << "Retrying discovery: " << disc_status << std::endl;
+		delay(3000);
 	}
 	//if ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 3, 20)) == POZYX_SUCCESS) {
 	// Needed for discovery to not timeout or not find anything
 	delay(3000);
 
-	if (Pozyx.getDeviceIds(devices, MAX_ANCHORS_IN_LIST) == POZYX_SUCCESS) {
-		uint8_t list_size;
+	std::cout << "Getting device list size..." << std::endl;
+	uint8_t list_size;
+	if (Pozyx.getDeviceListSize(&list_size) == POZYX_SUCCESS) {
+		list_size_i = (int)list_size;
+		std::cout << "Device list size: " << list_size_i << std::endl;
 
-		if (Pozyx.getDeviceListSize(&list_size) == POZYX_SUCCESS) {
-			list_size_i = (int)list_size;
-			if (list_size_i > 6) {
-				list_size_i = 6;
-			}
-			std::cout << "Device list size: " << list_size_i << std::endl;
+		if (Pozyx.getDeviceIds(devices, list_size_i) == POZYX_SUCCESS) {
 
 			// sort array
 			std::sort(devices, devices + list_size_i);
 
 			// Set to use all anchors
 			int status;
-			status = Pozyx.setSelectionOfAnchors(POZYX_ANCHOR_SEL_AUTO, list_size_i, 0);
+			std::cout << "Setting anchor selection..." << std::endl;
+			status = Pozyx.setSelectionOfAnchors(POZYX_ANCHOR_SEL_AUTO, list_size_i > 15 ? 15 : list_size_i, 0);
 			if (status == 1) {
-
-				if (Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i, devices) == POZYX_SUCCESS) {
+				std::cout << "Selected" << std::endl;
+				delay(2000);
+				if (Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i > 6 ? 6 : list_size_i, devices) == POZYX_SUCCESS) {
+					std::cout << "Calibrated" << std::endl;
+					delay(1000);
 					if (Pozyx.setUpdateInterval(100) == POZYX_SUCCESS) {
 						done = true;
+						std::cout << "Interval set" << std::endl;
 					} else {
-						std::cerr << "Couldn't start positioning" << std::endl;
+						std::cerr << "Couldn't start positioning: ";
 					}
 				} else {
-					std::cerr << "Couldn't calibrate" << std::endl;
+					std::cerr << "Couldn't calibrate: ";
 				}
 			} else {
-				std::cerr << "Couldn't set anchor selection" << std::endl;
+				std::cerr << "Couldn't set anchor selection: ";
 			}
 		} else {
-			std::cerr << "Couldn't get device list size" << std::endl;
+			std::cerr << "Couldn't get device list size: ";
 		}
 
 	} else {
-		std::cerr << "Couldn't get devices" << std::endl;
+		std::cerr << "Couldn't get devices: ";
 	}
 	/*} else if (disc_status == POZYX_TIMEOUT) {
 		std::cerr << "Couldn't discover (timeout)" << std::endl;
@@ -145,6 +162,9 @@ PozyxROS::PozyxROS() :
 	}*/
 
 	if (!done) {
+		std::string error;
+		error = Pozyx.getSystemError();
+		std::cerr << "error: " << error << std::endl;
 		throw 2;
 	}
 
@@ -189,6 +209,8 @@ void PozyxROS::update() {
 	anchor_pub_.publish(anchors);
 	*/
 
+	std::cout << "Starting streaming data!" << std::endl;
+
 	while (ros::ok()) {
 		// get imu data
 
@@ -201,7 +223,7 @@ void PozyxROS::update() {
 
 
 		// wait until this device gives an interrupt
-		if (Pozyx.waitForFlag(POZYX_INT_STATUS_POS, 300))
+		if (Pozyx.waitForFlag(POZYX_INT_STATUS_POS, 300, 0))
 		{
 			// we received an interrupt from pozyx telling us new IMU data is ready, now let's read it!
 			//Pozyx.regRead(POZYX_ACCEL_X, (uint8_t*)&sensor_data, 9*sizeof(int16_t));
@@ -334,27 +356,46 @@ void PozyxROS::update() {
 		}
 
 		ros::spinOnce();
+
+		if (sigcaught == 1) {
+			return;
+		}
 	}
 }
 
-void PozyxROS::spin() {
-	ros::Rate r(500);
-	while (ros::ok()) {
-		update();
-		r.sleep();
-	}
+void signal_handler(int signal) {
+	sigcaught = 1;
 }
 
 int main(int argc, char** argv) {
-	ros::init(argc, argv, "Pozyx_node");
+//	std::signal(SIGTERM, signal_handler);
+//	std::signal(SIGINT, signal_handler);
+
+	struct sigaction cleanup;
+	cleanup.sa_handler = signal_handler;
+	sigemptyset(&cleanup.sa_mask);
+	//sigaddset(&cleanup.sa_mask, SIGTERM);
+	cleanup.sa_flags = 0;
+
+	sigaction(SIGINT, &cleanup, NULL);
+	sigaction(SIGTERM, &cleanup, NULL);
+
+	ros::init(argc, argv, "Pozyx_node", ros::init_options::NoSigintHandler);
 
 	ROS_INFO("Pozyx Node for ROS");
 
-	try {
-		PozyxROS pozros;
-		pozros.spin();
-	} catch (int e) {
-		std::cerr << "Error: " << e << std::endl;
+	while (sigcaught == 0) {
+		try {
+			PozyxROS pozros;
+			pozros.update();
+			if (sigcaught == 1) {
+				std::cout << "Resetting!" << std::endl;
+				pozros.reset();
+			}
+		} catch (int e) {
+			std::cerr << "Error: " << e << std::endl;
+		}
+		std::cout << "Sigcaught: " << sigcaught << std::endl;
 	}
 	return 0;
 }

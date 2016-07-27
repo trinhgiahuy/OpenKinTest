@@ -14,7 +14,7 @@
 #ifndef POZYX_h
 #define POZYX_h
 
-#define BUFFER_LENGTH 32
+#define BUFFER_LENGTH 64
 
 #undef NULL
 #define NULL 0
