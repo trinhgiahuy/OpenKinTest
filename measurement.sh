@@ -2,12 +2,12 @@
 
 # VARIABLES TO CONFIGURE
 
+HOME="/home/pi"
+
 # Needed for rostopic etc
 #source /opt/ros/indigo/setup.bash
 #source /opt/ros/kinetic/setup.bash
-source ~/catkin_ws/devel/setup.bash
-
-HOME="/home/pi"
+source "$HOME/catkin_ws/devel/setup.bash"
 
 GPSTEMPFILE="$HOME/gpstemp.log"
 LOGFILE="$HOME/measurement.log"
@@ -84,6 +84,9 @@ if [ "$1" = "check" ]; then
 	if [ "$POZYX" -eq 0 ] && [ "$LINUXI2C" -eq 0 ]; then
 		testCmd i2cdetect
 	fi
+	if [ "$POZYX" -eq 0 ] && [ "$LINUXI2C" -eq 1 ]; then
+		testCmd pigpiod
+	fi
 	testCmd nc
 	testCmd ntpdate
 	testCmd grive
@@ -91,7 +94,9 @@ if [ "$1" = "check" ]; then
 	testCmd cat
 	testCmd rosrun
 	testCmd rosbag
-	testCmd $HOME/openkin/linux-shutdown/pwr-switch
+	if [ "$PWRSWITCH" -eq 0 ]; then
+		testCmd $HOME/openkin/linux-shutdown/pwr-switch
+	fi
 	testCmd readlink
 
 	exit 0
@@ -117,6 +122,10 @@ if [ "$PWRSWITCH" -eq 0 ]; then
 	sudo $HOME/openkin/linux-shutdown/pwr-switch &
 elif [ "$PWRSWITCH" -eq 2 ]; then
 	sudo python $HOME/openkin/shutdown_flip.py &
+fi
+
+if [ "$POZYX" -eq 0 ] && [ "$LINUXI2C" -eq 1 ]; then
+	sudo pigpiod &
 fi
 
 function led_on {
@@ -466,7 +475,7 @@ while true; do
 				if ! screen -list | grep -q "pozyx"; then
 					logger "Offline: Starting Pozyx"
 					screen -dmS pozyx
-					screen -r pozyx -X stuff $'\nsudo -s\nrosrun pozyx pozyx _adapter:='$I2C_ADAPTER$' > '$POZYXLOG$' 2>&1\n'
+					screen -r pozyx -X stuff $'\nsudo -E bash\nrosrun pozyx pozyx _adapter:='$I2C_ADAPTER$' > '$POZYXLOG$' 2>&1\n'
 					led_off 0
 					led_off 2
 				fi
@@ -500,7 +509,7 @@ while true; do
 					if [ "$AWINDA" -eq "" ]; then
 						findXsens
 					else
-						#screen -r mtw -X stuff $'\nsudo -s\nrosrun mtw_node mtw_node _device:='"$AWINDA"$' &> '$MTWLOG$'\n'
+						#screen -r mtw -X stuff $'\nsudo -E bash\nrosrun mtw_node mtw_node _device:='"$AWINDA"$' &> '$MTWLOG$'\n'
 						screen -r mtw -X stuff $'\nrosrun mtw_node mtw_node _device:='"$AWINDA"$' &> '$MTWLOG$'\n'
 					fi
 					led_off 0
