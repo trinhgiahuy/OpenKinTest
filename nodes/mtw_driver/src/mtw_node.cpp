@@ -207,6 +207,9 @@ private:
 	XsDevice* m_device;
 };
 
+void connected(const ros::SingleSubscriberPublisher&) {}
+void disconnected(const ros::SingleSubscriberPublisher&) {}
+
 //----------------------------------------------------------------------
 // Main
 //----------------------------------------------------------------------
@@ -222,6 +225,9 @@ int main(int argc, char* argv[])
 
 	ros::NodeHandle nh_;
 	ros::NodeHandle private_nh_("~");
+
+	ros::AdvertiseOptions op = ros::AdvertiseOptions::create<sensor_msgs::Imu>("/imu/data", 200, &connected, &disconnected, ros::VoidPtr(), NULL);
+	op.has_header = false;
 
 	sensor_msgs::Imu imu_msg;
 
@@ -422,12 +428,13 @@ int main(int argc, char* argv[])
 			mtwDevices[i]->resetOrientation(XRM_Alignment);
 		}
 
-		imu_pub_ = nh_.advertise<sensor_msgs::Imu>("imu/data",200,false);
+		//imu_pub_ = nh_.advertise<sensor_msgs::Imu>("imu/data",200,false);
+		imu_pub_ = nh_.advertise(op);
 
-		std::cout << "\nMain loop. Press any key to quit\n" << std::endl;
+		std::cout << "\nMain loop\n" << std::endl;
 		std::cout << "Outputting data..." << std::endl;
 
-		std::vector<XsEuler> eulerData(mtwCallbacks.size()); // Room to store euler data for each mtw
+		//std::vector<XsEuler> eulerData(mtwCallbacks.size()); // Room to store euler data for each mtw
 		std::vector<XsVector> calibAcc(mtwCallbacks.size()); // Calibrated accelerations
 		std::vector<XsVector> calibGyro(mtwCallbacks.size()); // Calibrated gyroscope
 		std::vector<XsQuaternion> quaternions(mtwCallbacks.size()); // Orientation
@@ -451,7 +458,7 @@ int main(int argc, char* argv[])
 				{
 					newDataAvailable = true;
 					XsDataPacket const * packet = mtwCallbacks[i]->getOldestPacket();
-					eulerData[i] = packet->orientationEuler();
+					//eulerData[i] = packet->orientationEuler();
 					calibAcc[i] = packet->calibratedAcceleration();
 					calibGyro[i] = packet->calibratedGyroscopeData();
 					quaternions[i] = packet->orientationQuaternion();
