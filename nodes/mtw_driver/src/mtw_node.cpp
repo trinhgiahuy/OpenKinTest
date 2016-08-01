@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
 	//(void)argc;
 	//(void)argv;
 	const int desiredUpdateRate = 100;	// Use 75 Hz update rate for MTWs
-	const int desiredRadioChannel = 19;	// Use radio channel 19 for wireless master.
+	const int desiredRadioChannel = 25;	// Use radio channel 19 for wireless master.
 
 	ros::init(argc, argv, "MTw_node");
 	ROS_INFO("XSens MTw node for ROS");
