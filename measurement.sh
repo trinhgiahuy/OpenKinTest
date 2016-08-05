@@ -379,7 +379,7 @@ while true; do
 				#screen -r grive -X stuff $'\ngrive\n'
 				# upload in subshell
 				led_blink 1
-				(cd $DATADIR || exit; grive >> $LOGFILE) & >> $LOGFILE
+				(cd $DATADIR || exit; grive) >> $LOGFILE &
 				GRIVEPID=$!
 			elif ps -p $GRIVEPID > /dev/null 2>&1; then
 				led_blink 1
