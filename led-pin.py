@@ -20,8 +20,8 @@ def quit_gracefully(signum, stack):
 
 if __name__ == "__main__":
 
-	if len(sys.argv) != 1:
-		print("Not enough or too many parameters!")
+	if len(sys.argv) != 2:
+		print("Not enough or too many parameters! ({})".format(len(sys.argv)))
 		sys.exit(1)
 
 	signal.signal(signal.SIGUSR1, led_on)
@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
 	# Pin no 18, GPIO5, BCM 24
 	#channel=24
-	channel = sys.argv[1]
+	channel = int(sys.argv[1])
 
 	GPIO.setmode(GPIO.BCM)
 
