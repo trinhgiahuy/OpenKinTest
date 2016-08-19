@@ -264,6 +264,7 @@ function quitScreens {
 
 function check3G {
 #	logger "Checking 3G..."
+# E3372 should connect by it self in HiLink mode
 	if [ "$online" -ne 0 ]; then
 		if lsusb | grep -q 12d1:1003; then
 			logger "Connecting 3G"
