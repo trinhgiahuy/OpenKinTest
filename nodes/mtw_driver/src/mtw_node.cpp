@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
 
 	ros::Publisher imu_pub_;
 
-	std::string imu_frame_id_ = "mtw_node";
+	std::string imu_frame_id_ = "mtw_node/";
 
 	ros::Time last_update_;
 
@@ -441,6 +441,7 @@ int main(int argc, char* argv[])
 		std::vector<XsTimeStamp> timesOA(mtwCallbacks.size()); // Times of arrival
 		std::vector<XsUtcTime> utcTimes(mtwCallbacks.size()); // UTC times of packets
 		std::vector<uint16_t> packetCounters(mtwCallbacks.size()); // Packet counters
+		std::vector<XsDeviceId> deviceIDs(mtwCallbacks.size()); // device ids
 		//unsigned int printCounter = 0;
 
 		/*time_t zero = 24*60*60L;
@@ -465,6 +466,7 @@ int main(int argc, char* argv[])
 					timesOA[i] = packet->timeOfArrival();
 					utcTimes[i] = packet->utcTime();
 					packetCounters[i] = packet->packetCounter();
+					deviceIDs[i] = packet->deviceId();
 					mtwCallbacks[i]->deleteOldestPacket();
 				}
 			}
@@ -501,7 +503,7 @@ int main(int argc, char* argv[])
 					//toa.fromNSec(time2);*/
 
 					imu_msg.header.stamp = toa;
-					imu_msg.header.frame_id = imu_frame_id_;
+					imu_msg.header.frame_id = imu_frame_id_ + deviceIDs[i].toString().toStdString();
 					imu_msg.header.seq = packetCounters[i];
 
 					imu_msg.orientation.x = quaternions[i].x();
