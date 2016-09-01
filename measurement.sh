@@ -481,8 +481,31 @@ while true; do
 					logger "Offline: Starting Pozyx"
 					screen -dmS pozyx
 					screen -r pozyx -X stuff $'\nsudo -E bash\nrosrun pozyx pozyx _adapter:='$I2C_ADAPTER$' > '$POZYXLOG$' 2>&1\n'
+
 					led_off 0
 					led_off 2
+
+					sleep 10
+				fi
+
+				# if file exists and not empty
+				if [ -s $POZYXLOG ] && grep -e error -i -q $POZYXLOG; then
+					logger "Error with Pozyx"
+					logger "$(cat $POZYXLOG)"
+					screen -S pozyx -X quit
+					POZYXERR=11
+					led_off 0
+					led_off 2
+					# start over
+					continue
+				elif [ ! -f $POZYXLOG ]; then
+					logger "Pozyx-log not found"
+					screen -S pozyx -X quit
+					POZYXERR=11
+					led_off 0
+					led_off 2
+					# start over
+					continue
 				fi
 			fi
 
