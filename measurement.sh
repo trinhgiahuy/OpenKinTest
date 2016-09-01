@@ -420,7 +420,7 @@ while true; do
 			if ! screen -list | grep -q "gps"; then
 				logger "Offline: Starting GPS and ROSCORE"
 				screen -dmS gps
-				screen -r gps -X stuff $'\nrm '$GPSTEMPFILE$'\nroslaunch ublox_gps ublox_gps.launch 2> '$GPSTEMPFILE$'\n'
+				screen -r gps -X stuff $'\nsudo -E bash\nrm '$GPSTEMPFILE$'\nnice -n -10 roslaunch ublox_gps ublox_gps.launch 2> '$GPSTEMPFILE$'\n'
 
 				# should have time to error, if going to
 				sleep 15
@@ -480,7 +480,7 @@ while true; do
 				if ! screen -list | grep -q "pozyx"; then
 					logger "Offline: Starting Pozyx"
 					screen -dmS pozyx
-					screen -r pozyx -X stuff $'\nsudo -E bash\nrosrun pozyx pozyx _adapter:='$I2C_ADAPTER$' > '$POZYXLOG$' 2>&1\n'
+					screen -r pozyx -X stuff $'\nsudo -E bash\nnice -n -10 rosrun pozyx pozyx _adapter:='$I2C_ADAPTER$' > '$POZYXLOG$' 2>&1\n'
 
 					led_off 0
 					led_off 2
@@ -521,7 +521,7 @@ while true; do
 					if [ "$XSENS" -eq "" ]; then
 						findXsens
 					else
-						screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py _device:='"$XSENS"$'\n'
+						screen -r imu -X stuff $'\nsudo -E bash\nnice -n -10 rosrun xsens_driver mtnode_new.py _device:='"$XSENS"$'\n'
 					fi
 					led_off 0
 					led_off 2
@@ -538,7 +538,7 @@ while true; do
 						findXsens
 					else
 						#screen -r mtw -X stuff $'\nsudo -E bash\nrosrun mtw_node mtw_node _device:='"$AWINDA"$' &> '$MTWLOG$'\n'
-						screen -r mtw -X stuff $'\nrosrun mtw_node mtw_node _device:='"$AWINDA"$' &> '$MTWLOG$'\n'
+						screen -r mtw -X stuff $'\nsudo -E bash\nnice -n -13 rosrun mtw_node mtw_node _device:='"$AWINDA"$' &> '$MTWLOG$'\n'
 					fi
 					led_off 0
 					led_off 2
