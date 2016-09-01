@@ -25,6 +25,8 @@ file = open(filename, "a")
 buffer = deque([])
 bufferlock = threading.Lock()
 
+xsens_ids = []
+
 counter = 0
 
 def pozyxcallback(data):
@@ -42,6 +44,7 @@ def imucallback(data, pozyx):
     point = {'timestamp.secs': data.header.stamp.secs,
              'timestamp.nsecs': data.header.stamp.nsecs,
              'imuseq': data.header.seq,
+             'frame_id': data.header.frame_id,
              'ang.x': data.angular_velocity.x,
              'ang.y': data.angular_velocity.y,
              'ang.z': data.angular_velocity.z,
@@ -151,6 +154,11 @@ def writeBuffer():
     # and find closest imu-points for gps-points
     if len(buffer) > 120:
         #rospy.loginfo(">120")
+
+        for i, j in enumerate(buffer):
+            if ('frame_id' in j and not j['frame_id'] in xsens_ids):
+                xsens_ids.append(j['frame_id'])
+
         for i, j in enumerate(buffer):
             if 'iTOW' in j and not 'timestamp.secs' in j:
                 #rospy.loginfo("found navvel")
@@ -194,7 +202,8 @@ def writeBuffer():
 	#rospy.loginfo("Sorted")
 
         for i, j in enumerate(buffer):
-            if ('gpsseq' in j or 'posseq' in j or 'rangeseq' in j) and not 'imuseq' in j:
+            if (('gpsseq' in j or 'posseq' in j or 'rangeseq' in j) and not 'imuseq' in j) \
+            or ('frame_id' in j and xsens_ids.length > 1 and j['frame_id'] != xsens_ids[0] and (not 'pozyx' in j or j['pozyx'] == 0)):
                 #rospy.loginfo("fusable in %s", i)
                 # test closest points for imu
                 if i >= len(buffer)-50:
@@ -209,11 +218,11 @@ def writeBuffer():
                     next_imu = False
                     while not prev_imu and (i-distp-1) >= 0:
                         distp += 1
-                        prev_imu = 'imuseq' in buffer[i-distp]
+                        prev_imu = 'imuseq' in buffer[i-distp] and 'frame_id' in buffer[i-distp] and xsens_ids.length > 0 and buffer[i-distp]['frame_id'] == xsens_ids[0]
 
                     while not next_imu and (i+distn+1) < len(buffer):
                         distn += 1
-                        next_imu = 'imuseq' in buffer[i+distn]
+                        next_imu = 'imuseq' in buffer[i+distn] and 'frame_id' in buffer[i+distn] and xsens_ids.length > 0 and buffer[i+distn]['frame_id'] == xsens_ids[0]
 
                     if prev_imu and next_imu:
                         if abs((buffer[i-distp]['timestamp.secs']+(1e-9*buffer[i-distp]['timestamp.nsecs'])) -
@@ -232,8 +241,9 @@ def writeBuffer():
                         joins.append((i, i-distp))
                     elif next_imu:
                         joins.append((i, i+distn))
-                    #else:
+                    else:
                         # No imu-points on sides, no join
+                        continue
             elif 'iTOW' in j and 'imuseq' not in j:
                 # merge navvelned
                 navvels.append(i)
@@ -265,9 +275,23 @@ def writeBuffer():
             if not 'imuseq' in buffer[j[1]]:
                 rospy.loginfo("No imuseq in fusing point!: %s", buffer[j[1]])
                 continue
-            if 'imuseq' in buffer[j[0]]:
-                rospy.loginfo("Imuseq to be deleted!: %s", buffer[j[0]])
-                continue
+            if 'imuseq' in buffer[j[0]] and 'frame_id' in buffer[j[0]]:
+                #rospy.loginfo("Imuseq to be deleted!: %s", buffer[j[0]])
+                #continue
+                # Fusing multiple IMUS
+                pindex = xsens_ids.index(buffer[j[0]]['frame_id'])
+                buffer[j[1]]['imuseq'+pindex] = buffer[j[0]].get('imuseq', 'NaN')
+                buffer[j[1]]['frame_id'+pindex] = buffer[j[0]].get('frame_id', 'NaN')
+                buffer[j[1]]['ang.x'+pindex] = buffer[j[0]].get('ang.x', 'NaN')
+                buffer[j[1]]['ang.y'+pindex] = buffer[j[0]].get('ang.y', 'NaN')
+                buffer[j[1]]['ang.z'+pindex] = buffer[j[0]].get('ang.z', 'NaN')
+                buffer[j[1]]['ori.x'+pindex] = buffer[j[0]].get('ori.x', 'NaN')
+                buffer[j[1]]['ori.y'+pindex] = buffer[j[0]].get('ori.y', 'NaN')
+                buffer[j[1]]['ori.z'+pindex] = buffer[j[0]].get('ori.z', 'NaN')
+                buffer[j[1]]['ori.w'+pindex] = buffer[j[0]].get('ori.w', 'NaN')
+                buffer[j[1]]['acc.x'+pindex] = buffer[j[0]].get('acc.x', 'NaN')
+                buffer[j[1]]['acc.y'+pindex] = buffer[j[0]].get('acc.y', 'NaN')
+                buffer[j[1]]['acc.z'+pindex] = buffer[j[0]].get('acc.z', 'NaN')
             if not 'gpsseq' in buffer[j[1]] and 'gpsseq' in buffer[j[0]]:
                 buffer[j[1]]['gpsseq'] = buffer[j[0]].get('gpsseq', 'NaN')
                 buffer[j[1]]['latitude'] = buffer[j[0]].get('latitude', 'NaN')
@@ -304,56 +328,85 @@ def writeBuffer():
         # write to file
         i = 0
         while (i < len(buffer)-leave):
-            line = "{0}\t{1}.{2:09d}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\t{17}\t{18}\t{19}\t{20}\t{21}\t{22}\t{23}\t{24}\t{25}\t{26}\t{27}\t{28}\t{29}\t{30}\t{31}".format(
-              buffer[i].get('gpsseq', 'NaN'),
-              buffer[i].get('timestamp.secs', 'NaN'),
-              buffer[i].get('timestamp.nsecs', 'NaN'),
-              buffer[i].get('imuseq', 'NaN'),
-              buffer[i].get('latitude', 'NaN'),
-              buffer[i].get('longitude', 'NaN'),
-              buffer[i].get('altitude', 'NaN'),
-              buffer[i].get('ang.x', 'NaN'),
-              buffer[i].get('ang.y', 'NaN'),
-              buffer[i].get('ang.z', 'NaN'),
-              buffer[i].get('ori.x', 'NaN'),
-              buffer[i].get('ori.y', 'NaN'),
-              buffer[i].get('ori.z', 'NaN'),
-              buffer[i].get('ori.w', 'NaN'),
-              buffer[i].get('acc.x', 'NaN'),
-              buffer[i].get('acc.y', 'NaN'),
-              buffer[i].get('acc.z', 'NaN'),
-
-              # 17
-              buffer[i].get('iTOW', 'NaN'),
-              buffer[i].get('velN', 'NaN'),
-              buffer[i].get('velE', 'NaN'),
-              buffer[i].get('velD', 'NaN'),
-              buffer[i].get('speed', 'NaN'),
-              buffer[i].get('gSpeed', 'NaN'),
-              buffer[i].get('heading', 'NaN'),
-              buffer[i].get('sAcc', 'NaN'),
-              buffer[i].get('cAcc', 'NaN'),
-
-              # 26
-              buffer[i].get('pozyx', 'NaN'),
-              buffer[i].get('posseq', 'NaN'),
-              buffer[i].get('pos.x', 'NaN'),
-              buffer[i].get('pos.y', 'NaN'),
-              buffer[i].get('pos.z', 'NaN'),
-
-              # 31 ranges
-              buffer[i].get('ranges', 'NaN')
-            )
-
+            line = line_formatter(buffer[i])
             #rospy.loginfo(line)
-
             writeline(line)
             # remove written
             buffer.remove(buffer[i])
-
     #rospy.loginfo("Written to file")
-
     bufferlock.release()
+
+def line_formatter(point):
+    templ = "{0}\t{1}.{2:09d}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\t{17}\t{18}\t{19}\t{20}\t{21}\t{22}\t{23}\t{24}\t{25}\t{26}\t{27}\t{28}\t{29}\t{30}\t{31}\t{32}"
+    if xsens_ids.length > 1:
+        for i in range(33, 12*(xsens_ids.length-1) +33):
+            for a in range(0,11):
+                templ += "\{"+str(i+a)+"}"
+                i += 12
+
+    vals = [
+      point.get('gpsseq', 'NaN'),
+      point.get('timestamp.secs', 'NaN'),
+      point.get('timestamp.nsecs', 'NaN'),
+      point.get('imuseq', 'NaN'),
+      point.get('latitude', 'NaN'),
+      point.get('longitude', 'NaN'),
+      point.get('altitude', 'NaN'),
+      point.get('ang.x', 'NaN'),
+      point.get('ang.y', 'NaN'),
+      point.get('ang.z', 'NaN'),
+      point.get('ori.x', 'NaN'),
+      point.get('ori.y', 'NaN'),
+      point.get('ori.z', 'NaN'),
+      point.get('ori.w', 'NaN'),
+      point.get('acc.x', 'NaN'),
+      point.get('acc.y', 'NaN'),
+      point.get('acc.z', 'NaN'),
+
+      # 17
+      point.get('iTOW', 'NaN'),
+      point.get('velN', 'NaN'),
+      point.get('velE', 'NaN'),
+      point.get('velD', 'NaN'),
+      point.get('speed', 'NaN'),
+      point.get('gSpeed', 'NaN'),
+      point.get('heading', 'NaN'),
+      point.get('sAcc', 'NaN'),
+      point.get('cAcc', 'NaN'),
+
+      # 26
+      point.get('pozyx', 'NaN'),
+      point.get('posseq', 'NaN'),
+      point.get('pos.x', 'NaN'),
+      point.get('pos.y', 'NaN'),
+      point.get('pos.z', 'NaN'),
+
+      # 31 ranges
+      point.get('ranges', 'NaN'),
+
+      # 32 imu frame_id
+      point.get('frame_id', 'NaN')
+      # 33 multiple imus...
+    ]
+
+    if xsens_ids.length > 1:
+        for i in range(1, xsens_ids.length-1):
+            vals.append(point.get('imuseq'+i, 'NaN'))
+            vals.append(point.get('frame_id'+i, 'NaN'))
+            vals.append(point.get('ang.x'+i, 'NaN'))
+            vals.append(point.get('ang.y'+i, 'NaN'))
+            vals.append(point.get('ang.z'+i, 'NaN'))
+            vals.append(point.get('ori.x'+i, 'NaN'))
+            vals.append(point.get('ori.y'+i, 'NaN'))
+            vals.append(point.get('ori.z'+i, 'NaN'))
+            vals.append(point.get('ori.w'+i, 'NaN'))
+            vals.append(point.get('acc.x'+i, 'NaN'))
+            vals.append(point.get('acc.y'+i, 'NaN'))
+            vals.append(point.get('acc.z'+i, 'NaN'))
+
+    line = templ.format(*vals)
+
+    return line
 
 def listener():
 
