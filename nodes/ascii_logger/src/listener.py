@@ -203,7 +203,7 @@ def writeBuffer():
 
         for i, j in enumerate(buffer):
             if (('gpsseq' in j or 'posseq' in j or 'rangeseq' in j) and not 'imuseq' in j) \
-            or ('frame_id' in j and xsens_ids.length > 1 and j['frame_id'] != xsens_ids[0] and (not 'pozyx' in j or j['pozyx'] == 0)):
+            or ('frame_id' in j and len(xsens_ids) > 1 and j['frame_id'] != xsens_ids[0] and (not 'pozyx' in j or j['pozyx'] == 0)):
                 #rospy.loginfo("fusable in %s", i)
                 # test closest points for imu
                 if i >= len(buffer)-50:
@@ -218,11 +218,11 @@ def writeBuffer():
                     next_imu = False
                     while not prev_imu and (i-distp-1) >= 0:
                         distp += 1
-                        prev_imu = 'imuseq' in buffer[i-distp] and 'frame_id' in buffer[i-distp] and xsens_ids.length > 0 and buffer[i-distp]['frame_id'] == xsens_ids[0]
+                        prev_imu = 'imuseq' in buffer[i-distp] and 'frame_id' in buffer[i-distp] and len(xsens_ids) > 0 and buffer[i-distp]['frame_id'] == xsens_ids[0]
 
                     while not next_imu and (i+distn+1) < len(buffer):
                         distn += 1
-                        next_imu = 'imuseq' in buffer[i+distn] and 'frame_id' in buffer[i+distn] and xsens_ids.length > 0 and buffer[i+distn]['frame_id'] == xsens_ids[0]
+                        next_imu = 'imuseq' in buffer[i+distn] and 'frame_id' in buffer[i+distn] and len(xsens_ids) > 0 and buffer[i+distn]['frame_id'] == xsens_ids[0]
 
                     if prev_imu and next_imu:
                         if abs((buffer[i-distp]['timestamp.secs']+(1e-9*buffer[i-distp]['timestamp.nsecs'])) -
@@ -338,8 +338,8 @@ def writeBuffer():
 
 def line_formatter(point):
     templ = "{0}\t{1}.{2:09d}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\t{17}\t{18}\t{19}\t{20}\t{21}\t{22}\t{23}\t{24}\t{25}\t{26}\t{27}\t{28}\t{29}\t{30}\t{31}\t{32}"
-    if xsens_ids.length > 1:
-        for i in range(33, 12*(xsens_ids.length-1) +33):
+    if len(xsens_ids) > 1:
+        for i in range(33, 12*(len(xsens_ids)-1) +33):
             for a in range(0,11):
                 templ += "\{"+str(i+a)+"}"
                 i += 12
@@ -389,8 +389,8 @@ def line_formatter(point):
       # 33 multiple imus...
     ]
 
-    if xsens_ids.length > 1:
-        for i in range(1, xsens_ids.length-1):
+    if len(xsens_ids) > 1:
+        for i in range(1, len(xsens_ids)-1):
             vals.append(point.get('imuseq'+i, 'NaN'))
             vals.append(point.get('frame_id'+i, 'NaN'))
             vals.append(point.get('ang.x'+i, 'NaN'))
