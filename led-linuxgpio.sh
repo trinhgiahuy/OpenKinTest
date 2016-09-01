@@ -1,12 +1,19 @@
 #!/bin/bash
 
-if [ "$#" -ne 2 ]; then
+if [ "$#" -lt 2 ]; then
 	echo "Not enough paramters!"
 	return 1
 fi
 
 NUM=$1
 GPIO=$2
+if [ "$#" -gt 2 ]; then
+	ON=0
+	OFF=1
+else
+	ON=1
+	OFF=0
+fi
 
 if [ ! -f "/sys/class/gpio/gpio$GPIO/value" ]; then
 	echo $GPIO > /sys/class/gpio/export
@@ -22,24 +29,24 @@ if [ ! -p "/tmp/ledpipe$NUM" ]; then
 fi
 
 function led_on {
-	echo 1 > /sys/class/gpio/gpio$GPIO/value
+	echo $ON > /sys/class/gpio/gpio$GPIO/value
 }
 
 function led_off {
-	echo 0 > /sys/class/gpio/gpio$GPIO/value
+	echo $OFF > /sys/class/gpio/gpio$GPIO/value
 }
 
 function led_blink {
-	echo 1 > /sys/class/gpio/gpio$GPIO/value
+	echo $ON > /sys/class/gpio/gpio$GPIO/value
 	sleep 0.3
-	echo 0 > /sys/class/gpio/gpio$GPIO/value
+	echo $OFF > /sys/class/gpio/gpio$GPIO/value
 	sleep 0.15
 }
 
 function led_blink_f {
-	echo 1 > /sys/class/gpio/gpio$GPIO/value
+	echo $ON > /sys/class/gpio/gpio$GPIO/value
 	sleep 0.1
-	echo 0 > /sys/class/gpio/gpio$GPIO/value
+	echo $OFF > /sys/class/gpio/gpio$GPIO/value
 	sleep 0.05
 }
 

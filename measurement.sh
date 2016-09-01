@@ -34,19 +34,19 @@ POZYX=0
 # Linux I2C device = 0, not (pigpiod) = 1
 LINUXI2C=1
 
-# primary led connected (linux-gpio) = 0, not = 1, pwm = 2, rpigpio = 3
-LED[0]=3
+# primary led connected (linux-gpio) = 0, not = 1, pwm = 2, rpigpio = 3, inverse gpio = 4
+LED[0]=4
 # GPIO pin or pwm device number
 LEDGPIO[0]=24
 LEDPID[0]=0
 
-# secondary led connected = 0, not = 1, pwm = 2, rpigpio = 3
-LED[1]=1
-LEDGPIO[1]=0
+# secondary led connected = 0, not = 1, pwm = 2, rpigpio = 3, inverse gpio = 4
+LED[1]=4
+LEDGPIO[1]=25
 LEDPID[1]=0
 
-LED[2]=1
-LEDGPIO[2]=0
+LED[2]=4
+LEDGPIO[2]=10
 LEDPID[2]=0
 
 # linux-shutdown switch connected = 0, not = 1, rpi python = 2
@@ -133,7 +133,7 @@ function led_on {
 		sudo kill -USR1 ${LEDPID[$1]}
 	fi
 
-	if [ "${LED[$1]}" -eq 2 ] || [ "${LED[$1]}" -eq 0 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
+	if [ "${LED[$1]}" -eq 2 ] || [ "${LED[$1]}" -eq 0 ] || [ "${LED[$1]}" -eq 4 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
 		echo "ON" | sudo tee /tmp/ledpipe"$1"
 	fi
 }
@@ -143,7 +143,7 @@ function led_off {
 		sudo kill -USR2 ${LEDPID[$1]}
 	fi
 
-	if [ "${LED[$1]}" -eq 2 ] || [ "${LED[$1]}" -eq 0 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
+	if [ "${LED[$1]}" -eq 2 ] || [ "${LED[$1]}" -eq 0 ] || [ "${LED[$1]}" -eq 4 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
 		echo "OFF" | sudo tee /tmp/ledpipe"$1"
 	fi
 
@@ -159,7 +159,7 @@ function led_blink {
 		done
 	fi
 
-	if [ "${LED[$1]}" -eq 2 ] || [ "${LED[$1]}" -eq 0 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
+	if [ "${LED[$1]}" -eq 2 ] || [ "${LED[$1]}" -eq 0 ] || [ "${LED[$1]}" -eq 4 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
 		for _ in {1..10}; do
 			echo "BLINK" | sudo tee /tmp/ledpipe"$1"
 		done
@@ -176,7 +176,7 @@ function led_blink_f {
 		done
 	fi
 
-	if [ "${LED[$1]}" -eq 2 ] || [ "${LED[$1]}" -eq 0 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
+	if [ "${LED[$1]}" -eq 2 ] || [ "${LED[$1]}" -eq 0 ] || [ "${LED[$1]}" -eq 4 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
 		for _ in {1..30}; do
 			echo "FASTER" | sudo tee /tmp/ledpipe"$1"
 		done
@@ -186,17 +186,21 @@ function led_blink_f {
 
 # start led controllers
 for i in {0..2}; do
-	if [ "${LED[$i]}" -eq 3 ] || [ "${LED[$i]}" -eq 2 ] || [ "${LED[$i]}" -eq 0 ]; then
+	if [ "${LED[$i]}" -eq 3 ] || [ "${LED[$i]}" -eq 2 ] || [ "${LED[$i]}" -eq 0 ] || [ "${LED[$i]}" -eq 4 ]; then
 		if [ "${LED[$i]}" -eq 3 ]; then
-			sudo python $HOME/openkin/led-pin.py ${LEDGPIO[$i]} > $LEDLOG 2>&1 &
+			sudo python $HOME/openkin/led-pin.py ${LEDGPIO[$i]} >> $LEDLOG 2>&1 &
 		fi
 
 		if [ "${LED[$i]}" -eq 2 ]; then
-			sudo bash $HOME/openkin/led-linuxpwm.sh $i ${LEDGPIO[$i]} > /dev/null 2>&1 &
+			sudo bash $HOME/openkin/led-linuxpwm.sh $i ${LEDGPIO[$i]} >> $LEDLOG 2>&1 &
 		fi
 
 		if [ "${LED[$i]}" -eq 0 ]; then
-			sudo bash $HOME/openkin/led-linuxgpio.sh $i ${LEDGPIO[$i]} > /dev/null 2>&1 &
+			sudo bash $HOME/openkin/led-linuxgpio.sh $i ${LEDGPIO[$i]} >> $LEDLOG 2>&1 &
+		fi
+
+		if [ "${LED[$i]}" -eq 4 ]; then
+			sudo bash $HOME/openkin/led-linuxgpio.sh $i ${LEDGPIO[$i]} 1 >> $LEDLOG 2>&1 &
 		fi
 
 		SUDOPID[$i]=$!
