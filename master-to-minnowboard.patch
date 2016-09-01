@@ -1,16 +1,16 @@
 diff --git a/measurement.sh b/measurement.sh
-index ea7b968..3bbe701 100755
+index 9992243..1af8996 100755
 --- a/measurement.sh
 +++ b/measurement.sh
-@@ -7,7 +7,7 @@
- #source /opt/ros/kinetic/setup.bash
- source ~/catkin_ws/devel/setup.bash
+@@ -2,7 +2,7 @@
+ 
+ # VARIABLES TO CONFIGURE
  
 -HOME="/home/pi"
 +HOME="/home/openkin"
  
- GPSTEMPFILE="$HOME/gpstemp.log"
- LOGFILE="$HOME/measurement.log"
+ # Needed for rostopic etc
+ #source /opt/ros/indigo/setup.bash
 @@ -24,33 +24,33 @@ LEDLOG="$HOME/led.log"
  GPS=0
  
@@ -28,23 +28,23 @@ index ea7b968..3bbe701 100755
 -LINUXI2C=1
 +LINUXI2C=0
  
- # primary led connected (linux-gpio) = 0, not = 1, pwm = 2, rpigpio = 3
--LED[0]=3
+ # primary led connected (linux-gpio) = 0, not = 1, pwm = 2, rpigpio = 3, inverse gpio = 4
+-LED[0]=4
 +LED[0]=2
  # GPIO pin or pwm device number
 -LEDGPIO[0]=24
 +LEDGPIO[0]=0
  LEDPID[0]=0
  
- # secondary led connected = 0, not = 1, pwm = 2, rpigpio = 3
--LED[1]=1
--LEDGPIO[1]=0
+ # secondary led connected = 0, not = 1, pwm = 2, rpigpio = 3, inverse gpio = 4
+-LED[1]=4
+-LEDGPIO[1]=25
 +LED[1]=0
 +LEDGPIO[1]=474
  LEDPID[1]=0
  
--LED[2]=1
--LEDGPIO[2]=0
+-LED[2]=4
+-LEDGPIO[2]=10
 +LED[2]=2
 +LEDGPIO[2]=1
  LEDPID[2]=0
