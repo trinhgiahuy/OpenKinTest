@@ -489,7 +489,7 @@ while true; do
 				fi
 
 				# if file exists and not empty
-				if [ -s $POZYXLOG ] && grep -e error -i -q $POZYXLOG; then
+				if [ -s $POZYXLOG ] && grep -e error -i $POZYXLOG | grep -v 50 -q; then
 					logger "Error with Pozyx"
 					logger "$(cat $POZYXLOG)"
 					screen -S pozyx -X quit
