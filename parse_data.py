@@ -4,20 +4,23 @@ import re
 
 if len(sys.argv) < 2:
 	print("Not enough or too many parameters! ({})".format(len(sys.argv)))
+	print("Usage: {} ORIGINAL [NORANGES-OUTPUT [RANGES-OUTPUT]]".format(sys.argv[0]))
+	print("Removes 31st column from ORIGINAL to output NORANGES-OUTPUT")
+	print("Parses the 31st column into RANGES-OUTPUT")
 	sys.exit(1)
-	
+
 if len(sys.argv) > 2:
 	fw = open(sys.argv[2], 'w')
 else:
 	fw = open(sys.argv[1]+"-noranges.txt", 'w')
-	
+
 if len(sys.argv) > 3:
 	fwr = open(sys.argv[3], 'w')
 else:
 	fwr = open(sys.argv[1]+"-ranges.txt", 'w')
 
 #patternfull = r"[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+"
-patterns = re.compile(r"(.*)\t([^\t]+)")
+patterns = re.compile(r"(^[^\t]+(?:\t[^\t]+){29})\t([^\t]+)((?:\t[^\t]+)*)")
 
 i = 0
 
@@ -30,7 +33,7 @@ try:
 			matches = patterns.match(x)
 			if matches:
 				i = i+1
-				fw.write(matches.group(1) + '\n')
+				fw.write(matches.group(1) + matches.group(3) + '\n')
 				if matches.group(2) and matches.group(2) != 'NaN':
 					splitted = matches.group(2).split('|')
 					for line in splitted:
@@ -44,7 +47,7 @@ except IOError as e:
 	fw.close()
 	fwr.close()
 	sys.exit(2)
-				
+
 fw.close()
 fwr.close()
 
