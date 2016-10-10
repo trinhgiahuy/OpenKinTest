@@ -17,6 +17,7 @@ POZYXLOG="$HOME/data/pozyx.log"
 MTWLOG="$HOME/data/mtw.log"
 ASCIILOG="$HOME/ascii.log"
 LEDLOG="$HOME/led.log"
+POZYXTAGFILE="$HOME/data/tags.txt"
 # empty logfile
 #> $LOGFILE
 
@@ -480,7 +481,7 @@ while true; do
 				if ! screen -list | grep -q "pozyx"; then
 					logger "Offline: Starting Pozyx"
 					screen -dmS pozyx
-					screen -r pozyx -X stuff $'\nsudo -E bash\nnice -n -10 rosrun pozyx pozyx _adapter:='$I2C_ADAPTER$' > '$POZYXLOG$' 2>&1\n'
+					screen -r pozyx -X stuff $'\nsudo -E bash\nnice -n -10 rosrun pozyx pozyx _adapter:='$I2C_ADAPTER$' _tagfile:='$POZYXTAGFILE$' > '$POZYXLOG$' 2>&1\n'
 
 					led_off 0
 					led_off 2

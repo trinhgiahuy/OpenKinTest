@@ -12,10 +12,13 @@
 
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 #include <vector>
 #include <algorithm>
 #include <cmath>
 #include <csignal>
+#include <string>
+#include <fstream>
 
 #define MG_2_MPSS 0.00980665
 #define DEG_2_RAD 0.01745329252
@@ -49,6 +52,7 @@ private:
 	ros::Time last_update_;
 
 	int adapter;
+	std::string tagfile;
 
 	int list_size_i;
 	uint16_t devices[MAX_ANCHORS_IN_LIST];
@@ -65,6 +69,7 @@ PozyxROS::PozyxROS() :
 {
 
 	private_nh_.param("adapter", adapter, int(1));
+	private_nh_.param(std::string("tagfile"), tagfile, std::string(""));
 
 	/*
 	std::vector<double> orientation_covariance, angular_velocity_covariance, linear_acceleration_covariance;
@@ -89,7 +94,7 @@ PozyxROS::PozyxROS() :
 	*/
 
 	//if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_IMU, 0) == POZYX_FAILURE){
-//	if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_POS | POZYX_INT_MASK_FUNC | POZYX_INT_MASK_ERR , 0) == POZYX_FAILURE){
+	//if(Pozyx.begin(adapter, true, MODE_INTERRUPT, POZYX_INT_MASK_POS | POZYX_INT_MASK_FUNC | POZYX_INT_MASK_ERR , 0) == POZYX_FAILURE){
 	if(Pozyx.begin(adapter, true, MODE_INTERRUPT, 0x1F , 0) == POZYX_FAILURE){
 		std::cerr << "ERROR: Unable to connect to POZYX shield" << std::endl;
 		std::cerr << "Reset required" << std::endl;
@@ -98,6 +103,7 @@ PozyxROS::PozyxROS() :
 	}
 
 	bool done = false;
+	bool fromfile = false;
 
 	std::cout << "Resetting system..." << std::endl;
 	Pozyx.resetSystem();
@@ -105,15 +111,65 @@ PozyxROS::PozyxROS() :
 	//Pozyx.clearDevices();
 	Pozyx.setInterruptMask(POZYX_INT_MASK_POS | POZYX_INT_MASK_FUNC);
 
-	int disc_status = 0;
-	std::cout << "Discovering..." << std::endl;
-	while ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 9, 30)) != POZYX_SUCCESS) {
-		std::cerr << "Retrying discovery: " << disc_status << std::endl;
+	std::ifstream tagfd;
+	tagfd.open(tagfile.c_str());
+	if (!tagfd.is_open()) {
+		int disc_status = 0;
+		std::cout << "Discovering..." << std::endl;
+		while ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 9, 30)) != POZYX_SUCCESS) {
+			std::cerr << "Retrying discovery: " << disc_status << std::endl;
+			delay(3000);
+		}
+		//if ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 3, 20)) == POZYX_SUCCESS) {
+		// Needed for discovery to not timeout or not find anything
 		delay(3000);
+	} else {
+		std::cout << "Reading tags from file..." << std::endl;
+		std::string line;
+		while (std::getline(tagfd, line)) {
+			device_coordinates_t newtag;
+			std::vector<std::string> tagparams;
+			char * parts;
+			char * linestr = (char*)line.c_str();
+			parts = strtok(linestr,"\t ");
+			while (parts != NULL) {
+				tagparams.push_back(std::string(parts));
+				parts = strtok(NULL,"\t");
+			}
+			if (tagparams.size() > 0) {
+				std::stringstream converter(tagparams.at(0));
+				short unsigned int tmp;
+				converter >> std::hex >> tmp;
+				newtag.network_id = tmp;
+				newtag.flag = 2;
+				std::cout << "*";
+			} else {
+				break;
+			}
+			if (tagparams.size() > 2) {
+				std::stringstream converter(tagparams.at(1)); // x in mm
+				int tmp;
+				converter >> std::dec >> tmp;
+				newtag.pos.x = tmp;
+				std::stringstream converter2(tagparams.at(2)); // y in mm
+				converter2 >> std::dec >> tmp;
+				newtag.pos.y = tmp;
+			}
+			if (tagparams.size() > 3) {
+				std::stringstream converter(tagparams.at(3)); // x in mm
+				int tmp;
+				converter >> std::dec >> tmp;
+				newtag.pos.z = tmp;
+			}
+			if (Pozyx.addDevice(newtag) == POZYX_FAILURE) {
+				std::cerr << "ERROR: Unable to add tag from file" << std::endl;
+				break;
+			}
+		}
+		fromfile = true;
+		std::cout << std::endl;
 	}
-	//if ((disc_status = Pozyx.doDiscovery(POZYX_DISCOVERY_ANCHORS_ONLY, 3, 20)) == POZYX_SUCCESS) {
-	// Needed for discovery to not timeout or not find anything
-	delay(3000);
+
 
 	std::cout << "Getting device list size..." << std::endl;
 	uint8_t list_size;
@@ -133,7 +189,7 @@ PozyxROS::PozyxROS() :
 			if (status == 1) {
 				std::cout << "Selected" << std::endl;
 				delay(2000);
-				if (Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i > 6 ? 6 : list_size_i, devices) == POZYX_SUCCESS) {
+				if (fromfile || Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i > 6 ? 6 : list_size_i, devices) == POZYX_SUCCESS) {
 					std::cout << "Calibrated" << std::endl;
 					delay(1000);
 					if (Pozyx.setUpdateInterval(100) == POZYX_SUCCESS) {
@@ -345,11 +401,11 @@ void PozyxROS::update() {
 			pos_pub_.publish(pos_msg);
 
 			// read out the ranges to each anchor and print it
-		  /*for (int i=0; i < list_size_i; i++){
-		    device_range_t range;
-		    Pozyx.getDeviceRangeInfo(devices[i], &range);
+			/*for (int i=0; i < list_size_i; i++){
+				device_range_t range;
+				Pozyx.getDeviceRangeInfo(devices[i], &range);
 				std::cout << devices[i] << ":" << "D: " << range.distance << ", S: " << range.RSS << std::endl;
-		  }*/
+			}*/
 
 		} else {
 			std::cerr << "Pos error" << std::endl;
@@ -368,8 +424,8 @@ void signal_handler(int signal) {
 }
 
 int main(int argc, char** argv) {
-//	std::signal(SIGTERM, signal_handler);
-//	std::signal(SIGINT, signal_handler);
+	//std::signal(SIGTERM, signal_handler);
+	//std::signal(SIGINT, signal_handler);
 
 	struct sigaction cleanup;
 	cleanup.sa_handler = signal_handler;

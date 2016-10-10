@@ -25,6 +25,8 @@ add_library(pozyx-lib include/Pozyx-custom-library/Pozyx_core.cpp include/Pozyx-
 
 target_link_libraries(pozyx pozyx-lib pigpiod_if2 rt)
 
+add_dependencies(pozyx pozyx_gencpp)
+
 target_link_libraries(pozyx
         ${catkin_LIBRARIES}
 )
