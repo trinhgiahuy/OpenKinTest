@@ -33,7 +33,24 @@ try:
 			matches = patterns.match(x)
 			if matches:
 				i = i+1
-				fw.write(matches.group(1) + matches.group(3) + '\n')
+				# test for extra imu columns
+				if matches.group(3):
+					parts = matches.group(3).split('\t')
+					reparts = []
+					for p in parts:
+						# change imu identifiers to numbers
+						if p.startswith('/'):
+							if p == "/base_imu":
+								out = 0
+							else:
+								# only take numbers from the frame_id
+								out = int(''.join(i for i in p if i.isdigit()))
+						else:
+							out = p
+						reparts.append(str(out))
+					fw.write(matches.group(1) + '\t'.join(reparts) + '\n')
+				else:
+					fw.write(matches.group(1) + '\n')
 				if matches.group(2) and matches.group(2) != 'NaN':
 					splitted = matches.group(2).split('|')
 					for line in splitted:

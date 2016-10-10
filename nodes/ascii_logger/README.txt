@@ -55,7 +55,7 @@ s=uwb,t=6010,tu=30014,ts=1470123704193,d=1779,RSS=-83|s=uwb,t=601b,tu=30028,ts=1
 The anchors are separated with | -characters, and fields for a single anchor are separated with commas.
 To get the data to same format as spoonphone, the data file needs to be run through parse_data.py to separate ranges and other data.
 
-Usage: ./parse_data.py ORIGINAL [NORANGES-OUTPUT [RANGES-OUTPUT]]
+Usage: python parse_data.py ORIGINAL [NORANGES-OUTPUT [RANGES-OUTPUT]]
 Where ORIGINAL is the logfile from Google Drive, and outputs are optional filenames for output files.
 Requires Python to be installed. (Might be required to be called "python parse_data.py ORIGINAL...")
 
