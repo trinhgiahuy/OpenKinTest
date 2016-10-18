@@ -1,5 +1,5 @@
 diff --git a/measurement.sh b/measurement.sh
-index 9992243..1af8996 100755
+index 0a7a100..a739a49 100755
 --- a/measurement.sh
 +++ b/measurement.sh
 @@ -2,7 +2,7 @@
@@ -11,7 +11,7 @@ index 9992243..1af8996 100755
  
  # Needed for rostopic etc
  #source /opt/ros/indigo/setup.bash
-@@ -24,33 +24,33 @@ LEDLOG="$HOME/led.log"
+@@ -25,33 +25,33 @@ POZYXTAGFILE="$HOME/data/tags.txt"
  GPS=0
  
  # wireless MTw connected = 0, not = 1
@@ -56,7 +56,7 @@ index 9992243..1af8996 100755
  # CONFIGURATION ENDS HERE
  
 diff --git a/nodes/ascii_logger/src/listener.py b/nodes/ascii_logger/src/listener.py
-index b187f77..6bfedac 100755
+index cdf73d5..5e38e76 100755
 --- a/nodes/ascii_logger/src/listener.py
 +++ b/nodes/ascii_logger/src/listener.py
 @@ -18,7 +18,7 @@ import threading
@@ -69,7 +69,7 @@ index b187f77..6bfedac 100755
  file = open(filename, "a")
  
 diff --git a/nodes/pozyx/CMakeLists.txt b/nodes/pozyx/CMakeLists.txt
-index 0e00264..1526c9a 100644
+index b944b65..cdf7141 100644
 --- a/nodes/pozyx/CMakeLists.txt
 +++ b/nodes/pozyx/CMakeLists.txt
 @@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 2.8.3)
@@ -81,14 +81,16 @@ index 0e00264..1526c9a 100644
  add_message_files(
    FILES
  	StringStamped.msg
-@@ -23,18 +21,10 @@ include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+@@ -23,7 +21,7 @@ include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
  add_executable(pozyx src/pozyx.cpp)
  add_library(pozyx-lib include/Pozyx-custom-library/Pozyx_core.cpp include/Pozyx-custom-library/Pozyx_lib.cpp include/Pozyx-custom-library/helpers.cpp)
  
 -target_link_libraries(pozyx pozyx-lib pigpiod_if2 rt)
 +target_link_libraries(pozyx pozyx-lib)
  
- target_link_libraries(pozyx
+ add_dependencies(pozyx pozyx_gencpp)
+ 
+@@ -31,12 +29,4 @@ target_link_libraries(pozyx
          ${catkin_LIBRARIES}
  )
  
