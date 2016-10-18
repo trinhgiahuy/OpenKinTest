@@ -134,12 +134,13 @@ PozyxROS::PozyxROS() :
 			parts = strtok(linestr,"\t ");
 			while (parts != NULL) {
 				tagparams.push_back(std::string(parts));
-				parts = strtok(NULL,"\t");
+				parts = strtok(NULL,"\t ");
 			}
 			if (tagparams.size() > 0) {
 				std::stringstream converter(tagparams.at(0));
 				short unsigned int tmp;
 				converter >> std::hex >> tmp;
+				std::cout << "Hex: " << std::hex << tmp;
 				newtag.network_id = tmp;
 				newtag.flag = 2;
 				std::cout << "*";
@@ -150,21 +151,25 @@ PozyxROS::PozyxROS() :
 				std::stringstream converter(tagparams.at(1)); // x in mm
 				int tmp;
 				converter >> std::dec >> tmp;
+				std::cout << " x: " << std::dec << tmp;
 				newtag.pos.x = tmp;
 				std::stringstream converter2(tagparams.at(2)); // y in mm
 				converter2 >> std::dec >> tmp;
+				std::cout << " y: " << std::dec << tmp;
 				newtag.pos.y = tmp;
 			}
 			if (tagparams.size() > 3) {
 				std::stringstream converter(tagparams.at(3)); // x in mm
 				int tmp;
 				converter >> std::dec >> tmp;
+				std::cout << " y: " << std::dec << tmp;
 				newtag.pos.z = tmp;
 			}
 			if (Pozyx.addDevice(newtag) == POZYX_FAILURE) {
 				std::cerr << "ERROR: Unable to add tag from file" << std::endl;
 				break;
 			}
+			std::cout << std::endl;
 		}
 		fromfile = true;
 		std::cout << std::endl;
