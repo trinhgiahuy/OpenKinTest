@@ -112,6 +112,7 @@ STARTEDUPLOAD=1
 IMUERR=1
 GPSERR=1
 POZYXERR=1
+MTWERR=1
 
 TIMECORRECTED=1
 
@@ -264,6 +265,7 @@ function quitScreens {
 	IMUERR=1
 	GPSERR=1
 	POZYXERR=1
+	MTWERR=1
 
 }
 
@@ -461,12 +463,15 @@ while true; do
 				IMUERR=1
 				led_off 0
 				led_off 2
-				if [ "$MTI" -eq 0 ]; then
-					screen -S imu -X quit
-				fi
-				if [ "$MTW" -eq 0 ]; then
-					screen -S mtw -X quit
-				fi
+				screen -S imu -X quit
+			fi
+
+			if [ "$MTWERR" -gt 10 ]; then
+				logger "MTw-errors more than 10, resting mtw"
+				MTWERR=1
+				led_off 0
+				led_off 2
+				screen -S mtw -X quit
 			fi
 
 			if [ "$POZYXERR" -gt 10 ]; then
@@ -554,7 +559,7 @@ while true; do
 				led_off 2
 			fi
 
-			if ! (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $GPSERR -eq 0 ]] && [[ $POZYXERR -eq 0 ]]; then
+			if ! (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $MTWERR -eq 0 ]] && [[ $GPSERR -eq 0 ]] && [[ $POZYXERR -eq 0 ]]; then
 				logger "Offline: Starting logger"
 				screen -dmS log
 				screen -r log -X stuff $'\nrosrun ascii_logger listener.py > '$ASCIILOG$'\n'
@@ -573,12 +578,20 @@ while true; do
 		#logger "rostopic $ROSRET"
 		#logger "$(cat $ROSTOPICFILE)"
 
-		if [ "$MTI" -eq 0 ] || [ "$MTW" -eq 0 ] && ! grep -q "^/imu/data$" $ROSTOPICFILE; then
-			logger "/imu/data not found"
+		if [ "$MTI" -eq 0 ] && ! (grep -q "^/imu_data_str$" $ROSTOPICFILE && grep -q "^/imu/data$" $ROSTOPICFILE); then
+			logger "/imu_data_str not found"
 			((IMUERR++))
 		else
 			#logger "zeroing imuerr"
 			IMUERR=0
+		fi
+
+		if [ "$MTW" -eq 0 ] && ! (grep -q "^/imu2/data$" $ROSTOPICFILE && grep -q "^/imu/data$" $ROSTOPICFILE); then
+			logger "/imu2/data not found"
+			((MTWERR++))
+		else
+			#logger "zeroing mtwerr"
+			MTWERR=0
 		fi
 
 		if [ "$POZYX" -eq 0 ] && ! grep -q "^/pozyx/.*$" $ROSTOPICFILE; then

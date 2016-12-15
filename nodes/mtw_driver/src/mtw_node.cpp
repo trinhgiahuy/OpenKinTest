@@ -229,9 +229,13 @@ int main(int argc, char* argv[])
 	ros::AdvertiseOptions op = ros::AdvertiseOptions::create<sensor_msgs::Imu>("/imu/data", 200, &connected, &disconnected, ros::VoidPtr(), NULL);
 	op.has_header = false;
 
+	ros::AdvertiseOptions op2 = ros::AdvertiseOptions::create<sensor_msgs::Imu>("/imu2/data", 200, &connected, &disconnected, ros::VoidPtr(), NULL);
+	op2.has_header = false;
+
 	sensor_msgs::Imu imu_msg;
 
 	ros::Publisher imu_pub_;
+	ros::Publisher imu_pub2_;
 
 	std::string imu_frame_id_ = "mtw_node/";
 
@@ -430,6 +434,7 @@ int main(int argc, char* argv[])
 
 		//imu_pub_ = nh_.advertise<sensor_msgs::Imu>("imu/data",200,false);
 		imu_pub_ = nh_.advertise(op);
+		imu_pub2_ = nh_.advertise(op2);
 
 		std::cout << "\nMain loop\n" << std::endl;
 		std::cout << "Outputting data..." << std::endl;
@@ -520,6 +525,7 @@ int main(int argc, char* argv[])
 					imu_msg.linear_acceleration.z = calibAcc[i][2];
 
 					imu_pub_.publish(imu_msg);
+					imu_pub2_.publish(imu_msg);
 
 					/*std::cout << "[" << i << "]: ID: " << mtwCallbacks[i]->device().deviceId().toString().toStdString()
 					<< ", Roll: " << std::setw(7) << std::fixed << std::setprecision(2) << eulerData[i].roll()
