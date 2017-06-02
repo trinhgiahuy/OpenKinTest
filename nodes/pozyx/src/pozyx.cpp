@@ -159,10 +159,10 @@ PozyxROS::PozyxROS() :
 				newtag.pos.y = tmp;
 			}
 			if (tagparams.size() > 3) {
-				std::stringstream converter(tagparams.at(3)); // x in mm
+				std::stringstream converter(tagparams.at(3)); // z in mm
 				int tmp;
 				converter >> std::dec >> tmp;
-				std::cout << " y: " << std::dec << tmp;
+				std::cout << " z: " << std::dec << tmp;
 				newtag.pos.z = tmp;
 			}
 			if (Pozyx.addDevice(newtag) == POZYX_FAILURE) {
@@ -190,13 +190,34 @@ PozyxROS::PozyxROS() :
 			// Set to use all anchors
 			int status;
 			std::cout << "Setting anchor selection..." << std::endl;
-			status = Pozyx.setSelectionOfAnchors(POZYX_ANCHOR_SEL_AUTO, list_size_i > 15 ? 15 : list_size_i, 0);
-			if (status == 1) {
-				std::cout << "Selected" << std::endl;
+			if (fromfile) {
+				status = Pozyx.setPositioningAnchorIds(devices, list_size_i);
+				if (status == POZYX_SUCCESS) {
+					status = setSelectionOfAnchors(POZYX_ANCHOR_SEL_MANUAL, list_size_i);
+					if (status != POZYX_SUCCESS) {
+						std::cerr << "Couldn't set manual selection of anchors: ";
+					}
+				} else {
+					std::cerr << "Couldn't set positioning anchors: ";
+				}
+			} else {
+				status = Pozyx.setSelectionOfAnchors(POZYX_ANCHOR_SEL_AUTO, list_size_i > 15 ? 15 : list_size_i, 0);
+				if (status == POZYX_SUCCESS) {
+					std::cout << "Selected" << std::endl;
+				} else {
+					std::cerr << "Couldn't set anchor selection: ";
+				}
+			}
+			if (status == POZYX_SUCCESS) {
 				delay(2000);
 				if (fromfile || Pozyx.doAnchorCalibration(POZYX_2D, 10, list_size_i > 6 ? 6 : list_size_i, devices) == POZYX_SUCCESS) {
 					std::cout << "Calibrated" << std::endl;
 					delay(1000);
+					if (fromfile) {
+						if (Pozyx.setPositionAlgorithm(POZYX_POS_ALG_UWB_ONLY, POZYX_3D) != POZYX_SUCCESS) {
+							std::cout << "Couldn't set position algorithm";
+						}
+					}
 					if (Pozyx.setUpdateInterval(100) == POZYX_SUCCESS) {
 						done = true;
 						std::cout << "Interval set" << std::endl;
