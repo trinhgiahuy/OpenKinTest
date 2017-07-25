@@ -5,7 +5,8 @@
 import rospy
 from std_msgs.msg import String
 from geometry_msgs.msg import PointStamped
-from sensor_msgs.msg import Imu, NavSatFix, MagneticField
+from sensor_msgs.msg import NavSatFix, MagneticField, Imu
+from imu_sequenced.msg import ImuSequenced
 from ublox_msgs.msg import NavSOL, NavVELNED
 from pozyx.msg import StringStamped
 
@@ -41,20 +42,20 @@ def imucallback(data, pozyx):
     #rospy.loginfo(rospy.get_caller_id() + 'Imu-data: %s', str(data))
     #rospy.loginfo('IMU angular_vel: %f %f %f', data.angular_velocity.x, data.angular_velocity.y, data.angular_velocity.z)
 
-    point = {'timestamp.secs': data.header.stamp.secs,
-             'timestamp.nsecs': data.header.stamp.nsecs,
-             'imuseq': data.header.seq,
-             'frame_id': data.header.frame_id,
-             'ang.x': data.angular_velocity.x,
-             'ang.y': data.angular_velocity.y,
-             'ang.z': data.angular_velocity.z,
-             'ori.x': data.orientation.x,
-             'ori.y': data.orientation.y,
-             'ori.z': data.orientation.z,
-             'ori.w': data.orientation.w,
-             'acc.x': data.linear_acceleration.x,
-             'acc.y': data.linear_acceleration.y,
-             'acc.z': data.linear_acceleration.z,
+    point = {'timestamp.secs': data.imu.header.stamp.secs,
+             'timestamp.nsecs': data.imu.header.stamp.nsecs,
+             'imuseq': data.seq,
+             'frame_id': data.imu.header.frame_id,
+             'ang.x': data.imu.angular_velocity.x,
+             'ang.y': data.imu.angular_velocity.y,
+             'ang.z': data.imu.angular_velocity.z,
+             'ori.x': data.imu.orientation.x,
+             'ori.y': data.imu.orientation.y,
+             'ori.z': data.imu.orientation.z,
+             'ori.w': data.imu.orientation.w,
+             'acc.x': data.imu.linear_acceleration.x,
+             'acc.y': data.imu.linear_acceleration.y,
+             'acc.z': data.imu.linear_acceleration.z,
              'pozyx': "1" if pozyx else "0"}
 
     # append to buffer
@@ -432,10 +433,10 @@ def listener():
     # run simultaneously.
     rospy.init_node('ascii_logger', anonymous=True)
 
-    rospy.Subscriber('imu/data', Imu, xsenscallback)
+    rospy.Subscriber('imu/data', ImuSequenced, xsenscallback)
     rospy.Subscriber('gps/fix', NavSatFix, gpscallback)
     rospy.Subscriber('gps/navvelned', NavVELNED, navvelnedcallback)
-    rospy.Subscriber('pozyx/data', Imu, pozyxcallback)
+    rospy.Subscriber('pozyx/data', ImuSequenced, pozyxcallback)
     rospy.Subscriber('pozyx/pos', PointStamped, poscallback)
     #rospy.Subscriber('pozyx/mag', MagneticField, magcallback)
     rospy.Subscriber('pozyx/range', StringStamped, rangecallback)

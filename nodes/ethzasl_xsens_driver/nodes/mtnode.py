@@ -7,6 +7,7 @@ import mtdevice
 
 from std_msgs.msg import Header, Float32
 from sensor_msgs.msg import Imu, NavSatFix, NavSatStatus
+from imu_sequenced.msg import ImuSequenced
 from geometry_msgs.msg import TwistStamped, Vector3Stamped
 from gps_common.msg import GPSFix, GPSStatus
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
@@ -90,7 +91,7 @@ class XSensDriver(object):
 				message='No status information')
 		self.diag_msg.status = [self.stest_stat, self.xkf_stat, self.gps_stat]
 
-		self.imu_pub = rospy.Publisher('imu/data', Imu, queue_size=10)
+		self.imu_pub = rospy.Publisher('imu/data', ImuSequenced, queue_size=200)
 		self.gps_pub = rospy.Publisher('fix', NavSatFix, queue_size=10)
 		self.xgps_pub = rospy.Publisher('fix_extended', GPSFix, queue_size=10)
 		self.vel_pub = rospy.Publisher('velocity', TwistStamped, queue_size=10)
@@ -148,11 +149,15 @@ class XSensDriver(object):
 		rawgps_data = data.get('RAWGPS')
 		status = data.get('Stat')	# int
 
+		sequence = data.get('Sample')
+
 		# create messages and default values
-		imu_msg = Imu()
-		imu_msg.orientation_covariance = (-1., )*9
-		imu_msg.angular_velocity_covariance = (-1., )*9
-		imu_msg.linear_acceleration_covariance = (-1., )*9
+		# Edited to use ImuSequenced by Heikki V 25.7.2017
+		imu_msg = ImuSequenced()
+		imu_msg.seq = sequence
+		imu_msg.imu.orientation_covariance = (-1., )*9
+		imu_msg.imu.angular_velocity_covariance = (-1., )*9
+		imu_msg.imu.linear_acceleration_covariance = (-1., )*9
 		pub_imu = False
 		gps_msg = NavSatFix()
 		xgps_msg = GPSFix()
@@ -172,15 +177,15 @@ class XSensDriver(object):
 			pub_mag = True
 			pub_temp = True
 			# acceleration
-			imu_msg.linear_acceleration.x = raw_data['accX']
-			imu_msg.linear_acceleration.y = raw_data['accY']
-			imu_msg.linear_acceleration.z = raw_data['accZ']
-			imu_msg.linear_acceleration_covariance = (0., )*9
+			imu_msg.imu.linear_acceleration.x = raw_data['accX']
+			imu_msg.imu.linear_acceleration.y = raw_data['accY']
+			imu_msg.imu.linear_acceleration.z = raw_data['accZ']
+			imu_msg.imu.linear_acceleration_covariance = (0., )*9
 			# gyroscopes
-			imu_msg.angular_velocity.x = raw_data['gyrX']
-			imu_msg.angular_velocity.y = raw_data['gyrY']
-			imu_msg.angular_velocity.z = raw_data['gyrZ']
-			imu_msg.angular_velocity_covariance = (0., )*9
+			imu_msg.imu.angular_velocity.x = raw_data['gyrX']
+			imu_msg.imu.angular_velocity.y = raw_data['gyrY']
+			imu_msg.imu.angular_velocity.z = raw_data['gyrZ']
+			imu_msg.imu.angular_velocity_covariance = (0., )*9
 			vel_msg.twist.angular.x = raw_data['gyrX']
 			vel_msg.twist.angular.y = raw_data['gyrY']
 			vel_msg.twist.angular.z = raw_data['gyrZ']
@@ -220,10 +225,10 @@ class XSensDriver(object):
 				v = numpy.array([x, y, z])
 				v = v.dot(self.R)
 
-				imu_msg.angular_velocity.x = v[0]
-				imu_msg.angular_velocity.y = v[1]
-				imu_msg.angular_velocity.z = v[2]
-				imu_msg.angular_velocity_covariance = (radians(0.025), 0., 0., 0.,
+				imu_msg.imu.angular_velocity.x = v[0]
+				imu_msg.imu.angular_velocity.y = v[1]
+				imu_msg.imu.angular_velocity.z = v[2]
+				imu_msg.imu.angular_velocity_covariance = (radians(0.025), 0., 0., 0.,
 						radians(0.025), 0., 0., 0., radians(0.025))
 				pub_imu = True
 				vel_msg.twist.angular.x = v[0]
@@ -240,10 +245,10 @@ class XSensDriver(object):
 				v = numpy.array([x, y, z])
 				v = v.dot(self.R)
 
-				imu_msg.linear_acceleration.x = v[0]
-				imu_msg.linear_acceleration.y = v[1]
-				imu_msg.linear_acceleration.z = v[2]
-				imu_msg.linear_acceleration_covariance = (0.0004, 0., 0., 0.,
+				imu_msg.imu.linear_acceleration.x = v[0]
+				imu_msg.imu.linear_acceleration.y = v[1]
+				imu_msg.imu.linear_acceleration.z = v[2]
+				imu_msg.imu.linear_acceleration_covariance = (0.0004, 0., 0., 0.,
 						0.0004, 0., 0., 0., 0.0004)
 				pub_imu = True
 			except KeyError:
@@ -270,11 +275,11 @@ class XSensDriver(object):
 		if orient_data:
 			pub_imu = True
 			orient_quat = quat_from_orient(orient_data)
-			imu_msg.orientation.x = orient_quat[0]
-			imu_msg.orientation.y = orient_quat[1]
-			imu_msg.orientation.z = orient_quat[2]
-			imu_msg.orientation.w = orient_quat[3]
-			imu_msg.orientation_covariance = (radians(1.), 0., 0., 0.,
+			imu_msg.imu.orientation.x = orient_quat[0]
+			imu_msg.imu.orientation.y = orient_quat[1]
+			imu_msg.imu.orientation.z = orient_quat[2]
+			imu_msg.imu.orientation.w = orient_quat[3]
+			imu_msg.imu.orientation_covariance = (radians(1.), 0., 0., 0.,
 					radians(1.), 0., 0., 0., radians(9.))
 		if position_data:
 			pub_gps = True
@@ -320,7 +325,7 @@ class XSensDriver(object):
 					xgps_msg.status.orientation_source = 0b01101000
 		# publish available information
 		if pub_imu:
-			imu_msg.header = h
+			imu_msg.imu.header = h
 			self.imu_pub.publish(imu_msg)
 		if pub_gps:
 			xgps_msg.header = gps_msg.header = h
@@ -346,5 +351,3 @@ def main():
 
 if __name__== '__main__':
 	main()
-
-

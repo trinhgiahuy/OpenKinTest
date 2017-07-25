@@ -7,6 +7,7 @@ project(ascii_logger)
 find_package(catkin REQUIRED COMPONENTS
   ublox_msgs
   pozyx
+  imu_sequenced
   xsens_driver
   rospy
   sensor_msgs
