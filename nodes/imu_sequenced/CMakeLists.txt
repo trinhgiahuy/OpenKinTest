@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 2.8.3)
+project(imu_sequenced)
+find_package(catkin REQUIRED sensor_msgs message_generation)
+
+add_message_files(
+  FILES
+	ImuSequenced.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+	sensor_msgs
+)
+
+catkin_package(
+	CATKIN_DEPENDS message_runtime
+)
+
+include_directories(${catkin_INCLUDE_DIRS})
+
+target_link_libraries(
+        ${catkin_LIBRARIES}
+)
