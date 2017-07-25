@@ -201,14 +201,14 @@ def writeBuffer():
                     if buffer[i+distn]['timestamp.nsecs'] > 0:
                         buffer[i]['timestamp.nsecs'] = buffer[i+distn]['timestamp.nsecs']-1
                     else:
-                        buffer[i]['timestamp.nsecs'] = 999999
+                        buffer[i]['timestamp.nsecs'] = 999999999
                         buffer[i]['timestamp.secs'] -= 1
                 #elif i >= len(buffer)-50:
                     # leave for next round
                     #continue
                 elif prev_time:
                     buffer[i]['timestamp.secs'] = buffer[i-distp]['timestamp.secs']
-                    if buffer[i-distp]['timestamp.nsecs'] >= 999999:
+                    if buffer[i-distp]['timestamp.nsecs'] < 999999999:
                         buffer[i]['timestamp.nsecs'] = buffer[i-distp]['timestamp.nsecs']+1
                     else:
                         buffer[i]['timestamp.nsecs'] = 0
@@ -297,6 +297,7 @@ def writeBuffer():
         # pair gps-data with imu-data
         for j in joins:
             #rospy.loginfo("Join2: %s and %s, len: %s", j[0], j[1], len(buffer))
+            nodel = False
             if not 'imuseq' in buffer[j[1]]:
                 rospy.loginfo("No imuseq in fusing point!: %s", buffer[j[1]])
                 continue
@@ -307,43 +308,60 @@ def writeBuffer():
                 pindex = xsens_ids.index(buffer[j[0]]['frame_id'])
                 #rospy.loginfo(pindex)
                 #rospy.loginfo(buffer[j[0]])
-                buffer[j[1]]['imuseq'+str(pindex)] = buffer[j[0]].get('imuseq', 'NaN')
-                buffer[j[1]]['frame_id'+str(pindex)] = buffer[j[0]].get('frame_id', 'NaN')
-                buffer[j[1]]['ang.x'+str(pindex)] = buffer[j[0]].get('ang.x', 'NaN')
-                buffer[j[1]]['ang.y'+str(pindex)] = buffer[j[0]].get('ang.y', 'NaN')
-                buffer[j[1]]['ang.z'+str(pindex)] = buffer[j[0]].get('ang.z', 'NaN')
-                buffer[j[1]]['ori.x'+str(pindex)] = buffer[j[0]].get('ori.x', 'NaN')
-                buffer[j[1]]['ori.y'+str(pindex)] = buffer[j[0]].get('ori.y', 'NaN')
-                buffer[j[1]]['ori.z'+str(pindex)] = buffer[j[0]].get('ori.z', 'NaN')
-                buffer[j[1]]['ori.w'+str(pindex)] = buffer[j[0]].get('ori.w', 'NaN')
-                buffer[j[1]]['acc.x'+str(pindex)] = buffer[j[0]].get('acc.x', 'NaN')
-                buffer[j[1]]['acc.y'+str(pindex)] = buffer[j[0]].get('acc.y', 'NaN')
-                buffer[j[1]]['acc.z'+str(pindex)] = buffer[j[0]].get('acc.z', 'NaN')
-            if not 'gpsseq' in buffer[j[1]] and 'gpsseq' in buffer[j[0]]:
-                buffer[j[1]]['gpsseq'] = buffer[j[0]].get('gpsseq', 'NaN')
-                buffer[j[1]]['latitude'] = buffer[j[0]].get('latitude', 'NaN')
-                buffer[j[1]]['longitude'] = buffer[j[0]].get('longitude', 'NaN')
-                buffer[j[1]]['altitude'] = buffer[j[0]].get('altitude', 'NaN')
-            if not 'iTOW' in buffer[j[1]] and 'iTOW' in buffer[j[0]]:
-                buffer[j[1]]['iTOW'] = buffer[j[0]].get('iTOW', 'NaN')
-                buffer[j[1]]['velN'] = buffer[j[0]].get('velN', 'NaN')
-                buffer[j[1]]['velE'] = buffer[j[0]].get('velE', 'NaN')
-                buffer[j[1]]['velD'] = buffer[j[0]].get('velD', 'NaN')
-                buffer[j[1]]['speed'] = buffer[j[0]].get('speed', 'NaN')
-                buffer[j[1]]['gSpeed'] = buffer[j[0]].get('gSpeed', 'NaN')
-                buffer[j[1]]['heading'] = buffer[j[0]].get('heading', 'NaN')
-                buffer[j[1]]['sAcc'] = buffer[j[0]].get('sAcc', 'NaN')
-                buffer[j[1]]['cAcc'] = buffer[j[0]].get('cAcc', 'NaN')
-            if not 'posseq' in buffer[j[1]] and 'posseq' in buffer[j[0]]:
-                buffer[j[1]]['posseq'] = buffer[j[0]].get('posseq', 'NaN')
-                buffer[j[1]]['pos.x'] = buffer[j[0]].get('pos.x', 'NaN')
-                buffer[j[1]]['pos.y'] = buffer[j[0]].get('pos.y', 'NaN')
-                buffer[j[1]]['pos.z'] = buffer[j[0]].get('pos.z', 'NaN')
-            if not 'rangeseq' in buffer[j[1]] and 'rangeseq' in buffer[j[0]]:
-                buffer[j[1]]['rangeseq'] = buffer[j[0]].get('rangeseq', 'NaN')
-                buffer[j[1]]['ranges'] = buffer[j[0]].get('ranges', 'NaN')
+                if 'imuseq'+str(pindex) in buffer[j[1]]:
+                    # Already has fused point
+                    nodel = True
+                else:
+                    buffer[j[1]]['imuseq'+str(pindex)] = buffer[j[0]].get('imuseq', 'NaN')
+                    buffer[j[1]]['frame_id'+str(pindex)] = buffer[j[0]].get('frame_id', 'NaN')
+                    buffer[j[1]]['ang.x'+str(pindex)] = buffer[j[0]].get('ang.x', 'NaN')
+                    buffer[j[1]]['ang.y'+str(pindex)] = buffer[j[0]].get('ang.y', 'NaN')
+                    buffer[j[1]]['ang.z'+str(pindex)] = buffer[j[0]].get('ang.z', 'NaN')
+                    buffer[j[1]]['ori.x'+str(pindex)] = buffer[j[0]].get('ori.x', 'NaN')
+                    buffer[j[1]]['ori.y'+str(pindex)] = buffer[j[0]].get('ori.y', 'NaN')
+                    buffer[j[1]]['ori.z'+str(pindex)] = buffer[j[0]].get('ori.z', 'NaN')
+                    buffer[j[1]]['ori.w'+str(pindex)] = buffer[j[0]].get('ori.w', 'NaN')
+                    buffer[j[1]]['acc.x'+str(pindex)] = buffer[j[0]].get('acc.x', 'NaN')
+                    buffer[j[1]]['acc.y'+str(pindex)] = buffer[j[0]].get('acc.y', 'NaN')
+                    buffer[j[1]]['acc.z'+str(pindex)] = buffer[j[0]].get('acc.z', 'NaN')
+            if 'gpsseq' in buffer[j[0]]:
+                if 'gpsseq' in buffer[j[1]]:
+                    nodel = True
+                else:
+                    buffer[j[1]]['gpsseq'] = buffer[j[0]].get('gpsseq', 'NaN')
+                    buffer[j[1]]['latitude'] = buffer[j[0]].get('latitude', 'NaN')
+                    buffer[j[1]]['longitude'] = buffer[j[0]].get('longitude', 'NaN')
+                    buffer[j[1]]['altitude'] = buffer[j[0]].get('altitude', 'NaN')
+            if 'iTOW' in buffer[j[0]]:
+                if 'iTOW' in buffer[j[1]]:
+                    nodel = True
+                else:
+                    buffer[j[1]]['iTOW'] = buffer[j[0]].get('iTOW', 'NaN')
+                    buffer[j[1]]['velN'] = buffer[j[0]].get('velN', 'NaN')
+                    buffer[j[1]]['velE'] = buffer[j[0]].get('velE', 'NaN')
+                    buffer[j[1]]['velD'] = buffer[j[0]].get('velD', 'NaN')
+                    buffer[j[1]]['speed'] = buffer[j[0]].get('speed', 'NaN')
+                    buffer[j[1]]['gSpeed'] = buffer[j[0]].get('gSpeed', 'NaN')
+                    buffer[j[1]]['heading'] = buffer[j[0]].get('heading', 'NaN')
+                    buffer[j[1]]['sAcc'] = buffer[j[0]].get('sAcc', 'NaN')
+                    buffer[j[1]]['cAcc'] = buffer[j[0]].get('cAcc', 'NaN')
+            if 'posseq' in buffer[j[0]]:
+                if 'posseq' in buffer[j[1]]:
+                    nodel = True
+                else:
+                    buffer[j[1]]['posseq'] = buffer[j[0]].get('posseq', 'NaN')
+                    buffer[j[1]]['pos.x'] = buffer[j[0]].get('pos.x', 'NaN')
+                    buffer[j[1]]['pos.y'] = buffer[j[0]].get('pos.y', 'NaN')
+                    buffer[j[1]]['pos.z'] = buffer[j[0]].get('pos.z', 'NaN')
+            if 'rangeseq' in buffer[j[0]]:
+                if 'rangeseq' in buffer[j[1]]:
+                    nodel = True
+                else:
+                    buffer[j[1]]['rangeseq'] = buffer[j[0]].get('rangeseq', 'NaN')
+                    buffer[j[1]]['ranges'] = buffer[j[0]].get('ranges', 'NaN')
 
-            buffer[j[0]]['del'] = True
+            if not nodel:
+                buffer[j[0]]['del'] = True
 
             #rospy.loginfo("GPS: %s", buffer[j[1]])
 
