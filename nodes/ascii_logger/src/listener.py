@@ -65,12 +65,12 @@ def imucallback(data, pozyx):
 
     # write buffer to file every now and then
     counter += 1
-    if counter > 120:
+    if counter > 360:
         counter = 0
         writeBuffer()
 
 def gpscallback(data):
-    global buffer, bufferlock
+    global buffer, bufferlock, counter
 
     #rospy.loginfo(rospy.get_caller_id() + 'GPS-data: %s', str(data))
     #rospy.loginfo('GPS latitude: %f, longitude: %f', data.latitude, data.longitude)
@@ -86,6 +86,12 @@ def gpscallback(data):
     bufferlock.acquire()
     buffer.append(point)
     bufferlock.release()
+
+    # write buffer to file every now and then
+    counter += 1
+    if counter > 360:
+        counter = 0
+        writeBuffer()
 
 def navvelnedcallback(data):
     global buffer, bufferlock
@@ -108,7 +114,7 @@ def navvelnedcallback(data):
     bufferlock.release()
 
 def poscallback(data):
-    global buffer, bufferlock
+    global buffer, bufferlock, counter
 
     point = {'posseq': data.header.seq,
              'timestamp.secs': data.header.stamp.secs,
@@ -121,8 +127,15 @@ def poscallback(data):
     buffer.append(point)
     bufferlock.release()
 
+    # write buffer to file every now and then
+    counter += 1
+    if counter > 360:
+        counter = 0
+        writeBuffer()
+
+
 def rangecallback(data):
-    global buffer, bufferlock
+    global buffer, bufferlock, counter
 
     point = {'rangeseq': data.header.seq,
              'timestamp.secs': data.header.stamp.secs,
@@ -132,6 +145,13 @@ def rangecallback(data):
     bufferlock.acquire()
     buffer.append(point)
     bufferlock.release()
+
+    # write buffer to file every now and then
+    counter += 1
+    if counter > 360:
+        counter = 0
+        writeBuffer()
+
 
 def writeline(str_towrite):
     global file
