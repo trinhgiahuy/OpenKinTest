@@ -162,10 +162,12 @@ def writeBuffer():
 
     # indexes of gps, imu -points to be joined
     joins = []
+
+    nsvjoins = []
     # indexes of navvelned
     navvels = []
     # how many points to leave for next round
-    leave = 55
+    leave = 70
 
     #rospy.loginfo("Running algo")
 
@@ -173,7 +175,7 @@ def writeBuffer():
 
     # check more than 20 samples in buffer
     # and find closest imu-points for gps-points
-    if len(buffer) > 120:
+    if len(buffer) > 180:
         #rospy.loginfo(">120")
 
         for i, j in enumerate(buffer):
@@ -190,29 +192,36 @@ def writeBuffer():
                 next_time = False
                 while not prev_time and (i-distp-1) >= 0:
                     distp += 1
-                    prev_time = 'timestamp.secs' in buffer[i-distp] and not 'iTOW' in buffer[i-distp]
+                    prev_time = 'gpsseq' in buffer[i-distp] and 'timestamp.secs' in buffer[i-distp] and not 'iTOW' in buffer[i-distp]
 
                 while not next_time and (i+distn+1) < len(buffer):
                     distn += 1
-                    next_time = 'timestamp.secs' in buffer[i+distn] and not 'iTOW' in buffer[i+distn]
+                    next_time = 'gpsseq' in buffer[i+distn] and 'timestamp.secs' in buffer[i+distn] and not 'iTOW' in buffer[i+distn]
 
-                if not prev_time and next_time:
-                    buffer[i]['timestamp.secs'] = buffer[i+distn]['timestamp.secs']
-                    if buffer[i+distn]['timestamp.nsecs'] > 0:
-                        buffer[i]['timestamp.nsecs'] = buffer[i+distn]['timestamp.nsecs']-1
+                if prev_time and next_time:
+                    if distp <= distn:
+                        navjoins.append((i, i-distp))
                     else:
-                        buffer[i]['timestamp.nsecs'] = 999999999
-                        buffer[i]['timestamp.secs'] -= 1
+                        navjoins.append((i, i+distn))
+                elif not prev_time and next_time:
+                    navjoins.append((i, i+distn))
+                    #buffer[i]['timestamp.secs'] = buffer[i+distn]['timestamp.secs']
+                    #if buffer[i+distn]['timestamp.nsecs'] > 0:
+                    #    buffer[i]['timestamp.nsecs'] = buffer[i+distn]['timestamp.nsecs']-1
+                    #else:
+                    #    buffer[i]['timestamp.nsecs'] = 999999999
+                    #    buffer[i]['timestamp.secs'] -= 1
                 #elif i >= len(buffer)-50:
                     # leave for next round
                     #continue
                 elif prev_time:
-                    buffer[i]['timestamp.secs'] = buffer[i-distp]['timestamp.secs']
-                    if buffer[i-distp]['timestamp.nsecs'] < 999999999:
-                        buffer[i]['timestamp.nsecs'] = buffer[i-distp]['timestamp.nsecs']+1
-                    else:
-                        buffer[i]['timestamp.nsecs'] = 0
-                        buffer[i]['timestamp.secs'] += 1
+                    navjoins.append((i, i-distp))
+                    #buffer[i]['timestamp.secs'] = buffer[i-distp]['timestamp.secs']
+                    #if buffer[i-distp]['timestamp.nsecs'] < 999999999:
+                    #    buffer[i]['timestamp.nsecs'] = buffer[i-distp]['timestamp.nsecs']+1
+                    #else:
+                    #    buffer[i]['timestamp.nsecs'] = 0
+                    #    buffer[i]['timestamp.secs'] += 1
                 #else:
                     # no times around?
             if not 'timestamp.secs' in j or not 'timestamp.nsecs' in j:
@@ -271,27 +280,39 @@ def writeBuffer():
                         continue
             elif 'iTOW' in j and 'imuseq' not in j:
                 # merge navvelned
-                navvels.append(i)
+                #navvels.append(i)
                 #rospy.loginfo("navvel in %s", i)
 
-        tmpjoins = joins[:]
+        #tmpjoins = joins[:]
 
-        for nav in navvels:
-            if nav >= len(buffer)-50:
+        #for nav in navvels:
+        #    if nav >= len(buffer)-50:
                 #rospy.loginfo("Skipped join: %s, len: %s", nav, len(buffer))
                 #leave = 55
-                continue
-            else:
-                closest = -1
-                dist = 99999
-                for j in tmpjoins:
+        #        continue
+        #    else:
+        #        closest = -1
+        #        dist = 99999
+        #        for j in tmpjoins:
                     # navvels only to gps points
-                    if 'gpsseq' in buffer[j[0]] and abs(j[1]-nav) < dist:
-                        closest = j[1]
-                        dist = abs(closest-nav)
-                if closest != -1:
-                    joins.append((nav, closest))
+        #            if 'gpsseq' in buffer[j[0]] and abs(j[1]-nav) < dist:
+        #                closest = j[1]
+        #                dist = abs(closest-nav)
+        #        if closest != -1:
+        #            joins.append((nav, closest))
                     #rospy.loginfo("Join navvel: %s and imu: %s, len: %s", nav, closest, len(buffer))
+
+        for j in navjoins:
+            if 'iTOW' in buffer[j[0]]:
+                buffer[j[1]]['iTOW'] = buffer[j[0]].get('iTOW', 'NaN')
+                buffer[j[1]]['velN'] = buffer[j[0]].get('velN', 'NaN')
+                buffer[j[1]]['velE'] = buffer[j[0]].get('velE', 'NaN')
+                buffer[j[1]]['velD'] = buffer[j[0]].get('velD', 'NaN')
+                buffer[j[1]]['speed'] = buffer[j[0]].get('speed', 'NaN')
+                buffer[j[1]]['gSpeed'] = buffer[j[0]].get('gSpeed', 'NaN')
+                buffer[j[1]]['heading'] = buffer[j[0]].get('heading', 'NaN')
+                buffer[j[1]]['sAcc'] = buffer[j[0]].get('sAcc', 'NaN')
+                buffer[j[1]]['cAcc'] = buffer[j[0]].get('cAcc', 'NaN')
 
 
         # pair gps-data with imu-data
