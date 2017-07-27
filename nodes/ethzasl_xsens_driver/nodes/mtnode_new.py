@@ -7,6 +7,7 @@ import mtdevice
 
 from std_msgs.msg import Header, Float32, String, UInt16
 from sensor_msgs.msg import Imu, NavSatFix, NavSatStatus
+from imu_sequenced.msg import ImuSequenced
 from geometry_msgs.msg import TwistStamped, Vector3Stamped
 from gps_common.msg import GPSFix, GPSStatus
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
@@ -66,7 +67,7 @@ class XSensDriver(object):
 				message='No status information')
 		self.diag_msg.status = [self.stest_stat, self.xkf_stat, self.gps_stat]
 
-		self.imu_pub = rospy.Publisher('imu/data', Imu, queue_size=10)
+		self.imu_pub = rospy.Publisher('imu/data', ImuSequenced, queue_size=200)
 		self.gps_pub = rospy.Publisher('fix', NavSatFix, queue_size=10)
 		self.xgps_pub = rospy.Publisher('fix_extended', GPSFix, queue_size=10)
 		self.vel_pub = rospy.Publisher('velocity', TwistStamped, queue_size=10)
@@ -82,10 +83,10 @@ class XSensDriver(object):
 		self.str_pub = rospy.Publisher('imu_data_str', String, queue_size=10)
 
 	def reset_vars(self):
-		self.imu_msg = Imu()
-		self.imu_msg.orientation_covariance = (-1., )*9
-		self.imu_msg.angular_velocity_covariance = (-1., )*9
-		self.imu_msg.linear_acceleration_covariance = (-1., )*9
+		self.imu_msg = ImuSequenced()
+		self.imu_msg.imu.orientation_covariance = (-1., )*9
+		self.imu_msg.imu.angular_velocity_covariance = (-1., )*9
+		self.imu_msg.imu.linear_acceleration_covariance = (-1., )*9
 		self.pub_imu = False
 		self.gps_msg = NavSatFix()
 		self.xgps_msg = GPSFix()
@@ -154,10 +155,10 @@ class XSensDriver(object):
 			'''Fill messages with information from 'calibrated' MTData block.'''
 			try:
 				self.pub_imu = True
-				self.imu_msg.angular_velocity.x = imu_data['gyrX']
-				self.imu_msg.angular_velocity.y = imu_data['gyrY']
-				self.imu_msg.angular_velocity.z = imu_data['gyrZ']
-				self.imu_msg.angular_velocity_covariance = (radians(0.025), 0., 0., 0.,
+				self.imu_msg.imu.angular_velocity.x = imu_data['gyrX']
+				self.imu_msg.imu.angular_velocity.y = imu_data['gyrY']
+				self.imu_msg.imu.angular_velocity.z = imu_data['gyrZ']
+				self.imu_msg.imu.angular_velocity_covariance = (radians(0.025), 0., 0., 0.,
 						radians(0.025), 0., 0., 0., radians(0.025))
 				self.pub_vel = True
 				self.vel_msg.twist.angular.x = imu_data['gyrX']
@@ -167,10 +168,10 @@ class XSensDriver(object):
 				pass
 			try:
 				self.pub_imu = True
-				self.imu_msg.linear_acceleration.x = imu_data['accX']
-				self.imu_msg.linear_acceleration.y = imu_data['accY']
-				self.imu_msg.linear_acceleration.z = imu_data['accZ']
-				self.imu_msg.linear_acceleration_covariance = (0.0004, 0., 0., 0.,
+				self.imu_msg.imu.linear_acceleration.x = imu_data['accX']
+				self.imu_msg.imu.linear_acceleration.y = imu_data['accY']
+				self.imu_msg.imu.linear_acceleration.z = imu_data['accZ']
+				self.imu_msg.imu.linear_acceleration_covariance = (0.0004, 0., 0., 0.,
 						0.0004, 0., 0., 0., 0.0004)
 			except KeyError:
 				pass			
@@ -202,11 +203,11 @@ class XSensDriver(object):
 				m = identity_matrix()
 				m[:3,:3] = orient_data['matrix']
 				x, y, z, w = quaternion_from_matrix(m)
-			self.imu_msg.orientation.x = x
-			self.imu_msg.orientation.y = y
-			self.imu_msg.orientation.z = z
-			self.imu_msg.orientation.w = w
-			self.imu_msg.orientation_covariance = (radians(1.), 0., 0., 0.,
+			self.imu_msg.imu.orientation.x = x
+			self.imu_msg.imu.orientation.y = y
+			self.imu_msg.imu.orientation.z = z
+			self.imu_msg.imu.orientation.w = w
+			self.imu_msg.imu.orientation_covariance = (radians(1.), 0., 0., 0.,
 					radians(1.), 0., 0., 0., radians(9.))
 		
 		def fill_from_Pos(position_data):
@@ -304,11 +305,11 @@ class XSensDriver(object):
 				x, y, z, w = quaternion_from_matrix(m)
 			except KeyError:
 				pass
-			self.imu_msg.orientation.x = x
-			self.imu_msg.orientation.y = y
-			self.imu_msg.orientation.z = z
-			self.imu_msg.orientation.w = w
-			self.imu_msg.orientation_covariance = (radians(1.), 0., 0., 0.,
+			self.imu_msg.imu.orientation.x = x
+			self.imu_msg.imu.orientation.y = y
+			self.imu_msg.imu.orientation.z = z
+			self.imu_msg.imu.orientation.w = w
+			self.imu_msg.imu.orientation_covariance = (radians(1.), 0., 0., 0.,
 					radians(1.), 0., 0., 0., radians(9.))
 		
 		def fill_from_Pressure(o):
@@ -333,10 +334,10 @@ class XSensDriver(object):
 			except KeyError:
 				pass
 			      
-			self.imu_msg.linear_acceleration.x = x
-			self.imu_msg.linear_acceleration.y = y
-			self.imu_msg.linear_acceleration.z = z
-			self.imu_msg.linear_acceleration_covariance = (0.0004, 0., 0., 0.,
+			self.imu_msg.imu.linear_acceleration.x = x
+			self.imu_msg.imu.linear_acceleration.y = y
+			self.imu_msg.imu.linear_acceleration.z = z
+			self.imu_msg.imu.linear_acceleration_covariance = (0.0004, 0., 0., 0.,
 					0.0004, 0., 0., 0., 0.0004)
 		
 		def fill_from_Position(o):
@@ -354,10 +355,10 @@ class XSensDriver(object):
 		def fill_from_Angular_Velocity(o):
 			'''Fill messages with information from 'Angular Velocity' MTData2 block.'''
 			try:
-				self.imu_msg.angular_velocity.x = o['gyrX']
-				self.imu_msg.angular_velocity.y = o['gyrY']
-				self.imu_msg.angular_velocity.z = o['gyrZ']
-				self.imu_msg.angular_velocity_covariance = (radians(0.025), 0., 0., 0.,
+				self.imu_msg.imu.angular_velocity.x = o['gyrX']
+				self.imu_msg.imu.angular_velocity.y = o['gyrY']
+				self.imu_msg.imu.angular_velocity.z = o['gyrZ']
+				self.imu_msg.imu.angular_velocity_covariance = (radians(0.025), 0., 0., 0.,
 						radians(0.025), 0., 0., 0., radians(0.025))
 				self.pub_imu = True
 				self.vel_msg.twist.angular.x = o['gyrX']
@@ -438,6 +439,7 @@ class XSensDriver(object):
 
 		def fill_from_Sample(o):
 			'''Catch 'Sample' MTData blocks.'''
+			self.imu_msg.seq = o
 			rospy.logdebug("Got MTi data packet: 'Sample', ignored!")
 
 		def find_handler_name(name):
@@ -455,7 +457,7 @@ class XSensDriver(object):
 
 		# publish available information
 		if self.pub_imu:
-			self.imu_msg.header = self.h
+			self.imu_msg.imu.header = self.h
 			self.imu_pub.publish(self.imu_msg)
 		if self.pub_gps:
 			self.xgps_msg.header = self.gps_msg.header = self.h

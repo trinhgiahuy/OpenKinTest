@@ -4,7 +4,8 @@
 
 #include <ros/ros.h>
 #include <std_msgs/String.h>
-#include <sensor_msgs/Imu.h>
+//#include <sensor_msgs/Imu.h>
+#include <imu_sequenced/ImuSequenced.h>
 #include <sensor_msgs/MagneticField.h>
 #include <sensor_msgs/PointCloud.h>
 #include <geometry_msgs/PointStamped.h>
@@ -39,7 +40,7 @@ private:
 	ros::NodeHandle nh_;
 	ros::NodeHandle private_nh_;
 
-	sensor_msgs::Imu imu_msg;
+	imu_sequenced::ImuSequenced imu_msg;
 
 	//ros::Publisher imu_pub_;
 	//ros::Publisher magnetic_pub_;
@@ -76,19 +77,19 @@ PozyxROS::PozyxROS() :
 
 	if (orientation_covariance.size() == 9) {
 		for (int i = 0; i < 9; i++) {
-			imu_msg.orientation_covariance[i] = orientation_covariance[i];
+			imu_msg.imu.orientation_covariance[i] = orientation_covariance[i];
 		}
 	}
 
 	if (angular_velocity_covariance.size() == 9) {
 		for (int i=0; i < 9; i++) {
-			imu_msg.angular_velocity_covariance[i] = angular_velocity_covariance[i];
+			imu_msg.imu.angular_velocity_covariance[i] = angular_velocity_covariance[i];
 		}
 	}
 
 	if (linear_acceleration_covariance.size() == 9) {
 		for (int i=0; i < 9; i++) {
-			imu_msg.linear_acceleration_covariance[i] = linear_acceleration_covariance[i];
+			imu_msg.imu.linear_acceleration_covariance[i] = linear_acceleration_covariance[i];
 		}
 	}
 	*/
@@ -344,20 +345,20 @@ void PozyxROS::update() {
 		//uint32_t pressure = ((uint32_t)sensor_data[0]) + (((uint32_t)sensor_data[1])<<16);
 
 		/*
-		imu_msg.header.stamp = current_time;
-		imu_msg.header.frame_id = imu_frame_id_;
-		imu_msg.orientation.x = (double)sensor_data[10] / 16384;
-		imu_msg.orientation.y = (double)sensor_data[11] / 16384;
-		imu_msg.orientation.z = (double)sensor_data[12] / 16384;
-		imu_msg.orientation.w = (double)sensor_data[9] / 16384;
+		imu_msg.imu.header.stamp = current_time;
+		imu_msg.imu.header.frame_id = imu_frame_id_;
+		imu_msg.imu.orientation.x = (double)sensor_data[10] / 16384;
+		imu_msg.imu.orientation.y = (double)sensor_data[11] / 16384;
+		imu_msg.imu.orientation.z = (double)sensor_data[12] / 16384;
+		imu_msg.imu.orientation.w = (double)sensor_data[9] / 16384;
 
-		imu_msg.angular_velocity.x = (double)sensor_data[6] * DEG_2_RAD / 16;
-		imu_msg.angular_velocity.y = (double)sensor_data[7] * DEG_2_RAD / 16;
-		imu_msg.angular_velocity.z = (double)sensor_data[8] * DEG_2_RAD / 16;
+		imu_msg.imu.angular_velocity.x = (double)sensor_data[6] * DEG_2_RAD / 16;
+		imu_msg.imu.angular_velocity.y = (double)sensor_data[7] * DEG_2_RAD / 16;
+		imu_msg.imu.angular_velocity.z = (double)sensor_data[8] * DEG_2_RAD / 16;
 
-		imu_msg.linear_acceleration.x = (double)sensor_data[0] * MG_2_MPSS;
-		imu_msg.linear_acceleration.y = (double)sensor_data[1] * MG_2_MPSS;
-		imu_msg.linear_acceleration.z = (double)sensor_data[2] * MG_2_MPSS;
+		imu_msg.imu.linear_acceleration.x = (double)sensor_data[0] * MG_2_MPSS;
+		imu_msg.imu.linear_acceleration.y = (double)sensor_data[1] * MG_2_MPSS;
+		imu_msg.imu.linear_acceleration.z = (double)sensor_data[2] * MG_2_MPSS;
 
 		imu_pub_.publish(imu_msg);
 

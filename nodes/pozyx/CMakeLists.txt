@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(pozyx)
-find_package(catkin REQUIRED roscpp std_msgs geometry_msgs sensor_msgs message_generation)
+find_package(catkin REQUIRED roscpp imu_sequenced std_msgs geometry_msgs sensor_msgs message_generation)
 
 find_package(Threads REQUIRED)
 
@@ -12,6 +12,7 @@ add_message_files(
 generate_messages(
   DEPENDENCIES
 	std_msgs
+  imu_sequenced
 )
 
 catkin_package(
