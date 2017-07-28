@@ -22,7 +22,7 @@ uart1:
 #  out: 1                    # No UART out for rover
 
 gnss:
-  gps: true                  # 
+  gps: true                  #
   glonass: true              # Supported by C94-M8P
 #  reset_mode: 2             # Controlled Software reset
 #  beidou: false             # Supported by C94-M8P
@@ -46,4 +46,4 @@ subscribe:
     svin: false
     posecef: false
     relposned: false
-#    svinfo: true
+    svinfo: false

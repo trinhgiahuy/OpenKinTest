@@ -40,6 +40,7 @@
 #include <ublox_msgs/NavSOL.h>
 #include <ublox_msgs/NavPVT.h>
 #include <ublox_msgs/NavPVT7.h>
+#include <ublox_msgs/NavPVT7wH.h>
 #include <ublox_msgs/NavSTATUS.h>
 #include <ublox_msgs/NavSAT.h>
 #include <ublox_msgs/NavSVIN.h>

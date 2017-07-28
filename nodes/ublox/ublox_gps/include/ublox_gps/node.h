@@ -519,16 +519,23 @@ class UbloxFirmware7Plus : public UbloxFirmware {
   // template<typename NavPVT>
   void publishNavPvt(const NavPVT& m) {
     static ros::Publisher publisher =
-        nh->advertise<NavPVT>("navpvt", kROSQueueSize);
-    publisher.publish(m);
+        nh->advertise<ublox_msgs::NavPVT7wH>("navpvtwh", kROSQueueSize);
+    //publisher.publish(m);
 
+    ublox_msgs::NavPVT7wH pvtwh;
+    pvtwh.pvt = m;
     /** Fix message */
     static ros::Publisher fixPublisher =
         nh->advertise<sensor_msgs::NavSatFix>("fix", kROSQueueSize);
     // timestamp
     sensor_msgs::NavSatFix fix;
-    fix.header.stamp.sec = toUtcSeconds(m);
-    fix.header.stamp.nsec = m.nano;
+    //fix.header.stamp.sec = toUtcSeconds(m);
+    //fix.header.stamp.nsec = m.nano;
+    ros::Time current_time = ros::Time::now();
+    fix.header.stamp = current_time;
+    pvtwh.header.stamp = current_time;
+    pvtwh.header.frame_id = frame_id;
+    publisher.publish(pvtwh);
 
     bool fixOk = m.flags & m.FLAGS_GNSS_FIX_OK;
     uint8_t cpSoln = m.flags & m.CARRIER_PHASE_FIXED;

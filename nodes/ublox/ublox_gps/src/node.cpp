@@ -1158,10 +1158,10 @@ void UbloxFirmware8::subscribe() {
   // Subscribe to Nav PVT (version 7 & above only)
   nh->param("subscribe/nav/pvt", enabled["nav_pvt"], true);
   if (enabled["nav_pvt"])
-    gps.subscribe<ublox_msgs::NavPVT>(boost::bind(
-        &UbloxFirmware7Plus::publishNavPvt, this, _1), 
+    /*gps.subscribe<ublox_msgs::NavPVT>(boost::bind(
+        &UbloxFirmware7Plus::publishNavPvt, this, _1),
         kSubscribeRate);
-
+*/
   // Subscribe to Nav SAT messages
   nh->param("subscribe/nav/sat", enabled["nav_sat"], enabled["all"]);
   if (enabled["nav_sat"])

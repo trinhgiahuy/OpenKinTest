@@ -138,12 +138,12 @@ def navpvtcallback(data):
              #'hMSL': data.hMSL,
              #'hAcc': data.hAcc,
              #'vAcc': data.vAcc,
-             'velN': data.velN,
-             'velE': data.velE,
-             'velD': data.velD,
-             'gSpeed': data.gSpeed,
+             'velN': data.velN/10.0,
+             'velE': data.velE/10.0,
+             'velD': data.velD/10.0,
+             'gSpeed': data.gSpeed/10.0,
              'heading': data.heading,
-             'sAcc': data.sAcc,
+             'sAcc': data.sAcc/10.0,
              'headAcc': data.headAcc,
              #'pDOP': data.pDOP,
              #'reserved1': data.reserved1
@@ -264,11 +264,11 @@ def writeBuffer():
                     #    buffer[i]['timestamp.secs'] += 1
                 #else:
                     # no times around?
-            if not 'timestamp.secs' in j or not 'timestamp.nsecs' in j:
-                rospy.loginfo("No timestamp!: %s", j)
+            #if not 'timestamp.secs' in j or not 'timestamp.nsecs' in j:
+                #rospy.loginfo("No timestamp!: %s", j)
 
         for j in navjoins:
-	    if 'iTOW' in buffer[j[0]]:
+            if 'iTOW' in buffer[j[0]]:
                 buffer[j[1]]['iTOW'] = buffer[j[0]].get('iTOW', 'NaN')
                 buffer[j[1]]['velN'] = buffer[j[0]].get('velN', 'NaN')
                 buffer[j[1]]['velE'] = buffer[j[0]].get('velE', 'NaN')
@@ -277,7 +277,7 @@ def writeBuffer():
                 buffer[j[1]]['gSpeed'] = buffer[j[0]].get('gSpeed', 'NaN')
                 buffer[j[1]]['heading'] = buffer[j[0]].get('heading', 'NaN')
                 buffer[j[1]]['sAcc'] = buffer[j[0]].get('sAcc', 'NaN')
-                buffer[j[1]]['cAcc'] = buffer[j[0]].get('cAcc', 'NaN')
+                buffer[j[1]]['headAcc'] = buffer[j[0]].get('headAcc', 'NaN')
                 buffer[j[0]]['del'] = True
 
 
@@ -410,7 +410,7 @@ def writeBuffer():
                     buffer[j[1]]['gSpeed'] = buffer[j[0]].get('gSpeed', 'NaN')
                     buffer[j[1]]['heading'] = buffer[j[0]].get('heading', 'NaN')
                     buffer[j[1]]['sAcc'] = buffer[j[0]].get('sAcc', 'NaN')
-                    buffer[j[1]]['cAcc'] = buffer[j[0]].get('cAcc', 'NaN')
+                    buffer[j[1]]['headAcc'] = buffer[j[0]].get('headAcc', 'NaN')
             if 'posseq' in buffer[j[0]]:
                 if 'posseq' in buffer[j[1]]:
                     nodel = True
