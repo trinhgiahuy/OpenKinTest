@@ -524,11 +524,11 @@ while true; do
 					# Alignment reset will be soon
 					led_blink 0
 					#screen -r imu -X stuff $'\nrosrun xsens_driver mtnode_new.py\n'
-					if [ "$XSENS" -eq "" ]; then
+					#if [ "$XSENS" -eq "" ]; then
 						findXsens
-					else
+					#else
 						screen -r imu -X stuff $'\nsudo -E bash\nnice -n -10 rosrun xsens_driver mtnode_new.py _device:='"$XSENS"$'\n'
-					fi
+					#fi
 					led_off 0
 					led_off 2
 				fi

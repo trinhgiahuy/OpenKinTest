@@ -163,7 +163,7 @@ def writeBuffer():
     # indexes of gps, imu -points to be joined
     joins = []
 
-    nsvjoins = []
+    navjoins = []
     # indexes of navvelned
     navvels = []
     # how many points to leave for next round
@@ -227,6 +227,22 @@ def writeBuffer():
             if not 'timestamp.secs' in j or not 'timestamp.nsecs' in j:
                 rospy.loginfo("No timestamp!: %s", j)
 
+        for j in navjoins:
+	    if 'iTOW' in buffer[j[0]]:
+                buffer[j[1]]['iTOW'] = buffer[j[0]].get('iTOW', 'NaN')
+                buffer[j[1]]['velN'] = buffer[j[0]].get('velN', 'NaN')
+                buffer[j[1]]['velE'] = buffer[j[0]].get('velE', 'NaN')
+                buffer[j[1]]['velD'] = buffer[j[0]].get('velD', 'NaN')
+                buffer[j[1]]['speed'] = buffer[j[0]].get('speed', 'NaN')
+                buffer[j[1]]['gSpeed'] = buffer[j[0]].get('gSpeed', 'NaN')
+                buffer[j[1]]['heading'] = buffer[j[0]].get('heading', 'NaN')
+                buffer[j[1]]['sAcc'] = buffer[j[0]].get('sAcc', 'NaN')
+                buffer[j[1]]['cAcc'] = buffer[j[0]].get('cAcc', 'NaN')
+                buffer[j[0]]['del'] = True
+
+
+        buffer = [x for x in buffer if not 'del' in x]
+
 
         buffer = sorted(buffer, key=lambda x: x['timestamp.secs']+(1e-9*x['timestamp.nsecs']));
 
@@ -278,7 +294,7 @@ def writeBuffer():
                     else:
                         # No imu-points on sides, no join
                         continue
-            elif 'iTOW' in j and 'imuseq' not in j:
+            #elif 'iTOW' in j and 'imuseq' not in j:
                 # merge navvelned
                 #navvels.append(i)
                 #rospy.loginfo("navvel in %s", i)
@@ -302,17 +318,6 @@ def writeBuffer():
         #            joins.append((nav, closest))
                     #rospy.loginfo("Join navvel: %s and imu: %s, len: %s", nav, closest, len(buffer))
 
-        for j in navjoins:
-            if 'iTOW' in buffer[j[0]]:
-                buffer[j[1]]['iTOW'] = buffer[j[0]].get('iTOW', 'NaN')
-                buffer[j[1]]['velN'] = buffer[j[0]].get('velN', 'NaN')
-                buffer[j[1]]['velE'] = buffer[j[0]].get('velE', 'NaN')
-                buffer[j[1]]['velD'] = buffer[j[0]].get('velD', 'NaN')
-                buffer[j[1]]['speed'] = buffer[j[0]].get('speed', 'NaN')
-                buffer[j[1]]['gSpeed'] = buffer[j[0]].get('gSpeed', 'NaN')
-                buffer[j[1]]['heading'] = buffer[j[0]].get('heading', 'NaN')
-                buffer[j[1]]['sAcc'] = buffer[j[0]].get('sAcc', 'NaN')
-                buffer[j[1]]['cAcc'] = buffer[j[0]].get('cAcc', 'NaN')
 
 
         # pair gps-data with imu-data

@@ -66,6 +66,7 @@ while read SIGNAL; do
 		*)echo "Signal $SIGNAL is unsupported" > /dev/stderr;;
 	esac
 #	echo $SIGNAL
+	sleep 0.2
 done < /tmp/ledpipe$NUM
 #wait
 #kill %1
