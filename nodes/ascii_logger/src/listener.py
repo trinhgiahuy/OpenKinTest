@@ -7,7 +7,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import PointStamped
 from sensor_msgs.msg import NavSatFix, MagneticField, Imu
 from imu_sequenced.msg import ImuSequenced
-from ublox_msgs.msg import NavSOL, NavVELNED
+from ublox_msgs.msg import NavPVT7 #, NavSOL, NavVELNED
 from pozyx.msg import StringStamped
 
 from decimal import *
@@ -107,6 +107,46 @@ def navvelnedcallback(data):
              'heading': data.heading,
              'sAcc': data.sAcc,
              'cAcc': data.cAcc
+            }
+
+    bufferlock.acquire()
+    buffer.append(point)
+    bufferlock.release()
+
+def navpvtcallback(data):
+    global buffer, bufferlock
+
+    #rospy.loginfo("NavVELNED: %s", str(data))
+
+    point = {'iTOW': data.iTOW,
+             #'year': data.year,
+             #'month': data.month,
+             #'day': data.day,
+             #'hour': data.hour,
+             #'min': data.min,
+             #'sec': data.sec,
+             #'valid': data.valid,
+             #'tAcc': data.tAcc,
+             #'nano': data.nano,
+             #'fixType': data.fixType,
+             #'flags': data.flags,
+             #'flags2': data.flags2,
+             #'numSV': data.numSV,
+             #'lon': data.lon,
+             #'lat': data.lat,
+             #'height': data.height,
+             #'hMSL': data.hMSL,
+             #'hAcc': data.hAcc,
+             #'vAcc': data.vAcc,
+             'velN': data.velN,
+             'velE': data.velE,
+             'velD': data.velD,
+             'gSpeed': data.gSpeed,
+             'heading': data.heading,
+             'sAcc': data.sAcc,
+             'headAcc': data.headAcc,
+             #'pDOP': data.pDOP,
+             #'reserved1': data.reserved1
             }
 
     bufferlock.acquire()
@@ -440,11 +480,12 @@ def line_formatter(point):
       point.get('velN', 'NaN'),
       point.get('velE', 'NaN'),
       point.get('velD', 'NaN'),
-      point.get('speed', 'NaN'),
+      point.get('speed', 'NaN'), # not in PVT
       point.get('gSpeed', 'NaN'),
       point.get('heading', 'NaN'),
       point.get('sAcc', 'NaN'),
-      point.get('cAcc', 'NaN'),
+      #point.get('cAcc', 'NaN'),
+      point.get('headAcc', 'NaN'),
 
       # 26
       point.get('pozyx', 'NaN'),
@@ -494,7 +535,8 @@ def listener():
 
     rospy.Subscriber('imu/data', ImuSequenced, xsenscallback)
     rospy.Subscriber('gps/fix', NavSatFix, gpscallback)
-    rospy.Subscriber('gps/navvelned', NavVELNED, navvelnedcallback)
+    #rospy.Subscriber('gps/navvelned', NavVELNED, navvelnedcallback)
+    rospy.Subscriber('gps/navpvt', NavPVT7, navpvtcallback)
     rospy.Subscriber('pozyx/data', ImuSequenced, pozyxcallback)
     rospy.Subscriber('pozyx/pos', PointStamped, poscallback)
     #rospy.Subscriber('pozyx/mag', MagneticField, magcallback)

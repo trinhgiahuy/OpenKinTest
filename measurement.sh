@@ -601,8 +601,8 @@ while true; do
 			POZYXERR=0
 		fi
 
-		if [ "$GPS" -eq 0 ] && ! (grep -q "^/gps/navsol$" $ROSTOPICFILE && grep -q "^/gps/fix$" $ROSTOPICFILE && grep -q "^/gps/navposllh$" $ROSTOPICFILE && grep -q "^/gps/navvelned$" $ROSTOPICFILE); then
-			logger "/gps/navsol, navposllh, navvelned or /gps/fix not found on rostopic"
+		if [ "$GPS" -eq 0 ] && ! (grep -q "^/gps/navpvt$" $ROSTOPICFILE && grep -q "^/gps/fix$" $ROSTOPICFILE); then
+			logger "/gps/navpvt or /gps/fix not found on rostopic"
 			((GPSERR++))
 		elif [ "$GPS" -eq 1 ] && ! grep -q "^/rosout$" $ROSTOPICFILE; then
 			logger "/rosout not found"

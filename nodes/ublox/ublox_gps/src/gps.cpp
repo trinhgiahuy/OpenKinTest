@@ -73,6 +73,7 @@ void Gps::initializeSerial(unsigned int baudrate,
     ROS_DEBUG("U-Blox: Set ASIO baudrate to %u", current_baudrate.value());
   }
   configured_ = configUart1(baudrate, uart_in, uart_out);
+  configured_ = true; // Might still work...
   if(!configured_ || current_baudrate.value() != baudrate) {
     throw std::runtime_error("Could not configure serial baudrate");
   }

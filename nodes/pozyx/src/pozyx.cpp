@@ -194,7 +194,7 @@ PozyxROS::PozyxROS() :
 			if (fromfile) {
 				status = Pozyx.setPositioningAnchorIds(devices, list_size_i);
 				if (status == POZYX_SUCCESS) {
-					status = setSelectionOfAnchors(POZYX_ANCHOR_SEL_MANUAL, list_size_i);
+					status = Pozyx.setSelectionOfAnchors(POZYX_ANCHOR_SEL_MANUAL, list_size_i);
 					if (status != POZYX_SUCCESS) {
 						std::cerr << "Couldn't set manual selection of anchors: ";
 					}
