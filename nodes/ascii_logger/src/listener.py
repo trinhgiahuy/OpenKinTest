@@ -7,7 +7,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import PointStamped
 from sensor_msgs.msg import NavSatFix, MagneticField, Imu
 from imu_sequenced.msg import ImuSequenced
-from ublox_msgs.msg import NavPVT7 #, NavSOL, NavVELNED
+from ublox_msgs.msg import NavPVT7wH #, NavSOL, NavVELNED
 from pozyx.msg import StringStamped
 
 from decimal import *
@@ -118,35 +118,38 @@ def navpvtcallback(data):
 
     #rospy.loginfo("NavVELNED: %s", str(data))
 
-    point = {'iTOW': data.iTOW,
-             #'year': data.year,
-             #'month': data.month,
-             #'day': data.day,
-             #'hour': data.hour,
-             #'min': data.min,
-             #'sec': data.sec,
-             #'valid': data.valid,
-             #'tAcc': data.tAcc,
-             #'nano': data.nano,
-             #'fixType': data.fixType,
-             #'flags': data.flags,
-             #'flags2': data.flags2,
-             #'numSV': data.numSV,
-             #'lon': data.lon,
-             #'lat': data.lat,
-             #'height': data.height,
-             #'hMSL': data.hMSL,
-             #'hAcc': data.hAcc,
-             #'vAcc': data.vAcc,
-             'velN': data.velN/10.0,
-             'velE': data.velE/10.0,
-             'velD': data.velD/10.0,
-             'gSpeed': data.gSpeed/10.0,
-             'heading': data.heading,
-             'sAcc': data.sAcc/10.0,
-             'headAcc': data.headAcc,
-             #'pDOP': data.pDOP,
-             #'reserved1': data.reserved1
+    point = {'timestamp.secs': data.header.stamp.secs,
+             'timestamp.nsecs': data.header.stamp.nsecs,
+             'pvtseq': data.header.seq,
+             'iTOW': data.pvt.iTOW,
+             #'year': data.pvt.year,
+             #'month': data.pvt.month,
+             #'day': data.pvt.day,
+             #'hour': data.pvt.hour,
+             #'min': data.pvt.min,
+             #'sec': data.pvt.sec,
+             #'valid': data.pvt.valid,
+             #'tAcc': data.pvt.tAcc,
+             #'nano': data.pvt.nano,
+             #'fixType': data.pvt.fixType,
+             #'flags': data.pvt.flags,
+             #'flags2': data.pvt.flags2,
+             #'numSV': data.pvt.numSV,
+             #'lon': data.pvt.lon,
+             #'lat': data.pvt.lat,
+             #'height': data.pvt.height,
+             #'hMSL': data.pvt.hMSL,
+             #'hAcc': data.pvt.hAcc,
+             #'vAcc': data.pvt.vAcc,
+             'velN': data.pvt.velN/10.0,
+             'velE': data.pvt.velE/10.0,
+             'velD': data.pvt.velD/10.0,
+             'gSpeed': data.pvt.gSpeed/10.0,
+             'heading': data.pvt.heading,
+             'sAcc': data.pvt.sAcc/10.0,
+             'headAcc': data.pvt.headAcc,
+             #'pDOP': data.pvt.pDOP,
+             #'reserved1': data.pvt.reserved1
             }
 
     bufferlock.acquire()
@@ -224,48 +227,24 @@ def writeBuffer():
                 xsens_ids.sort()
 
         for i, j in enumerate(buffer):
-            if 'iTOW' in j and not 'timestamp.secs' in j:
+            if 'iTOW' in j and 'timestamp.nsecs' in j:
                 #rospy.loginfo("found navvel")
-                distp = 0
-                distn = 0
+                dist = 0
                 prev_time = False
                 next_time = False
-                while not prev_time and (i-distp-1) >= 0:
-                    distp += 1
-                    prev_time = 'gpsseq' in buffer[i-distp] and 'timestamp.secs' in buffer[i-distp] and not 'iTOW' in buffer[i-distp]
-
-                while not next_time and (i+distn+1) < len(buffer):
-                    distn += 1
-                    next_time = 'gpsseq' in buffer[i+distn] and 'timestamp.secs' in buffer[i+distn] and not 'iTOW' in buffer[i+distn]
+                while not (prev_time or next_time) and dist <= 10:
+                    dist += 1
+                    if i-dist >= 0:
+                        prev_time = 'gpsseq' in buffer[i-dist] and 'timestamp.nsecs' in buffer[i-dist] and buffer[i-dist]['timestamp.nsecs'] == j['timestamp.nsecs']
+                    if i+dist < len(buffer):
+                        next_time = 'gpsseq' in buffer[i+dist] and 'timestamp.nsecs' in buffer[i+dist] and buffer[i+dist]['timestamp.nsecs'] == j['timestamp.nsecs']
 
                 if prev_time and next_time:
-                    if distp <= distn:
-                        navjoins.append((i, i-distp))
-                    else:
-                        navjoins.append((i, i+distn))
+                    navjoins.append((i, i-dist))
                 elif not prev_time and next_time:
-                    navjoins.append((i, i+distn))
-                    #buffer[i]['timestamp.secs'] = buffer[i+distn]['timestamp.secs']
-                    #if buffer[i+distn]['timestamp.nsecs'] > 0:
-                    #    buffer[i]['timestamp.nsecs'] = buffer[i+distn]['timestamp.nsecs']-1
-                    #else:
-                    #    buffer[i]['timestamp.nsecs'] = 999999999
-                    #    buffer[i]['timestamp.secs'] -= 1
-                #elif i >= len(buffer)-50:
-                    # leave for next round
-                    #continue
+                    navjoins.append((i, i+dist))
                 elif prev_time:
-                    navjoins.append((i, i-distp))
-                    #buffer[i]['timestamp.secs'] = buffer[i-distp]['timestamp.secs']
-                    #if buffer[i-distp]['timestamp.nsecs'] < 999999999:
-                    #    buffer[i]['timestamp.nsecs'] = buffer[i-distp]['timestamp.nsecs']+1
-                    #else:
-                    #    buffer[i]['timestamp.nsecs'] = 0
-                    #    buffer[i]['timestamp.secs'] += 1
-                #else:
-                    # no times around?
-            #if not 'timestamp.secs' in j or not 'timestamp.nsecs' in j:
-                #rospy.loginfo("No timestamp!: %s", j)
+                    navjoins.append((i, i-dist))
 
         for j in navjoins:
             if 'iTOW' in buffer[j[0]]:
@@ -541,7 +520,7 @@ def listener():
     rospy.Subscriber('imu/data', ImuSequenced, xsenscallback)
     rospy.Subscriber('gps/fix', NavSatFix, gpscallback)
     #rospy.Subscriber('gps/navvelned', NavVELNED, navvelnedcallback)
-    rospy.Subscriber('gps/navpvt', NavPVT7, navpvtcallback)
+    rospy.Subscriber('gps/navpvtwh', NavPVT7wH, navpvtcallback)
     rospy.Subscriber('pozyx/data', ImuSequenced, pozyxcallback)
     rospy.Subscriber('pozyx/pos', PointStamped, poscallback)
     #rospy.Subscriber('pozyx/mag', MagneticField, magcallback)
