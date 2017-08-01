@@ -448,6 +448,7 @@ imu_sequenced::ImuSequenced imu_msg;
 		std::vector<XsUtcTime> utcTimes(mtwCallbacks.size()); // UTC times of packets
 		std::vector<uint16_t> packetCounters(mtwCallbacks.size()); // Packet counters
 		std::vector<XsDeviceId> deviceIDs(mtwCallbacks.size()); // device ids
+		std::vector<ros::Time> times(mtwCallbacks.size());
 		//unsigned int printCounter = 0;
 
 		/*time_t zero = 24*60*60L;
@@ -463,6 +464,7 @@ imu_sequenced::ImuSequenced imu_msg;
 			{
 				if (mtwCallbacks[i]->dataAvailable())
 				{
+					times[i] = ros::Time::now();
 					newDataAvailable = true;
 					XsDataPacket const * packet = mtwCallbacks[i]->getOldestPacket();
 					//eulerData[i] = packet->orientationEuler();
@@ -470,10 +472,11 @@ imu_sequenced::ImuSequenced imu_msg;
 					calibGyro[i] = packet->calibratedGyroscopeData();
 					quaternions[i] = packet->orientationQuaternion();
 					timesOA[i] = packet->timeOfArrival();
-					utcTimes[i] = packet->utcTime();
+					//utcTimes[i] = packet->utcTime();
 					packetCounters[i] = packet->packetCounter();
 					deviceIDs[i] = packet->deviceId();
 					mtwCallbacks[i]->deleteOldestPacket();
+
 				}
 			}
 
@@ -508,7 +511,8 @@ imu_sequenced::ImuSequenced imu_msg;
 
 					//toa.fromNSec(time2);*/
 
-					imu_msg.imu.header.stamp = toa;
+					//imu_msg.imu.header.stamp = toa;
+					imu_msg.imu.header.stamp = times[i];
 					imu_msg.imu.header.frame_id = imu_frame_id_ + deviceIDs[i].toString().toStdString();
 					imu_msg.seq = packetCounters[i];
 
