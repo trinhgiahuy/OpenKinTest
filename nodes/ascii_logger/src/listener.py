@@ -311,6 +311,8 @@ def writeBuffer():
                     elif next_imu:
                         joins.append((i, i+distn))
                     else:
+                        if 'frame_id' in j:
+                            joins.append((i,i))
                         # No imu-points on sides, no join
                         continue
             #elif 'iTOW' in j and 'imuseq' not in j:
@@ -356,6 +358,30 @@ def writeBuffer():
                 if 'imuseq'+str(pindex) in buffer[j[1]]:
                     # Already has fused point
                     nodel = True
+                    buffer[j[0]]['imuseq'+str(pindex)] = buffer[j[0]].get('imuseq', 'NaN')
+                    buffer[j[0]]['frame_id'+str(pindex)] = buffer[j[0]].get('frame_id', 'NaN')
+                    buffer[j[0]]['ang.x'+str(pindex)] = buffer[j[0]].get('ang.x', 'NaN')
+                    buffer[j[0]]['ang.y'+str(pindex)] = buffer[j[0]].get('ang.y', 'NaN')
+                    buffer[j[0]]['ang.z'+str(pindex)] = buffer[j[0]].get('ang.z', 'NaN')
+                    buffer[j[0]]['ori.x'+str(pindex)] = buffer[j[0]].get('ori.x', 'NaN')
+                    buffer[j[0]]['ori.y'+str(pindex)] = buffer[j[0]].get('ori.y', 'NaN')
+                    buffer[j[0]]['ori.z'+str(pindex)] = buffer[j[0]].get('ori.z', 'NaN')
+                    buffer[j[0]]['ori.w'+str(pindex)] = buffer[j[0]].get('ori.w', 'NaN')
+                    buffer[j[0]]['acc.x'+str(pindex)] = buffer[j[0]].get('acc.x', 'NaN')
+                    buffer[j[0]]['acc.y'+str(pindex)] = buffer[j[0]].get('acc.y', 'NaN')
+                    buffer[j[0]]['acc.z'+str(pindex)] = buffer[j[0]].get('acc.z', 'NaN')
+                    buffer[j[0]].pop('imuseq', None)
+                    buffer[j[0]].pop('frame_id', None)
+                    buffer[j[0]].pop('ang.x', None)
+                    buffer[j[0]].pop('ang.y', None)
+                    buffer[j[0]].pop('ang.z', None)
+                    buffer[j[0]].pop('ori.x', None)
+                    buffer[j[0]].pop('ori.y', None)
+                    buffer[j[0]].pop('ori.z', None)
+                    buffer[j[0]].pop('ori.w', None)
+                    buffer[j[0]].pop('acc.x', None)
+                    buffer[j[0]].pop('acc.y', None)
+                    buffer[j[0]].pop('acc.z', None)
                 else:
                     buffer[j[1]]['imuseq'+str(pindex)] = buffer[j[0]].get('imuseq', 'NaN')
                     buffer[j[1]]['frame_id'+str(pindex)] = buffer[j[0]].get('frame_id', 'NaN')
@@ -369,6 +395,20 @@ def writeBuffer():
                     buffer[j[1]]['acc.x'+str(pindex)] = buffer[j[0]].get('acc.x', 'NaN')
                     buffer[j[1]]['acc.y'+str(pindex)] = buffer[j[0]].get('acc.y', 'NaN')
                     buffer[j[1]]['acc.z'+str(pindex)] = buffer[j[0]].get('acc.z', 'NaN')
+                    if j[0] == j[1]:
+                        nodel = True
+                        buffer[j[0]].pop('imuseq', None)
+                        buffer[j[0]].pop('frame_id', None)
+                        buffer[j[0]].pop('ang.x', None)
+                        buffer[j[0]].pop('ang.y', None)
+                        buffer[j[0]].pop('ang.z', None)
+                        buffer[j[0]].pop('ori.x', None)
+                        buffer[j[0]].pop('ori.y', None)
+                        buffer[j[0]].pop('ori.z', None)
+                        buffer[j[0]].pop('ori.w', None)
+                        buffer[j[0]].pop('acc.x', None)
+                        buffer[j[0]].pop('acc.y', None)
+                        buffer[j[0]].pop('acc.z', None)
             if 'gpsseq' in buffer[j[0]]:
                 if 'gpsseq' in buffer[j[1]]:
                     nodel = True
