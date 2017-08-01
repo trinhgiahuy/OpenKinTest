@@ -41,7 +41,8 @@
 #include <xsens/xsmutex.h>
 
 #include <ros/ros.h>
-#include <sensor_msgs/Imu.h>
+//#include <sensor_msgs/Imu.h>
+#include <imu_sequenced/ImuSequenced.h>
 #include <ctime>
 
 /*! \brief Stream insertion operator overload for XsPortInfo */
@@ -226,13 +227,13 @@ int main(int argc, char* argv[])
 	ros::NodeHandle nh_;
 	ros::NodeHandle private_nh_("~");
 
-	ros::AdvertiseOptions op = ros::AdvertiseOptions::create<sensor_msgs::Imu>("/imu/data", 200, &connected, &disconnected, ros::VoidPtr(), NULL);
-	op.has_header = false;
+	ros::AdvertiseOptions op = ros::AdvertiseOptions::create<imu_sequenced::ImuSequenced>("/imu/data", 200, &connected, &disconnected, ros::VoidPtr(), NULL);
+	//op.has_header = false;
 
-	ros::AdvertiseOptions op2 = ros::AdvertiseOptions::create<sensor_msgs::Imu>("/imu2/data", 200, &connected, &disconnected, ros::VoidPtr(), NULL);
-	op2.has_header = false;
+	ros::AdvertiseOptions op2 = ros::AdvertiseOptions::create<imu_sequenced::ImuSequenced>("/imu2/data", 1, &connected, &disconnected, ros::VoidPtr(), NULL);
+	//op2.has_header = false;
 
-	sensor_msgs::Imu imu_msg;
+imu_sequenced::ImuSequenced imu_msg;
 
 	ros::Publisher imu_pub_;
 	ros::Publisher imu_pub2_;
@@ -507,22 +508,22 @@ int main(int argc, char* argv[])
 
 					//toa.fromNSec(time2);*/
 
-					imu_msg.header.stamp = toa;
-					imu_msg.header.frame_id = imu_frame_id_ + deviceIDs[i].toString().toStdString();
-					imu_msg.header.seq = packetCounters[i];
+					imu_msg.imu.header.stamp = toa;
+					imu_msg.imu.header.frame_id = imu_frame_id_ + deviceIDs[i].toString().toStdString();
+					imu_msg.seq = packetCounters[i];
 
-					imu_msg.orientation.x = quaternions[i].x();
-					imu_msg.orientation.y = quaternions[i].y();
-					imu_msg.orientation.z = quaternions[i].z();
-					imu_msg.orientation.w = quaternions[i].w();
+					imu_msg.imu.orientation.x = quaternions[i].x();
+					imu_msg.imu.orientation.y = quaternions[i].y();
+					imu_msg.imu.orientation.z = quaternions[i].z();
+					imu_msg.imu.orientation.w = quaternions[i].w();
 
-					imu_msg.angular_velocity.x = calibGyro[i][0];
-					imu_msg.angular_velocity.y = calibGyro[i][1];
-					imu_msg.angular_velocity.z = calibGyro[i][2];
+					imu_msg.imu.angular_velocity.x = calibGyro[i][0];
+					imu_msg.imu.angular_velocity.y = calibGyro[i][1];
+					imu_msg.imu.angular_velocity.z = calibGyro[i][2];
 
-					imu_msg.linear_acceleration.x = calibAcc[i][0];
-					imu_msg.linear_acceleration.y = calibAcc[i][1];
-					imu_msg.linear_acceleration.z = calibAcc[i][2];
+					imu_msg.imu.linear_acceleration.x = calibAcc[i][0];
+					imu_msg.imu.linear_acceleration.y = calibAcc[i][1];
+					imu_msg.imu.linear_acceleration.z = calibAcc[i][2];
 
 					imu_pub_.publish(imu_msg);
 					imu_pub2_.publish(imu_msg);

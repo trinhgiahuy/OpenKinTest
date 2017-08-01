@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(mtw_node)
-find_package(catkin REQUIRED roscpp std_msgs sensor_msgs message_generation)
+find_package(catkin REQUIRED roscpp imu_sequenced std_msgs sensor_msgs message_generation)
 
 
 #add_message_files(
