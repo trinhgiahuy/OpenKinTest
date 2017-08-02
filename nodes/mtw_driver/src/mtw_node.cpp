@@ -464,7 +464,7 @@ imu_sequenced::ImuSequenced imu_msg;
 			{
 				if (mtwCallbacks[i]->dataAvailable())
 				{
-					times[i] = ros::Time::now();
+					//times[i] = ros::Time::now();
 					newDataAvailable = true;
 					XsDataPacket const * packet = mtwCallbacks[i]->getOldestPacket();
 					//eulerData[i] = packet->orientationEuler();
@@ -511,8 +511,8 @@ imu_sequenced::ImuSequenced imu_msg;
 
 					//toa.fromNSec(time2);*/
 
-					//imu_msg.imu.header.stamp = toa;
-					imu_msg.imu.header.stamp = times[i];
+					imu_msg.imu.header.stamp = toa;
+					//imu_msg.imu.header.stamp = times[i];
 					imu_msg.imu.header.frame_id = imu_frame_id_ + deviceIDs[i].toString().toStdString();
 					imu_msg.seq = packetCounters[i];
 
