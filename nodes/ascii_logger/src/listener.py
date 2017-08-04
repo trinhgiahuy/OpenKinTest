@@ -10,8 +10,8 @@ from imu_sequenced.msg import ImuSequenced
 from ublox_msgs.msg import NavPVT7wH #, NavSOL, NavVELNED
 from pozyx.msg import StringStamped
 
-from decimal import *
-getcontext().prec = 100
+#from decimal import *
+#getcontext().prec = 100
 
 from collections import deque
 
@@ -358,11 +358,7 @@ def writeBuffer():
                 if 'imuseq'+str(pindex) in buffer[j[1]]:
                     # Already has fused point
                     nodel = True
-<<<<<<< HEAD
-                    buffer[j[0]['imuseq'+str(pindex)] = buffer[j[0]].get('imuseq', 'NaN')
-=======
                     buffer[j[0]]['imuseq'+str(pindex)] = buffer[j[0]].get('imuseq', 'NaN')
->>>>>>> 21f84ccc8111c04ad77c499f9539e6c8296cdc27
                     buffer[j[0]]['frame_id'+str(pindex)] = buffer[j[0]].get('frame_id', 'NaN')
                     buffer[j[0]]['ang.x'+str(pindex)] = buffer[j[0]].get('ang.x', 'NaN')
                     buffer[j[0]]['ang.y'+str(pindex)] = buffer[j[0]].get('ang.y', 'NaN')
