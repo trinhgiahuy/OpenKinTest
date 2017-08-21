@@ -4,11 +4,12 @@
 
 	  <!-- <param name="serial_port" type="string" value="/dev/ttyAMA0" /> -->
 	  <param name="serial_port" type="string" value="/dev/ttyUSB0" />
-	  <param name="serial_baud" type="int"    value="230400" />
+	  <param name="serial_baud" type="int"    value="460800" />
+	  <param name="target_baud" type="int"    value="460800" />
 
       <param name="binary_data_output_port" type="int"    value="1" />
       <param name="binary_gps_data_output_rate" type="int"    value="1" />
-      <param name="binary_ins_data_output_rate" type="int"    value="200" />
+      <param name="binary_ins_data_output_rate" type="int"    value="400" />
       <param name="binary_imu_data_output_rate" type="int"    value="1" />
 
 	  <!-- Type: 0 None (Polling method), 19 IMU, 20 GPS, 22 INS -->

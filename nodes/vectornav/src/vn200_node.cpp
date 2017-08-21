@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
     // Read Parameters
     int baud, poll_rate_ins, poll_rate_gps, poll_rate_imu, async_output_type, async_output_rate,
         binary_data_output_port, binary_gps_data_rate, binary_ins_data_rate,
-        binary_imu_data_rate;
+        binary_imu_data_rate, target_baud;
 
     int retry_cnt = 0;
 
@@ -249,6 +249,7 @@ int main(int argc, char* argv[])
     n_.param<int>(        "binary_gps_data_output_rate"  , binary_gps_data_rate, 4);
     n_.param<int>(        "binary_ins_data_output_rate"  , binary_ins_data_rate, 20);
     n_.param<int>(        "binary_imu_data_output_rate"  , binary_imu_data_rate, 100);
+    n_.param<int>(        "target_baud"  , target_baud, 921600);
 
     // Validate the rate inputs.
     if (binary_gps_data_rate < 1 || binary_gps_data_rate > raw_imu_max_rate) {
@@ -297,9 +298,58 @@ int main(int argc, char* argv[])
     //VN_ERROR_CODE vn_retval;
     ROS_INFO("Initializing vn200. Port:%s Baud:%d\n", port.c_str(), baud);
 
+    /*std::vector<uint32_t> bauds = vn200.supportedBaudrates();
+    bool connected = false;
+    uint32_t connbaud = 0;
+
+    for (std::vector<uint32_t>::reverse_iterator it = bauds.rbegin(); it != bauds.rend(); ++it) {
+        try {
+            ROS_INFO("Trying baud %d\n", *it);
+            vn200.connect(port, *it);
+        } catch (...) {
+            continue;
+        }
+        if (vn200.isConnected()) {
+            ROS_INFO("Connected: %d", *it);
+            try {
+                vn200.writeAsyncDataOutputFrequency(0);
+            } catch (...) {
+                continue;
+            }
+            connbaud = *it;
+            connected = true;
+            break;
+        }
+    }*/
+
+    bool connected = false;
+
     try {
         vn200.connect(port, baud);
+        connected = true;
     } catch (...) {
+        connected = false;
+    }
+
+    if (baud != target_baud) {
+        ROS_INFO("Changing baud to %d", target_baud);
+        try {
+            vn200.writeSerialBaudRate(target_baud, binary_data_output_port, true);
+            vn200.disconnect();
+        } catch (...) {
+            ROS_WARN("Couldn't change baud");
+            throw;
+        }
+	//ros::shutdown();
+	try {
+            vn200.connect(port, target_baud);
+            connected = true;
+        } catch (...) {
+            connected = false;
+        }
+    }
+
+    if (!connected) {
         ROS_FATAL("Could not conenct to vn200 on port:%s @ Baud:%d;"
                 "Did you add your user to the 'dialout' group in /etc/group?",
                 port.c_str(),
@@ -307,11 +357,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    if (baud != 230400) {
-        vn200.writeSerialBaudRate(230400, binary_data_output_port, true);
-    }
-
-//    vn200.writeAsyncDataOutputFrequency(0);
+    vn200.writeAsyncDataOutputFrequency(0);
 
     CommonGroup ins_common_group = COMMONGROUP_TIMEGPS | COMMONGROUP_QUATERNION
         | COMMONGROUP_ANGULARRATE | COMMONGROUP_POSITION
@@ -357,9 +403,11 @@ int main(int argc, char* argv[])
     vn200.registerAsyncPacketReceivedHandler(NULL, binaryMessageReceived);
     ROS_INFO("Registered");
 
+    ros::Rate r(100);
     while (!g_request_shutdown) {
         ros::spinOnce();
-        usleep(500);
+        //usleep(500);
+        r.sleep();
     }
 
     vn200.unregisterAsyncPacketReceivedHandler();
