@@ -95,12 +95,23 @@ def vectornavcallback(data):
              'velE': data.nedvel.y,
              'velD': data.nedvel.z,
              'dtime': data.dtime,
-             'dtheta.x': data.dtheta.x,
-             'dtheta.y': data.dtheta.y,
-             'dtheta.z': data.dtheta.z,
-             'dvel.x': data.dvel.x,
-             'dvel.y': data.dvel.y,
-             'dvel.z': data.dvel.z }
+             'dtheta.x': data.dtheta[0],
+             'dtheta.y': data.dtheta[1],
+             'dtheta.z': data.dtheta[2],
+             'dvel.x': data.dvel[0],
+             'dvel.y': data.dvel[1],
+             'dvel.z': data.dvel[2] }
+
+    # append to buffer
+    bufferlock.acquire()
+    buffer.append(point)
+    bufferlock.release()
+
+    # write buffer to file every now and then
+    counter += 1
+    if counter > 360:
+        counter = 0
+        writeBuffer()
 
 
 def gpscallback(data):
