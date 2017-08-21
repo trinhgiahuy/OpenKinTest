@@ -1,5 +1,4 @@
-/*
- * MIT License (MIT)
+/* * MIT License (MIT)
  *
  * Copyright (c) 2013 Dereck Wonnacott <dereck@gmail.com>
  *
@@ -110,7 +109,7 @@ void publish_ins_data()
         msg_ins.header.stamp    = timestamp;
         msg_ins.header.frame_id = "ins";
 
-        msg_ins.time    = (double)ins_binary_data.gps_time*1E-9;
+        msg_ins.time    = ins_binary_data.gps_time;
 
         msg_ins.orientation.x = ins_binary_data.orientation[0];
         msg_ins.orientation.y = ins_binary_data.orientation[1];
@@ -180,6 +179,7 @@ void binaryMessageReceived(void * user_data, Packet & p, size_t index)
         }
     } else {
         ROS_WARN("Received invalid packet from vectornav.");
+	ROS_INFO("%s", p.datastr().c_str());
         // Ignore non-binary packets for now.
     }
 }
@@ -307,6 +307,12 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
+    if (baud != 230400) {
+        vn200.writeSerialBaudRate(230400, binary_data_output_port, true);
+    }
+
+//    vn200.writeAsyncDataOutputFrequency(0);
+
     CommonGroup ins_common_group = COMMONGROUP_TIMEGPS | COMMONGROUP_QUATERNION
         | COMMONGROUP_ANGULARRATE | COMMONGROUP_POSITION
         | COMMONGROUP_VELOCITY | COMMONGROUP_ACCEL | COMMONGROUP_DELTATHETA;
@@ -321,13 +327,15 @@ int main(int argc, char* argv[])
         ATTITUDEGROUP_NONE,
         INSGROUP_NONE);
 
+    ROS_INFO("Writing binary output 1");
     vn200.writeBinaryOutput1(ins_log_reg);
+    ROS_INFO("Written binary output 1");
     //vn200.writeBinaryOutput2(ins_log_reg);
     //vn200.writeBinaryOutput3(imu_log_reg);
 
-    ROS_INFO("About to set SynchronizationControl");
+//    ROS_INFO("About to set SynchronizationControl");
 
-    vn::sensors::SynchronizationControlRegister sync_control(
+/*    vn::sensors::SynchronizationControlRegister sync_control(
         SYNCINMODE_COUNT,
         SYNCINEDGE_RISING,
         0, // sync in skip factor
@@ -344,7 +352,10 @@ int main(int argc, char* argv[])
     position[2] = 0.0;
 
     vn200.writeGpsAntennaOffset(position);
+*/
+    ROS_INFO("Registering handler");
     vn200.registerAsyncPacketReceivedHandler(NULL, binaryMessageReceived);
+    ROS_INFO("Registered");
 
     while (!g_request_shutdown) {
         ros::spinOnce();

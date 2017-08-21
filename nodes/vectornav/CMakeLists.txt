@@ -21,11 +21,7 @@ find_package(catkin REQUIRED tf)
 
 # Generate messages in the 'msg' folder
  add_message_files(
-   FILES
-   ins.msg
-   gps.msg
-   sensors.msg
-   utc_time.msg
+   DIRECTORY msg
  )
 
 ## Generate services in the 'srv' folder

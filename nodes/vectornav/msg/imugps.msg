@@ -1,5 +1,5 @@
 std_msgs/Header       header
-float64               time
+uint64               time
 geometry_msgs/Quaternion orientation
 geometry_msgs/Vector3 angular_velocity
 geometry_msgs/Vector3 LLA
