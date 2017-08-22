@@ -9,6 +9,7 @@ from sensor_msgs.msg import NavSatFix, MagneticField, Imu
 from imu_sequenced.msg import ImuSequenced
 from ublox_msgs.msg import NavPVT7wH #, NavSOL, NavVELNED
 from pozyx.msg import StringStamped
+from vectornav.msg import imugps
 
 #from decimal import *
 #getcontext().prec = 100
@@ -68,6 +69,39 @@ def imucallback(data, pozyx):
     if counter > 360:
         counter = 0
         writeBuffer()
+
+def vectornavcallback(data):
+    global buffer, counter, bufferlock
+
+    point = {'timestamp.secs': data.header.stamp.secs,
+             'timestamp.nsecs': data.header.stamp.nsecs,
+             'imuseq': data.header.seq,
+             'frame_id': data.header.frame_id,
+             'ang.x': data.angular_velocity.x,
+             'ang.y': data.angular_velocity.y,
+             'ang.z': data.angular_velocity.z,
+             'ori.x': data.orientation.x,
+             'ori.y': data.orientation.y,
+             'ori.z': data.orientation.z,
+             'ori.w': data.orientation.w,
+             'acc.x': data.linear_acceleration.x,
+             'acc.y': data.linear_acceleration.y,
+             'acc.z': data.linear_acceleration.z,
+             'gpstime': data.time,
+             'latitude': data.LLA.x,
+             'longitude': data.LLA.y,
+             'altitude': data.LLA.z,
+             'velN': data.nedvel.x,
+             'velE': data.nedvel.y,
+             'velD': data.nedvel.z,
+             'dtime': data.dtime,
+             'dtheta.x': data.dtheta.x,
+             'dtheta.y': data.dtheta.y,
+             'dtheta.z': data.dtheta.z,
+             'dvel.x': data.dvel.x,
+             'dvel.y': data.dvel.y,
+             'dvel.z': data.dvel.z }
+
 
 def gpscallback(data):
     global buffer, bufferlock, counter
@@ -467,9 +501,9 @@ def writeBuffer():
     bufferlock.release()
 
 def line_formatter(point):
-    templ = "{0}\t{1}.{2:09d}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\t{17}\t{18}\t{19}\t{20}\t{21}\t{22}\t{23}\t{24}\t{25}\t{26}\t{27}\t{28}\t{29}\t{30}\t{31}\t{32}"
+    templ = "{0}\t{1}.{2:09d}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\t{17}\t{18}\t{19}\t{20}\t{21}\t{22}\t{23}\t{24}\t{25}\t{26}\t{27}\t{28}\t{29}\t{30}\t{31}\t{32}\t{33}\t{34}\t{35}\t{36}\t{37}\t{38}\t{39}\t{40}"
     if len(xsens_ids) > 1:
-        for i in range(33, 12*(len(xsens_ids)-1) +33):
+        for i in range(33+8, 12*(len(xsens_ids)-1) +33+8):
             #for a in range(0,11):
             templ += "\t{"+str(i)+"}"
             #i += 12
@@ -512,6 +546,16 @@ def line_formatter(point):
       point.get('headAcc', 'NaN'),
 
       # 26
+      point.get('gpstime', 'NaN'),
+      point.get('dtime', 'NaN'),
+      point.get('dtheta.x', 'NaN'),
+      point.get('dtheta.y', 'NaN'),
+      point.get('dtheta.z', 'NaN'),
+      point.get('dvel.x', 'NaN'),
+      point.get('dvel.y', 'NaN'),
+      point.get('dvel.z', 'NaN'),
+
+      # 34
       point.get('pozyx', 'NaN'),
       point.get('posseq', 'NaN'),
       point.get('pos.x', 'NaN'),
@@ -565,6 +609,8 @@ def listener():
     rospy.Subscriber('pozyx/pos', PointStamped, poscallback)
     #rospy.Subscriber('pozyx/mag', MagneticField, magcallback)
     rospy.Subscriber('pozyx/range', StringStamped, rangecallback)
+
+    rospy.Subscriber('vectornav/imugps', imugps, vectornavcallback)
 
 
     rospy.loginfo('Starting logging')
