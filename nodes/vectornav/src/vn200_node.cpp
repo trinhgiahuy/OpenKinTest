@@ -331,7 +331,7 @@ int main(int argc, char* argv[])
         connected = false;
     }
 
-    if (baud != target_baud) {
+    if (baud != target_baud && connected) {
         ROS_INFO("Changing baud to %d", target_baud);
         try {
             vn200.writeSerialBaudRate(target_baud, binary_data_output_port, true);

@@ -22,16 +22,19 @@ POZYXTAGFILE="$HOME/data/tags.txt"
 #> $LOGFILE
 
 # GNSS connected = 0, not = 1
-GPS=0
+GPS=1
 
 # wireless MTw connected = 0, not = 1
 MTW=1
 
 # wired MTi connected = 0, not = 1
-MTI=0
+MTI=1
+
+# Vectornav INS connected = 0, not = 1
+INS=0
 
 # Pozyx connected = 0, not = 1
-POZYX=0
+POZYX=1
 # Linux I2C device = 0, not (pigpiod) = 1
 LINUXI2C=1
 
@@ -113,6 +116,7 @@ IMUERR=1
 GPSERR=1
 POZYXERR=1
 MTWERR=1
+INSERR=1
 
 TIMECORRECTED=1
 
@@ -266,6 +270,7 @@ function quitScreens {
 	GPSERR=1
 	POZYXERR=1
 	MTWERR=1
+	INSERR=1
 
 }
 
@@ -416,6 +421,12 @@ while true; do
 			GPSERR=1
 			quitScreens
 		fi
+		
+		if [ "$INSERR" -gt 10 ]; then
+			logger "INS-errors more than 10, restarting"
+			INSERR=1
+			quitScreens
+		fi
 
 		if [ "$GPS" -eq 0 ]; then
 			#NOTE! The gps is a launch file which will take care of starting the ros core
@@ -447,6 +458,32 @@ while true; do
 				fi
 
 			fi
+		elif [ "$INS" -eq 0 ]; then
+			if ! screen -list | grep -q "gps"; then
+				logger "Offline: Starting INS and ROSCORE"
+				screen -dmS gps
+				screen -r gps -X stuff $'\nsudo -E bash\nrm '$GPSTEMPFILE$'\nnice -n -10 roslaunch vectornav vn200.launch 2> '$GPSTEMPFILE$'\n'
+
+				# should have time to error, if going to
+				sleep 15
+
+				# if file exists and not empty
+				if [ -s $GPSTEMPFILE ]; then
+					logger "Error on starting ins"
+					logger "$(cat $GPSTEMPFILE)"
+					screen -S gps -X quit
+					led_off 0
+					led_off 2
+					# start over
+					continue
+				elif [ ! -f $GPSTEMPFILE ]; then
+					logger "INSlog not found"
+					screen -S gps -X quit
+					led_off 0
+					led_off 2
+					# start over
+					continue
+				fi
 		else
 			if ! screen -list | grep -q "gps"; then
 				logger "Offline: Starting ROSCORE"
@@ -599,6 +636,13 @@ while true; do
 			((POZYXERR++))
 		else
 			POZYXERR=0
+		fi
+		
+		if [ "$INS" -eq 0 ] && ! grep -q "^/vectornav/imugps$" $ROSTOPICFILE; then
+			logger "/vectornav/imugps not found"
+			((INSERR++))
+		else
+			INSERR=0
 		fi
 
 		if [ "$GPS" -eq 0 ] && ! (grep -q "^/gps/navpvtwh$" $ROSTOPICFILE && grep -q "^/gps/fix$" $ROSTOPICFILE); then
