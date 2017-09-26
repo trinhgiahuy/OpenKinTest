@@ -10,6 +10,7 @@ HOME="/home/pi"
 source "$HOME/catkin_ws/devel/setup.bash"
 
 GPSTEMPFILE="$HOME/gpstemp.log"
+INSTEMPFILE="$HOME/instemp.log"
 LOGFILE="$HOME/measurement.log"
 DATADIR="$HOME/data"
 ROSTOPICFILE="$HOME/rostmp.log"
@@ -260,6 +261,13 @@ function quitScreens {
 		screen -S mtw -X quit
 	fi
 
+	if screen -list | grep -q "ins"; then
+		logger "Shutting down the INS"
+		screen -S ins -X stuff $'\003'
+		sleep 4
+		screen -S ins -X quit
+	fi
+
 	if screen -list | grep -q "gps"; then
 		logger "Shutting down the gps"
 		screen -S gps -X quit
@@ -372,7 +380,7 @@ while true; do
 			#Uploading the data
 			logger "Waiting for everything to shut down"
 			COUNTER=0
-			while screen -list | grep "imu\|mtw\|pozyx\|gps\|bag\|log"; do
+			while screen -list | grep "ins\|imu\|mtw\|pozyx\|gps\|bag\|log"; do
 				sleep 2
 				((COUNTER++))
 				if [ "$COUNTER" -gt 10 ]; then
@@ -421,12 +429,6 @@ while true; do
 			GPSERR=1
 			quitScreens
 		fi
-		
-		if [ "$INSERR" -gt 10 ]; then
-			logger "INS-errors more than 10, restarting"
-			INSERR=1
-			quitScreens
-		fi
 
 		if [ "$GPS" -eq 0 ]; then
 			#NOTE! The gps is a launch file which will take care of starting the ros core
@@ -458,32 +460,6 @@ while true; do
 				fi
 
 			fi
-		elif [ "$INS" -eq 0 ]; then
-			if ! screen -list | grep -q "gps"; then
-				logger "Offline: Starting INS and ROSCORE"
-				screen -dmS gps
-				screen -r gps -X stuff $'\nsudo -E bash\nrm '$GPSTEMPFILE$'\nnice -n -10 roslaunch vectornav vn200.launch 2> '$GPSTEMPFILE$'\n'
-
-				# should have time to error, if going to
-				sleep 15
-
-				# if file exists and not empty
-				if [ -s $GPSTEMPFILE ]; then
-					logger "Error on starting ins"
-					logger "$(cat $GPSTEMPFILE)"
-					screen -S gps -X quit
-					led_off 0
-					led_off 2
-					# start over
-					continue
-				elif [ ! -f $GPSTEMPFILE ]; then
-					logger "INSlog not found"
-					screen -S gps -X quit
-					led_off 0
-					led_off 2
-					# start over
-					continue
-				fi
 		else
 			if ! screen -list | grep -q "gps"; then
 				logger "Offline: Starting ROSCORE"
@@ -518,6 +494,44 @@ while true; do
 				led_off 2
 				screen -S pozyx -X quit
 			fi
+
+			if [ "$INSERR" -gt 10 ]; then
+				logger "INS-errors more than 10, restarting vectornav"
+				INSERR=1
+				led_off 0
+				led_off 2
+				screen -S ins -X quit
+			fi
+
+                        if [ "$INS" -eq 0 ]; then
+			        if ! screen -list | grep -q "ins"; then
+				        logger "Offline: Starting INS"
+				        screen -dmS ins
+				        screen -r ins -X stuff $'\nsudo -E bash\nrm '$INSTEMPFILE$'\nnice -n -10 roslaunch vectornav vn200.launch 2> '$INSTEMPFILE$'\n'
+
+                                        # should have time to error, if going to
+                                        sleep 15
+
+                                fi
+                                # if file exists and not empty
+				if [ -s $INSTEMPFILE ]; then
+				        logger "Error on starting ins"
+				        logger "$(cat $INSTEMPFILE)"
+					screen -S ins -X quit
+					led_off 0
+					led_off 2
+					# start over
+					continue
+                                elif [ ! -f $INSTEMPFILE ]; then
+				        logger "INSlog not found"
+				        screen -S ins -X quit
+				        led_off 0
+				        led_off 2
+				        # start over
+				        continue
+				fi
+                        fi
+
 
 			if [ "$POZYX" -eq 0 ]; then
 				if ! screen -list | grep -q "pozyx"; then
@@ -596,13 +610,19 @@ while true; do
 				led_off 2
 			fi
 
-			if ! (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $MTWERR -eq 0 ]] && [[ $GPSERR -eq 0 ]] && [[ $POZYXERR -eq 0 ]]; then
+			if ! (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $MTWERR -eq 0 ]] && [[ $GPSERR -eq 0 ]] && [[ $INSERR -eq 0 ]] && [[ $POZYXERR -eq 0 ]]; then
 				logger "Offline: Starting logger"
 				screen -dmS log
 				screen -r log -X stuff $'\nrosrun ascii_logger listener.py > '$ASCIILOG$'\n'
 				led_on 2
 				led_on 0
 			fi
+
+			if (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $MTWERR -eq 0 ]] && [[ $GPSERR -eq 0 ]] && [[ $INSERR -eq 0 ]] && [[ $POZYXERR -eq 0 ]]; then
+                                led_on 0
+                                led_on 2
+                        fi
+
 		else
 			logger "GPS/roscore wasn't running!"
 		fi
@@ -637,7 +657,7 @@ while true; do
 		else
 			POZYXERR=0
 		fi
-		
+
 		if [ "$INS" -eq 0 ] && ! grep -q "^/vectornav/imugps$" $ROSTOPICFILE; then
 			logger "/vectornav/imugps not found"
 			((INSERR++))

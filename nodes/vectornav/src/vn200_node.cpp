@@ -292,13 +292,13 @@ int main(int argc, char* argv[])
     //pub_ins     = n_.advertise<vectornav::ins>    ("ins", 1000);
     //pub_gps     = n_.advertise<vectornav::gps>    ("gps", 1000);
     //pub_sensors = n_.advertise<vectornav::sensors>("imu", 1000);
-    pub_ins       = n_.advertise<vectornav::imugps> ("imugps", 1000);
+    pub_ins       = n_.advertise<vectornav::imugps> ("imugps", 100);
 
     // Initialize VectorNav
     //VN_ERROR_CODE vn_retval;
     ROS_INFO("Initializing vn200. Port:%s Baud:%d\n", port.c_str(), baud);
 
-    /*std::vector<uint32_t> bauds = vn200.supportedBaudrates();
+    std::vector<uint32_t> bauds = vn200.supportedBaudrates();
     bool connected = false;
     uint32_t connbaud = 0;
 
@@ -310,19 +310,30 @@ int main(int argc, char* argv[])
             continue;
         }
         if (vn200.isConnected()) {
-            ROS_INFO("Connected: %d", *it);
+            ROS_INFO("Connected?: %d", *it);
+            //if (*it == target_baud) {
+            //    connected = true;
+            //    ROS_INFO("Target baud reached");
+            //    break;
+            //}
             try {
-                vn200.writeAsyncDataOutputFrequency(0);
+                vn200.writeSerialBaudRate(target_baud, binary_data_output_port, true);
+                ROS_INFO("Connecting with target baud %d\n", target_baud);
+                vn200.disconnect();
+                vn200.connect(port, target_baud);
             } catch (...) {
                 continue;
             }
             connbaud = *it;
-            connected = true;
+            if (vn200.isConnected()) {
+                ROS_INFO("Should be connected now");
+                connected = true;
+            }
             break;
         }
-    }*/
+    }
 
-    bool connected = false;
+    /*bool connected = false;
 
     try {
         vn200.connect(port, baud);
@@ -347,7 +358,7 @@ int main(int argc, char* argv[])
         } catch (...) {
             connected = false;
         }
-    }
+    }*/
 
     if (!connected) {
         ROS_FATAL("Could not conenct to vn200 on port:%s @ Baud:%d;"
