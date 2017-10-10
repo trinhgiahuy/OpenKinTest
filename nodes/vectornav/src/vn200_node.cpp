@@ -87,6 +87,9 @@ struct ins_binary_data_struct
     vn::math::vec3f accel;
     vn::math::vec4f dtheta;
     vn::math::vec3f dvel;
+    uint8_t         fix;
+    vn::math::vec3d gpslla;
+    vn::math::vec3f gpsvel_ned;
 };
 
 ins_binary_data_struct ins_binary_data;
@@ -141,6 +144,16 @@ void publish_ins_data()
         msg_ins.dvel[0] = ins_binary_data.dvel[0];
         msg_ins.dvel[1] = ins_binary_data.dvel[1];
         msg_ins.dvel[2] = ins_binary_data.dvel[2];
+        
+        msg_ins.fix = ins_binary_data.fix;
+      
+        msg_ins.gpsLLA.x = ins_binary_data.gpslla[0];
+        msg_ins.gpsLLA.y = ins_binary_data.gpslla[1];
+        msg_ins.gpsLLA.z = ins_binary_data.gpslla[2];
+        
+        msg_ins.gpsnedvel.x = ins_binary_data.gpsvel_ned[0];
+        msg_ins.gpsnedvel.y = ins_binary_data.gpsvel_ned[1];
+        msg_ins.gpsnedvel.z = ins_binary_data.gpsvel_ned[2];
 
         pub_ins.publish(msg_ins);
     }
@@ -161,6 +174,9 @@ void binaryMessageReceived(void * user_data, Packet & p, size_t index)
             ins_binary_data.accel =         p.extractVec3f();
             ins_binary_data.dtheta =        p.extractVec4f();
             ins_binary_data.dvel =          p.extractVec3f();
+            ins_binary_data.fix =           p.extractUint8();
+            ins_binary_data.gpslla =        p.extractVec3d();
+            ins_binary_data.gpsvel_ned =    p.extractVec3f();
 
             publish_ins_data();
 
@@ -373,6 +389,8 @@ int main(int argc, char* argv[])
     CommonGroup ins_common_group = COMMONGROUP_TIMEGPS | COMMONGROUP_QUATERNION
         | COMMONGROUP_ANGULARRATE | COMMONGROUP_POSITION
         | COMMONGROUP_VELOCITY | COMMONGROUP_ACCEL | COMMONGROUP_DELTATHETA;
+        
+    GpsGroup ins_gps_group = GPSGROUP_FIX | GPSGROUP_POSLLA | GPSGROUP_VELNED;
 
     BinaryOutputRegister ins_log_reg(
         binary_data_output_mode,
@@ -380,7 +398,7 @@ int main(int argc, char* argv[])
         ins_common_group,
         TIMEGROUP_NONE,
         IMUGROUP_NONE,
-        GPSGROUP_NONE,
+        ins_gps_group,
         ATTITUDEGROUP_NONE,
         INSGROUP_NONE);
 
@@ -402,14 +420,14 @@ int main(int argc, char* argv[])
         1000000); // a millisecond should be fine.
 
     vn200.writeSynchronizationControl(sync_control);
-
+*/
     vn::math::vec3f position;
-    position[0] = 0.0;
-    position[1] = -0.039;
-    position[2] = 0.0;
+    position[0] = -0.08;
+    position[1] = 0.0;
+    position[2] = -0.05;
 
     vn200.writeGpsAntennaOffset(position);
-*/
+
     ROS_INFO("Registering handler");
     vn200.registerAsyncPacketReceivedHandler(NULL, binaryMessageReceived);
     ROS_INFO("Registered");

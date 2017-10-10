@@ -8,3 +8,6 @@ geometry_msgs/Vector3 linear_acceleration
 float32               dtime
 float32[3]            dtheta
 float32[3]            dvel
+uint8                 fix
+geometry_msgs/Vector3 gpsLLA
+geometry_msgs/Vector3 gpsnedvel
