@@ -98,7 +98,7 @@ int ins_msg_count = 0;
 
 const unsigned raw_imu_max_rate = 800;
 
-const unsigned ins_group_signature = BINARYGROUP_COMMON;
+const unsigned ins_group_signature = BINARYGROUP_COMMON | BINARYGROUP_GPS;
 
 
 void publish_ins_data()
