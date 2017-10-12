@@ -100,7 +100,14 @@ def vectornavcallback(data):
              'dtheta.z': data.dtheta[2],
              'dvel.x': data.dvel[0],
              'dvel.y': data.dvel[1],
-             'dvel.z': data.dvel[2] }
+             'dvel.z': data.dvel[2],
+             'gpslatitude': data.gpsLLA.x,
+             'gpslongitude': data.gpsLLA.y,
+             'gpsaltitude': data.gpsLLA.z,
+             'gpsvelN': data.gpsnedvel.x,
+             'gpsvelE': data.gpsnedvel.y,
+             'gpsvelD': data.gpsnedvel.z,
+             'fix': data.fix }
 
     # append to buffer
     bufferlock.acquire()
@@ -512,7 +519,7 @@ def writeBuffer():
     bufferlock.release()
 
 def line_formatter(point):
-    templ = "{0}\t{1}.{2:09d}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\t{17}\t{18}\t{19}\t{20}\t{21}\t{22}\t{23}\t{24}\t{25}\t{26}\t{27}\t{28}\t{29}\t{30}\t{31}\t{32}\t{33}\t{34}\t{35}\t{36}\t{37}\t{38}\t{39}\t{40}"
+    templ = "{0}\t{1}.{2:09d}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}\t{17}\t{18}\t{19}\t{20}\t{21}\t{22}\t{23}\t{24}\t{25}\t{26}\t{27}\t{28}\t{29}\t{30}\t{31}\t{32}\t{33}\t{34}\t{35}\t{36}\t{37}\t{38}\t{39}\t{40}\t{41}\t{42}\t{43}\t{44}\t{45}\t{46}\t{47}"
     if len(xsens_ids) > 1:
         for i in range(33+8, 12*(len(xsens_ids)-1) +33+8):
             #for a in range(0,11):
@@ -565,8 +572,15 @@ def line_formatter(point):
       point.get('dvel.x', 'NaN'),
       point.get('dvel.y', 'NaN'),
       point.get('dvel.z', 'NaN'),
+      point.get('gpsvelN', 'NaN'),
+      point.get('gpsvelE', 'NaN'),
+      point.get('gpsvelD', 'NaN'),
+      point.get('gpslatitude', 'NaN'),
+      point.get('gpslongitude', 'NaN'),
+      point.get('gpsaltitude', 'NaN'),
+      point.get('fix', 'NaN'),
 
-      # 34
+      # 41
       point.get('pozyx', 'NaN'),
       point.get('posseq', 'NaN'),
       point.get('pos.x', 'NaN'),
