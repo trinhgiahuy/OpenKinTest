@@ -37,17 +37,21 @@ function led_off {
 }
 
 function led_blink {
-	echo $ON > /sys/class/gpio/gpio$GPIO/value
-	sleep 0.3
-	echo $OFF > /sys/class/gpio/gpio$GPIO/value
-	sleep 0.15
+	while true; do
+		echo $ON > /sys/class/gpio/gpio$GPIO/value
+		sleep 0.3
+		echo $OFF > /sys/class/gpio/gpio$GPIO/value
+		sleep 0.15
+	done
 }
 
 function led_blink_f {
-	echo $ON > /sys/class/gpio/gpio$GPIO/value
-	sleep 0.1
-	echo $OFF > /sys/class/gpio/gpio$GPIO/value
-	sleep 0.05
+	while true; do
+		echo $ON > /sys/class/gpio/gpio$GPIO/value
+		sleep 0.1
+		echo $OFF > /sys/class/gpio/gpio$GPIO/value
+		sleep 0.05
+	done
 }
 
 #trap led_on SIGUSR1
@@ -59,10 +63,22 @@ for (( ; ; )); do
 while read SIGNAL; do
 	case "$SIGNAL" in
 		*EXIT*)break;;
-		*ON*)led_on;;
-		*OFF*)led_off;;
-		*BLINK*)led_blink;;
-		*FASTER*)led_blink_f;;
+		*ON*)
+			kill $!
+			led_on
+			;;
+		*OFF*)
+			kill $!
+			led_off
+			;;
+		*BLINK*)
+			kill $!
+			led_blink &
+			;;
+		*FASTER*)
+			kill $!
+			led_blink_f &
+			;;
 		*)echo "Signal $SIGNAL is unsupported" > /dev/stderr;;
 	esac
 #	echo $SIGNAL
