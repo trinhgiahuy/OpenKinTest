@@ -41,6 +41,7 @@
 #include <ros/xmlrpc_manager.h>
 
 #include <iostream>
+#include <fstream>
 
 using namespace vn::protocol::uart;
 using namespace vn::sensors;
@@ -48,6 +49,11 @@ using namespace vn::sensors;
 // Signal-safe flag for whether shutdown is requested
 sig_atomic_t volatile g_request_shutdown = 0;
 
+const char ledpipe[] = "/tmp/ledpipe0";
+const char insrecording[] = "/tmp/insrecording";
+const char on[] = "ON\n";
+bool fix = false;
+unsigned int ledcount = 0;
 
 // Params
 std::string imu_frame_id, gps_frame_id;
@@ -144,9 +150,29 @@ void publish_ins_data()
         msg_ins.dvel[0] = ins_binary_data.dvel[0];
         msg_ins.dvel[1] = ins_binary_data.dvel[1];
         msg_ins.dvel[2] = ins_binary_data.dvel[2];
-        
+
         msg_ins.fix = ins_binary_data.fix;
-      
+	if (ins_binary_data.fix > 2) {
+            std::fstream fs;
+            ledcount++;
+            std::ifstream rec;
+            try {
+                rec.open(insrecording, std::ios::in);
+                std::string line;
+                getline(rec, line);
+                if (line == "ON" && (!fix || ledcount > 3000)) {
+                    ledcount = 0;
+                    try {
+                        fs.open(ledpipe, std::fstream::out|std::fstream::app);
+                        fs << on;
+                        fix = true;
+                    } catch (...) {
+                        //
+                    }
+                }
+            } catch (...) {}
+        }
+
         msg_ins.gpsLLA.x = ins_binary_data.gpslla[0];
         msg_ins.gpsLLA.y = ins_binary_data.gpslla[1];
         msg_ins.gpsLLA.z = ins_binary_data.gpslla[2];

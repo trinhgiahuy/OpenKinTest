@@ -31,29 +31,33 @@ function led_off {
 }
 
 function led_blink {
-	for i in {1..2000..128}; do
-		echo $i > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
-		sleep 0.0008
+	while true; do
+		for i in {1..2000..128}; do
+			echo $i > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
+			sleep 0.0008
+		done
+		sleep 0.3
+		for i in {2000..1..128}; do
+			echo $i > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
+			sleep 0.0008
+		done
+		sleep 0.15
+		echo 0 > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
 	done
-	sleep 0.3
-	for i in {2000..1..128}; do
-		echo $i > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
-		sleep 0.0008
-	done
-	sleep 0.15
-	echo 0 > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
 }
 
 function led_blink_f {
-	for i in {1..2000..768}; do
-		echo $i > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
-		sleep 0.016
+	while true; do
+		for i in {1..2000..768}; do
+			echo $i > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
+			sleep 0.016
+		done
+		for i in {2000..1..768}; do
+			echo $i > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
+			sleep 0.016
+		done
+		echo 0 > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
 	done
-	for i in {2000..1..768}; do
-		echo $i > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
-		sleep 0.016
-	done
-	echo 0 > /sys/class/pwm/pwmchip$CHIP/pwm0/duty_cycle
 }
 
 #trap led_on SIGUSR1
@@ -63,15 +67,28 @@ for (( ; ; )); do
 #echo "New round"
 
 while read SIGNAL; do
-	case "$SIGNAL" in
-		*EXIT*)break;;
-		*ON*)led_on;;
-		*OFF*)led_off;;
-		*BLINK*)led_blink;;
-		*FASTER*)led_blink_f;;
-		*)echo "Signal $SIGNAL is unsupported" > /dev/stderr;;
-	esac
-#	echo $SIGNAL
+        case "$SIGNAL" in
+                *EXIT*)break;;
+                *ON*)
+                        kill $!
+                        led_on
+                        ;;
+                *OFF*)
+                        kill $!
+                        led_off
+                        ;;
+                *BLINK*)
+                        kill $!
+                        led_blink &
+                        ;;
+                *FASTER*)
+                        kill $!
+                        led_blink_f &
+                        ;;
+                *)echo "Signal $SIGNAL is unsupported" > /dev/stderr;;
+        esac
+#       echo $SIGNAL
+        sleep 0.2
 done < /tmp/ledpipe$NUM
 #wait
 #kill %1

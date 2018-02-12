@@ -19,6 +19,7 @@ MTWLOG="$HOME/data/mtw.log"
 ASCIILOG="$HOME/ascii.log"
 LEDLOG="$HOME/led.log"
 POZYXTAGFILE="$HOME/data/tags.txt"
+INSRECORDING="/tmp/insrecording"
 # empty logfile
 #> $LOGFILE
 
@@ -50,7 +51,7 @@ LED[1]=4
 LEDGPIO[1]=25
 LEDPID[1]=0
 
-LED[2]=4
+LED[2]=1
 LEDGPIO[2]=10
 LEDPID[2]=0
 
@@ -125,6 +126,11 @@ online=1
 
 logger "Starting datalogger"
 
+rm $INSRECORDING
+if [ ! -p "$INSRECORDING" ]; then
+        touch $INSRECORDING
+fi
+
 if [ "$PWRSWITCH" -eq 0 ]; then
 	sudo $HOME/openkin/linux-shutdown/pwr-switch &
 elif [ "$PWRSWITCH" -eq 2 ]; then
@@ -167,9 +173,7 @@ function led_blink {
 	fi
 
 	if [ "${LED[$1]}" -eq 2 ] || [ "${LED[$1]}" -eq 0 ] || [ "${LED[$1]}" -eq 4 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
-		for _ in {1..10}; do
-			echo "BLINK" | sudo tee /tmp/ledpipe"$1"
-		done
+		echo "BLINK" | sudo tee /tmp/ledpipe"$1"
 	fi
 }
 
@@ -184,9 +188,7 @@ function led_blink_f {
 	fi
 
 	if [ "${LED[$1]}" -eq 2 ] || [ "${LED[$1]}" -eq 0 ] || [ "${LED[$1]}" -eq 4 ] && [ "${LEDPID[$1]}" -ne 0 ]; then
-		for _ in {1..30}; do
 			echo "FASTER" | sudo tee /tmp/ledpipe"$1"
-		done
 	fi
 }
 
@@ -367,8 +369,9 @@ while true; do
 			TIMECORRECTED=0
 			logger "Time corrected"
 			led_blink_f 0
-			led_on 1
+			( sleep 5 && led_off 0) &
 		elif [ "$TIMECORRECTED" -ne 0 ]; then
+			date +%Y%m%d -s "20180101"
 			logger "Failed to update time"
 		fi
 
@@ -377,6 +380,7 @@ while true; do
 
 		if [ "$STOPPED" -ne 0 ]; then
 
+			echo "OFF" > $INSRECORDING
 			#Uploading the data
 			logger "Waiting for everything to shut down"
 			COUNTER=0
@@ -408,6 +412,7 @@ while true; do
 			else
 				UPLOADED=0
 				STARTEDUPLOAD=1
+				led_on 1
 				logger "Done uploading!"
 			fi
 			#UPLOADED=0
@@ -614,14 +619,15 @@ while true; do
 				logger "Offline: Starting logger"
 				screen -dmS log
 				screen -r log -X stuff $'\nrosrun ascii_logger listener.py > '$ASCIILOG$'\n'
-				led_on 2
-				led_on 0
+				led_blink 2
+				led_blink 0
+				echo "ON" > $INSRECORDING
 			fi
 
-			if (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $MTWERR -eq 0 ]] && [[ $GPSERR -eq 0 ]] && [[ $INSERR -eq 0 ]] && [[ $POZYXERR -eq 0 ]]; then
-                                led_on 0
-                                led_on 2
-                        fi
+			#if (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $MTWERR -eq 0 ]] && [[ $GPSERR -eq 0 ]] && [[ $INSERR -eq 0 ]] && [[ $POZYXERR -eq 0 ]]; then
+                                #led_on 0
+                                #led_on 2
+                        #fi
 
 		else
 			logger "GPS/roscore wasn't running!"
