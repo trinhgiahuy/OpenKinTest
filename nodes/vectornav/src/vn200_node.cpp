@@ -176,7 +176,7 @@ void publish_ins_data()
         msg_ins.gpsLLA.x = ins_binary_data.gpslla[0];
         msg_ins.gpsLLA.y = ins_binary_data.gpslla[1];
         msg_ins.gpsLLA.z = ins_binary_data.gpslla[2];
-        
+
         msg_ins.gpsnedvel.x = ins_binary_data.gpsvel_ned[0];
         msg_ins.gpsnedvel.y = ins_binary_data.gpsvel_ned[1];
         msg_ins.gpsnedvel.z = ins_binary_data.gpsvel_ned[2];
@@ -415,7 +415,7 @@ int main(int argc, char* argv[])
     CommonGroup ins_common_group = COMMONGROUP_TIMEGPS | COMMONGROUP_QUATERNION
         | COMMONGROUP_ANGULARRATE | COMMONGROUP_POSITION
         | COMMONGROUP_VELOCITY | COMMONGROUP_ACCEL | COMMONGROUP_DELTATHETA;
-        
+
     GpsGroup ins_gps_group = GPSGROUP_FIX | GPSGROUP_POSLLA | GPSGROUP_VELNED;
 
     BinaryOutputRegister ins_log_reg(
@@ -453,6 +453,26 @@ int main(int argc, char* argv[])
     position[2] = -0.05;
 
     vn200.writeGpsAntennaOffset(position);
+
+    // Lower magnetometer velocity threshold for walking speeds
+    InsAdvancedConfigurationRegister inssettings(
+      true, ///< The useMag field.
+      true, ///< The usePres field.
+      true, ///< The posAtt field.
+      true, ///< The velAtt field.
+      true, ///< The velBias field.
+      FOAMINIT_FOAMINITHEADINGPITCHROLLCOVARIANCE, ///< The useFoam field.
+      0, ///< The gpsCovType field.
+      5, ///< The velCount field.
+      1.0, ///< The velInit field.
+      1000.0, ///< The moveOrigin field.
+      30.0, ///< The gpsTimeout field.
+      1000.0, ///< The deltaLimitPos field.
+      100.0, ///< The deltaLimitVel field.
+      1.0, ///< The minPosUncertainty field.
+      1.0 ///< The minVelUncertainty field.
+    );
+    vn200.writeInsAdvancedConfiguration(inssettings, false);
 
     ROS_INFO("Registering handler");
     vn200.registerAsyncPacketReceivedHandler(NULL, binaryMessageReceived);
