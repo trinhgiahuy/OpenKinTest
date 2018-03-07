@@ -365,14 +365,15 @@ while true; do
 	fi
 	if [ "$online" -eq 0 ]; then
 
+		if [ "$TIMECORRECTED" -ne 0 ]; then
+			sudo date +%Y%m%d -s "20180101"
+			logger "Time to past"
+		fi
 		if [[ $TIMECORRECTED -ne 0 ]] && sudo ntpdate time1.mikes.fi; then
 			TIMECORRECTED=0
 			logger "Time corrected"
 			led_blink_f 0
 			( sleep 5 && led_off 0) &
-		elif [ "$TIMECORRECTED" -ne 0 ]; then
-			date +%Y%m%d -s "20180101"
-			logger "Failed to update time"
 		fi
 
 		# Stop IMU, GPS and recording
@@ -419,6 +420,8 @@ while true; do
 		fi
 	else
 
+		# no internet
+		led_off 1
 		UPLOADED=1
 		GRIVEPID=0
 		STARTEDUPLOAD=1
