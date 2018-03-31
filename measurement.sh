@@ -19,6 +19,7 @@ MTWLOG="$HOME/data/mtw.log"
 ASCIILOG="$HOME/ascii.log"
 LEDLOG="$HOME/led.log"
 POZYXTAGFILE="$HOME/data/tags.txt"
+INSRECORDING="/tmp/insrecording"
 # empty logfile
 #> $LOGFILE
 
@@ -124,6 +125,11 @@ TIMECORRECTED=1
 online=1
 
 logger "Starting datalogger"
+
+rm $INSRECORDING
+if [ ! -p "$INSRECORDING" ]; then
+        touch $INSRECORDING
+fi
 
 if [ "$PWRSWITCH" -eq 0 ]; then
 	sudo $HOME/openkin/linux-shutdown/pwr-switch &
@@ -365,6 +371,7 @@ while true; do
 			led_blink_f 0
 			( sleep 5 && led_off 0) &
 		elif [ "$TIMECORRECTED" -ne 0 ]; then
+			date +%Y%m%d -s "20180101"
 			logger "Failed to update time"
 		fi
 
@@ -373,6 +380,7 @@ while true; do
 
 		if [ "$STOPPED" -ne 0 ]; then
 
+			echo "OFF" > $INSRECORDING
 			#Uploading the data
 			logger "Waiting for everything to shut down"
 			COUNTER=0
@@ -613,6 +621,7 @@ while true; do
 				screen -r log -X stuff $'\nrosrun ascii_logger listener.py > '$ASCIILOG$'\n'
 				led_blink 2
 				led_blink 0
+				echo "ON" > $INSRECORDING
 			fi
 
 			#if (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $MTWERR -eq 0 ]] && [[ $GPSERR -eq 0 ]] && [[ $INSERR -eq 0 ]] && [[ $POZYXERR -eq 0 ]]; then
