@@ -469,7 +469,7 @@ while true; do
 				fi
 
 			fi
-		else
+		elif [ "$INS" -ne 0 ]; then
 			if ! screen -list | grep -q "gps"; then
 				logger "Offline: Starting ROSCORE"
 				screen -dmS gps
@@ -477,8 +477,8 @@ while true; do
 			fi
 		fi
 
-		## Not unless gps/roscore running
-		if screen -list | grep -q "gps"; then
+		## Not unless gps/roscore running or INS
+		if [ "$INS" -eq 0 ] || screen -list | grep -q "gps"; then
 
 			if [ "$IMUERR" -gt 10 ]; then
 				logger "IMU-errors more than 10, restarting IMUs"
