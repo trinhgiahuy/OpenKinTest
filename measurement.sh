@@ -227,7 +227,7 @@ done
 function quitScreens {
 	led_off 0
 	led_off 2
-	led_on 1
+	#led_on 1
 
 	if screen -list | grep -q "log"; then
 		logger "Shutting down logger"
@@ -512,34 +512,38 @@ while true; do
 				screen -S ins -X quit
 			fi
 
-                        if [ "$INS" -eq 0 ]; then
-			        if ! screen -list | grep -q "ins"; then
-				        logger "Offline: Starting INS"
-				        screen -dmS ins
-				        screen -r ins -X stuff $'\nsudo -E bash\nrm '$INSTEMPFILE$'\nnice -n -10 roslaunch vectornav vn200.launch 2> '$INSTEMPFILE$'\n'
+			if [ "$INS" -eq 0 ]; then
+				if ! screen -list | grep -q "ins"; then
+					logger "Offline: Starting INS"
+					screen -dmS ins
+					screen -r ins -X stuff $'\nsudo -E bash\nrm '$INSTEMPFILE$'\nnice -n -10 roslaunch vectornav vn200.launch 2> '$INSTEMPFILE$'\n'
 
-                                        # should have time to error, if going to
-                                        sleep 15
+					# should have time to error, if going to
+					sleep 15
 
-                                fi
-                                # if file exists and not empty
+				fi
+				# if file exists and not empty
 				if [ -s $INSTEMPFILE ]; then
-				        logger "Error on starting ins"
-				        logger "$(cat $INSTEMPFILE)"
+					logger "Error on starting ins"
+					logger "$(cat $INSTEMPFILE)"
 					screen -S ins -X quit
 					led_off 0
 					led_off 2
+					led_blink_f 1
+					(sleep 2 && led_off 1)
 					# start over
 					continue
-                                elif [ ! -f $INSTEMPFILE ]; then
-				        logger "INSlog not found"
-				        screen -S ins -X quit
-				        led_off 0
-				        led_off 2
-				        # start over
-				        continue
+				elif [ ! -f $INSTEMPFILE ]; then
+					logger "INSlog not found"
+					screen -S ins -X quit
+					led_off 0
+					led_off 2
+					led_blink_f 1
+					(sleep 2 && led_off 1)
+					# start over
+					continue
 				fi
-                        fi
+			fi
 
 
 			if [ "$POZYX" -eq 0 ]; then
