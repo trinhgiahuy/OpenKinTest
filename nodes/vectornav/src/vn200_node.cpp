@@ -448,17 +448,16 @@ int main(int argc, char* argv[])
     vn200.writeSynchronizationControl(sync_control);
 */
     vn::math::vec3f position;
-    /* for original
+    // for original
     position[0] = -0.08;
     position[1] = 0.0;
     position[2] = -0.05;
-    */
 
-    // for jyu
+    /* for jyu
     position[0] = -0.004;
     position[1] = 0.0;
     position[2] = 0.008;
-
+*/
     vn200.writeGpsAntennaOffset(position);
 
     // Lower magnetometer velocity threshold for walking speeds

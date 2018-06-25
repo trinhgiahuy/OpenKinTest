@@ -30,7 +30,7 @@ GPS=1
 MTW=1
 
 # wired MTi connected = 0, not = 1
-MTI=1
+MTI=0
 
 # Vectornav INS connected = 0, not = 1
 INS=0
@@ -405,8 +405,8 @@ while true; do
 				#screen -r grive -X stuff $'\ngrive\n'
 				# upload in subshell
 				led_blink 1
-				#(cd $DATADIR || exit; grive) >> $LOGFILE &
-				(cd $DATADIR || exit; unison . ssh://openkinserver/data -ignore 'Path */*' -batch -silent ) >> $LOGFILE &
+				(cd $DATADIR || exit; grive) >> $LOGFILE &
+				#(cd $DATADIR || exit; unison . ssh://openkinserver/data -ignore 'Path */*' -batch -silent ) >> $LOGFILE &
 				GRIVEPID=$!
 			elif ps -p $GRIVEPID > /dev/null 2>&1; then
 				led_blink 1
