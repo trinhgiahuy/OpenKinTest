@@ -321,7 +321,7 @@ def writeBuffer():
 
         for i, j in enumerate(buffer):
             if (('gpsseq' in j or 'posseq' in j or 'rangeseq' in j) and not 'imuseq' in j) \
-            or ('frame_id' in j and len(xsens_ids) > 1 and j['frame_id'] != xsens_ids[0] and (not 'pozyx' in j or j['pozyx'] == "0")):
+            or ('frame_id' in j and len(xsens_ids) > 1 and j['frame_id'] != xsens_ids[0] and (not 'gpstime' in j or not 'pozyx' in j or j['pozyx'] == "0")):
                 #rospy.loginfo("fusable in %s", i)
                 #if 'frame_id' in j:
                     #rospy.loginfo("Fuse imus: ")
