@@ -1,0 +1,49 @@
+# Configuration Settings for RPi datalogger
+
+debug: 1                    # Range 0-4 (0 means no debug statements will print)
+
+device: /dev/ttyS4
+frame_id: gps
+rate: 5                     # in Hz
+nav_rate: 1                 # [# of measurement cycles], recommended 1 Hz, may
+                            # be either 5 Hz (Dual constellation) or
+                            # 8 Hz (GPS only)
+dynamic_model: pedestrian   # Airborne < 2G, 2D fix not supported (3D only),
+                            # Max Alt: 50km
+                            # Max Horizontal Velocity: 250 m/s,
+                            # Max Vertical Velocity: 100 m/s
+fix_mode: auto
+enable_ppp: true            # Not supported by C94-M8P
+dr_limit: 0
+
+uart1:
+  baudrate: 9600           # C94-M8P specific
+#  in: 1                     # RTCM 3
+#  out: 1                    # No UART out for rover
+
+gnss:
+  gps: true                  #
+  glonass: true              # Supported by C94-M8P
+#  reset_mode: 2             # Controlled Software reset
+#  beidou: false             # Supported by C94-M8P
+#  qzss: false               # Supported by C94-M8P
+#  sbas: false               # Not supported by C94-M8P
+#  galileo: true             #
+
+inf:
+    all: false
+
+# Subscriptions
+subscribe:
+  all: false
+  aid: false
+
+  nav:
+    sol: false
+    pvt: true
+    status: false
+    velned: false
+    svin: false
+    posecef: false
+    relposned: false
+    svinfo: false

@@ -1,0 +1,1397 @@
+diff -Naur Pozyx-Arduino-library/helpers.cpp Pozyx-custom-library/helpers.cpp
+--- Pozyx-Arduino-library/helpers.cpp	1970-01-01 02:00:00.000000000 +0200
++++ Pozyx-custom-library/helpers.cpp	2016-07-25 15:02:54.176285000 +0300
+@@ -0,0 +1,16 @@
++#include "helpers.hh"
++
++uint32_t millis() {
++  long ms;
++  time_t s;
++  struct timespec spec;
++  clock_gettime(CLOCK_REALTIME, &spec);
++  s = spec.tv_sec;
++  ms = round(spec.tv_nsec / 1.0e6);
++  return (uint32_t) (s*1000 + ms);
++}
++
++void delay(uint32_t t) {
++  usleep(t*1000);
++  return;
++}
+diff -Naur Pozyx-Arduino-library/helpers.hh Pozyx-custom-library/helpers.hh
+--- Pozyx-Arduino-library/helpers.hh	1970-01-01 02:00:00.000000000 +0200
++++ Pozyx-custom-library/helpers.hh	2016-07-25 15:02:54.176285000 +0300
+@@ -0,0 +1,14 @@
++#ifndef HELPERS_hh
++#define HELPERS_hh
++
++#include <inttypes.h>
++#include <math.h>
++#include <stdio.h>
++#include <time.h>
++#include <unistd.h>
++
++uint32_t millis();
++
++void delay(uint32_t t);
++
++#endif // HELPERS_hh
+diff -Naur Pozyx-Arduino-library/Pozyx_core.cpp Pozyx-custom-library/Pozyx_core.cpp
+--- Pozyx-Arduino-library/Pozyx_core.cpp	2016-07-25 15:03:47.124548015 +0300
++++ Pozyx-custom-library/Pozyx_core.cpp	2016-07-25 17:03:15.340093276 +0300
+@@ -6,18 +6,78 @@
+ */
+ 
+ #include "Pozyx.h"
+-#include <Wire.h>
++#include "helpers.hh"
++#include <bitset>
++#include <iostream>
++#include <stdlib.h>
++#include <iomanip>
++#include <cstring>
++#include <string>
++#include <sstream>
++#include <linux/i2c-dev.h>
++#include <fcntl.h>
++#include <unistd.h>
++#include <sys/ioctl.h>
++#include <poll.h>
++#include <ctime>
++
++using std::memcpy;
+ 
+ extern "C" {
+   #include "Pozyx_definitions.h"
+ }
+ 
+-int PozyxClass::_interrupt;
++#define GPIO 338
++#define SYSFS_GPIO_DIR "/sys/class/gpio"
++#define POLL_TIMEOUT 6000 // 3 seconds
++
++//#define DEBUG
++#define PRINTERRORS
++
++int PozyxClass::_interrupt = 0;
+ int PozyxClass::_mode;
+ 
+ int PozyxClass::_hw_version;       // pozyx harware version 
+ int PozyxClass::_sw_version;       // pozyx software (firmware) version. (By updating the firmware on the pozyx device, this value can change);
+ 
++int PozyxClass::i2c_file;
++int PozyxClass::gpio_file;
++
++void printTime(bool cerr = false) {
++  time_t rawtime;
++  struct tm * timeinfo;
++
++  time (&rawtime);
++  timeinfo = localtime (&rawtime);
++  if (cerr) {
++    std::cerr << std::dec << "[" << mktime(timeinfo) << "] ";
++  } else {
++    std::cout << std::dec << "[" << mktime(timeinfo) << "] ";
++  }
++}
++
++void PozyxClass::initI2C(int adapter) {
++
++  std::stringstream ss;
++  ss << "/dev/i2c-" << adapter;
++
++  //int adapter_nr = 7; // minnowboard
++  i2c_file = open(ss.str().c_str(), O_RDWR);
++  if (i2c_file < 0) {
++    #ifdef PRINTERRORS
++    printTime(true);
++    std::cerr << "Failed to open I2C device" << std::endl;
++    #endif
++  }
++
++  if (ioctl(i2c_file, I2C_SLAVE, POZYX_I2C_ADDRESS) < 0) {
++    #ifdef PRINTERRORS
++    printTime(true);
++    std::cerr << "Failed to open I2C slave" << std::endl;
++    #endif
++  }
++}
++
+ /**
+  * The interrupt handler for the pozyx device: keeping it uber short!
+  */
+@@ -26,11 +86,22 @@
+   _interrupt = 1;  
+ }
+ 
+-boolean PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms, uint8_t *interrupt)
++bool PozyxClass::waitForFlag(uint8_t interrupt_flag, int timeout_ms, uint8_t *interrupt)
+ {
+   long timer = millis();
+   int status;
+   
++  struct pollfd fdset[1];
++  int nfds = 1;
++  int timeout = POLL_TIMEOUT;
++
++  fdset[0].fd = gpio_file;
++  fdset[0].events = POLLPRI;
++
++  int rc = 0;
++
++  char buf[1];
++
+   // stay in this loop until the event interrupt flag is set or until the the timer runs out
+   while(millis()-timer < timeout_ms)
+   {
+@@ -38,10 +109,19 @@
+     if( _mode == MODE_POLLING ){
+       delay(1);
+     }
+-    
+-    if( (_interrupt == 1) || (_mode == MODE_POLLING))
+-    { 
+-      _interrupt = 0;
++    //lseek(gpio_file, 0, SEEK_SET);
++    //read(gpio_file, buf, sizeof buf);
++    // TODO: more event interrupts, maybe poll in thread
++    //if( (_interrupt == 1) || (_mode == MODE_POLLING))
++    if( (_mode == MODE_POLLING) || (rc = poll(fdset, nfds, timeout)))
++    {
++      lseek(gpio_file, 0, SEEK_SET);
++      read(gpio_file, buf, sizeof buf);
++      #ifdef DEBUG
++      printTime();
++      std::cout << "Polled " << millis() << ", rc: " << rc << ", revents: " << fdset[0].revents << std::endl;
++      #endif
++      //_interrupt = 0;
+       
+       // Read out the interrupt status register. After reading from this register, pozyx automatically clears the interrupt flags.
+       uint8_t interrupt_status = 0;
+@@ -53,7 +133,12 @@
+           *interrupt = interrupt_status;
+         return true;
+       }
+-    }     
++    } else {
++      #ifdef PRINTERRORS
++      printTime(true);
++      std::cerr << "Error polling: " << rc << ", " << std::dec << millis() << std::endl;
++      #endif
++    }
+   } 
+   // too bad, pozyx didn't respond 
+   // 1) pozyx can select from two pins to generate interrupts, make sure the correct pin is connected with the attachInterrupt() function.
+@@ -61,24 +146,26 @@
+   return false;  
+ }
+ 
+-boolean PozyxClass::waitForFlag_safe(uint8_t interrupt_flag, int timeout_ms, uint8_t *interrupt)
++bool PozyxClass::waitForFlag_safe(uint8_t interrupt_flag, int timeout_ms, uint8_t *interrupt)
+ {
+   int tmp = _mode;
+   _mode = MODE_POLLING;
+-  boolean result = waitForFlag(interrupt_flag, timeout_ms, interrupt);
++  bool result = waitForFlag(interrupt_flag, timeout_ms, interrupt);
+   _mode = tmp;
+   return result;
+ }
+ 
+-int PozyxClass::begin(boolean print_result, int mode, int interrupts, int interrupt_pin){
++int PozyxClass::begin(int adapter, bool print_result, int mode, int interrupts, int interrupt_pin){
+   
+   int status = POZYX_SUCCESS;
+ 
+   if(print_result){
+-    Serial.println("Pozyx Shield");
+-    Serial.println("------------");
++    std::cout << "Pozyx Shield" << std::endl;
++    std::cout << "------------" << std::endl;
+   }
+ 
++  initI2C(adapter);
++
+   // check if the mode parameter is valid
+   if((mode != MODE_POLLING) && (mode != MODE_INTERRUPT)) 
+     return POZYX_FAILURE;
+@@ -87,7 +174,8 @@
+   if((interrupt_pin != 0) && (interrupt_pin != 1)) 
+     return POZYX_FAILURE;
+ 
+-  Wire.begin();
++
++  //Wire.begin();
+   
+   // wait a bit until the pozyx board is up and running
+   delay(250);
+@@ -96,7 +184,7 @@
+   
+   uint8_t whoami, selftest;  
+   uint8_t regs[3];
+-  regs[2] = 0x12;
++  //regs[2] = 0x12;
+   
+   // we read out the first 3 register values: who_am_i, firmware_version and harware version, respectively.
+   if(regRead(POZYX_WHO_AM_I, regs, 3) == POZYX_FAILURE){
+@@ -107,12 +195,9 @@
+   _hw_version = regs[2]; 
+ 
+   if(print_result){
+-    Serial.print("WhoAmI: 0x");
+-    Serial.println(whoami, HEX);
+-    Serial.print("SW ver.: ");
+-    Serial.println(_sw_version);
+-    Serial.print("HW ver.: ");
+-    Serial.println(_hw_version);  
++    std::cout << "WhoAmI: 0x" << std::hex << (int)whoami << std::endl;
++    std::cout << "SW ver.: " << std::dec << (int)_sw_version << std::endl;
++    std::cout << "HW ver.: " << (int)_hw_version << std::endl;
+   }
+   // verify if the whoami is correct
+   if(whoami != 0x43) {    
+@@ -126,30 +211,131 @@
+   } 
+ 
+   if(print_result){
+-    Serial.print("selftest: 0b");
+-    Serial.println(selftest, BIN);
++    std::bitset<8> st(selftest);
++    std::cout << "selftest: 0b" << st << std::endl;
+   }
+ 
+-  if((_hw_version & POZYX_TYPE) == POZYX_TAG)
++  /*std::bitset<8> typec((int)_hw_version & POZYX_TYPE);
++  std::bitset<8> hwv((int)_hw_version);
++  std::cerr << "hw: 0b" << hwv << std::endl;
++  std::cerr << "typecheck: 0b" << typec << std::endl;
++  std::cerr << "Tag: " << std::dec << POZYX_TAG << std::endl;
++  std::cerr << "Anchor: " << POZYX_ANCHOR << std::endl;*/
++
++  if(((int)_hw_version & POZYX_TYPE) == POZYX_TAG)
+   {
+     // check if the uwb, pressure sensor, accelerometer, magnetometer and gyroscope are working
+-    if(selftest != 0b00111111) {    
++    //if(selftest != 0b00111111) {
++    if(selftest != 0x3f) {
+       status = POZYX_FAILURE;
+     }
+-  }else if((_hw_version & POZYX_TYPE) == POZYX_ANCHOR)
++  }else if(((int)_hw_version & POZYX_TYPE) == POZYX_ANCHOR)
+   {
+     // check if the uwb transceiver and pressure sensor are working
+-    if(selftest != 0b0011000) {    
++    //if(selftest != 0b0011000) {
++    if(selftest != 0x18) {
+       status = POZYX_FAILURE;
+     }
++    #ifdef DEBUG
++    printTime();
++    std::cout << "Return from type check" << std::endl;
++    #endif
+     return status;
+   }
+   
+   // set everything ready for interrupts
+   _interrupt = 0;
+   if(_mode == MODE_INTERRUPT){
++
++    /*
++    if (gpio_request(GPIO+interrupt_pin, "Pozyx interrupt")) {
++      #ifdef DEBUG
++      std::cerr << "Error interruting" << std::endl;
++      #endif
++      return POZYX_FAILURE;
++    }
++
++    int irq = 0;
++    if ((irq = gpio_to_irq(GPIO+interrupt_pin)) < 0) {
++      #ifdef DEBUG
++      std::cerr << "Error interruting" << std::endl;
++      #endif
++      return POZYX_FAILURE;
++    }
++
++    int result = request_irq(irq, IRQ, IRQF_TRIGGER_RISING, "Pozyx interrupt", "Pozyx");
++
++    if (result) {
++      #ifdef DEBUG
++      std::cerr << "Error interrupting" << std::endl;
++      #endif
++      return POZYX_FAILURE;
++    }
++    */
++
++    // export gpio
++    int fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
++    if (fd < 0) {
++      #ifdef PRINTERRORS
++      printTime(true);
++      std::cerr << "Error interrupting 1" << std::endl;
++      #endif
++      return POZYX_FAILURE;
++    }
++
++    char buf[5];
++    sprintf(buf, "%d", GPIO+interrupt_pin);
++    write(fd, buf, 5);
++    close(fd);
++
++    std::stringstream ss;
++    ss << SYSFS_GPIO_DIR << "/gpio" << (GPIO+interrupt_pin) << "/direction";
++    std::string dir = ss.str();
++
++    fd = open(dir.c_str(), O_WRONLY);
++    if (fd < 0) {
++      #ifdef PRINTERRORS
++      printTime(true);
++      std::cerr << "Error interrupting 2" << std::endl;
++      #endif
++      return POZYX_FAILURE;
++    }
++
++    write(fd, "in", 3);
++    close(fd);
++
++    ss.str("");
++    ss << SYSFS_GPIO_DIR << "/gpio" << (GPIO+interrupt_pin) << "/edge";
++    std::string edge = ss.str();
++
++    fd = open(edge.c_str(), O_WRONLY);
++    if (fd < 0) {
++      #ifdef PRINTERRORS
++      printTime(true);
++      std::cerr << "Error interrupting 3" << std::endl;
++      #endif
++      return POZYX_FAILURE;
++    }
++
++    write(fd, "rising", 7);
++    close(fd);
++
++    ss.str("");
++    ss << SYSFS_GPIO_DIR << "/gpio" << (GPIO+interrupt_pin) << "/value";
++    std::string value = ss.str();
++
++    //gpio_file = open(value.c_str(), O_RDONLY);
++    gpio_file = open(value.c_str(), O_RDONLY | O_NONBLOCK);
++    if (gpio_file < 0) {
++      #ifdef PRINTERRORS
++      printTime(true);
++      std::cerr << "Error interrupting 4" << std::endl;
++      #endif
++      return POZYX_FAILURE;
++    }
++
+     // set the function that must be called upon an interrupt
+-    attachInterrupt(interrupt_pin, IRQ, RISING);
++    //attachInterrupt(interrupt_pin, IRQ, RISING);
+ 
+     // use interrupt as provided and initiate the interrupt mask
+     uint8_t int_mask = interrupts;
+@@ -516,8 +702,48 @@
+   */
+ int PozyxClass::i2cWriteWrite(const uint8_t reg_address, const uint8_t *pData, int size)
+ {
+-  int n, error;
++  int n, error, i;
+ 
++  /*n = i2c_smbus_write_byte(i2c_file, reg_address);
++
++  if (n != 0) {
++    return (POZYX_FAILURE);
++  }
++
++  for (i=0; i<size;) {
++    int data = i2c_smbus_write_byte(i2c_file, *(pData+i));
++
++    if (data != 0) {
++      return (POZYX_FAILURE);
++    }
++  }*/
++
++  struct i2c_rdwr_ioctl_data io;
++  struct i2c_msg msg[2];
++  char buf[1] = {(char)reg_address};
++
++  msg[0].addr = POZYX_I2C_ADDRESS;
++  msg[0].flags = 0;
++  msg[0].len = 1;
++  msg[0].buf = buf;
++
++  msg[1].addr = POZYX_I2C_ADDRESS;
++  msg[1].flags = I2C_M_NOSTART;
++  msg[1].len = size;
++  msg[1].buf = (char*)pData;
++
++  io.msgs = msg;
++  io.nmsgs = 2;
++
++  if (ioctl(i2c_file, I2C_RDWR, &io) < 0) {
++    #ifdef PRINTERRORS
++    printTime(true);
++    std::cerr << "Error repeated writing to I2C" << std::endl;
++    #endif
++    return POZYX_FAILURE;
++  }
++
++/*
+   Wire.beginTransmission(POZYX_I2C_ADDRESS);
+   // write the starting register address
+   n = Wire.write(reg_address);        
+@@ -537,6 +763,7 @@
+   if (error != 0)
+     return (POZYX_FAILURE);
+ 
++*/
+   return (POZYX_SUCCESS);         // return : no error
+ }
+ 
+@@ -547,6 +774,141 @@
+ {
+   int i, n;
+ 
++  struct i2c_rdwr_ioctl_data io;
++  struct i2c_msg msg[2];
++
++  msg[0].addr = POZYX_I2C_ADDRESS;
++  msg[0].flags = 0;
++  msg[0].len = write_len;
++  msg[0].buf = (char*)write_data;
++
++  msg[1].addr = POZYX_I2C_ADDRESS;
++  msg[1].flags = I2C_M_NOSTART | I2C_M_RD;
++  msg[1].len = read_len;
++  msg[1].buf = (char*)read_data;
++
++  io.msgs = msg;
++  io.nmsgs = 2;
++
++  if (ioctl(i2c_file, I2C_RDWR, &io) < 0) {
++    #ifdef PRINTERRORS
++    printTime(true);
++    std::cerr << "Error repeated read from I2C" << std::endl;
++    #endif
++    return POZYX_FAILURE;
++  } else {
++    #ifdef DEBUG
++    printTime();
++    std::cout << "Got data, len: " << read_len << std::endl;
++    #endif
++  }
++
++/*
++
++  if (write_len == 1) {
++      for (i=0; i<read_len;i++) {
++        n = i2c_smbus_read_byte_data(i2c_file, *write_data+i);
++        #ifdef DEBUG
++        std::cerr << "Read byte: " << std::dec << n << " == 0x" << std::hex << n << std::endl;
++        #endif
++
++        if (n == -1) {
++          #ifdef DEBUG
++          std::cerr << "Failed to read data from I2C" << std::endl;
++          #endif
++
++          return (POZYX_FAILURE);
++        } else {
++          read_data[i] = (uint8_t)n;
++        }
++      }
++  } else {
++
++    uint8_t data_ex[32];
++    for (i=0; i<write_len-1; i++) {
++      data_ex[i] = write_data[i+1];
++    }
++
++    #ifdef DEBUG
++    std::cout << "DEBUG: function call with " << std::dec << (int)(write_len)-1 << " parameters" << std::endl;
++    std::cout << "Write: " << std::hex << (int)write_data[0];
++    for (i=1; i<write_len; i++) {
++      std::cout << ", " << std::hex << (int)write_data[i];
++    }
++    std::cout << std::endl;
++    #endif
++
++    struct i2c_rdwr_ioctl_data io;
++    struct i2c_msg msg[2];
++
++    msg[0].addr = POZYX_I2C_ADDRESS;
++    msg[0].flags = 0;
++    msg[0].len = write_len;
++    msg[0].buf = (char*)write_data;
++
++    msg[1].addr = POZYX_I2C_ADDRESS;
++    msg[1].flags = I2C_M_RD | I2C_M_NOSTART;
++    msg[1].len = read_len;
++    msg[1].buf = (char*)read_data;
++
++    io.msgs = msg;
++    io.nmsgs = 2;
++
++    if (ioctl(i2c_file, I2C_RDWR, &io) < 0) {
++      #ifdef DEBUG
++      std::cerr << "Error reading/writing to I2C" << std::endl;
++      #endif
++      return POZYX_FAILURE;
++    } else {
++      #ifdef DEBUG
++      std::cout << "Got data: " << std::hex;
++      for (i=0; i<read_len;i++) {
++        std::cout << (int)read_data[i] << ", ";
++      }
++      std::cout << std::endl;
++      #endif
++    }
++
++    //n = i2c_smbus_block_process_call(i2c_file, write_data[0], (uint8_t)write_len, data_ex);
++    */
++/*
++    if (n != read_len) {
++      std::cerr << "Wrong amount of data received: " << n << ", should be " << read_len << std::endl;
++      return (POZYX_FAILURE);
++    }
++
++    for (i=0; i<read_len; i++) {
++      read_data[i] = data_ex[i];
++    }
++*/
++/*
++    //std::cerr << "Not implemented" << std::endl;
++    //return (POZYX_FAILURE);
++  }
++*/
++/*
++  for (i=0; i<write_len; i++) {
++    n = i2c_smbus_write_byte(file, *(write_data+i));
++  }
++
++  if (n != 0) {
++    std::cerr << "Failed to write to I2C" << std::endl;
++    return (POZYX_FAILURE);
++  }
++
++  for (i=0; i<read_len;) {
++    int data = i2c_smbus_read_byte(file);
++
++    if (data == -1) {
++      std::cerr << "Failed to read from I2C" << std::endl;
++      return (POZYX_FAILURE);
++    } else {
++      std::cerr << "Read data: " << data << std::endl;
++      read_data[i++] = (uint8_t)data;
++    }
++  }
++*/
++/*
+   Wire.beginTransmission(POZYX_I2C_ADDRESS);
+   for(i=0; i<write_len; i++){
+     n = Wire.write(*(write_data+i));  // write parameter bytes
+@@ -576,7 +938,6 @@
+     return (POZYX_FAILURE);
+   }
+ 
++*/
+   return (POZYX_SUCCESS);  // return : no error
+ }
+-
+-PozyxClass Pozyx;
+diff -Naur Pozyx-Arduino-library/Pozyx.h Pozyx-custom-library/Pozyx.h
+--- Pozyx-Arduino-library/Pozyx.h	2016-07-25 15:03:47.124548015 +0300
++++ Pozyx-custom-library/Pozyx.h	2016-07-25 16:56:48.474174912 +0300
+@@ -14,13 +14,13 @@
+ #ifndef POZYX_h
+ #define POZYX_h
+ 
+-#include <inttypes.h>           
++#define BUFFER_LENGTH 32
+ 
+-#if (ARDUINO >= 100)
+- #include "Arduino.h"
+-#else
+- #include "WProgram.h"
+-#endif
++#undef NULL
++#define NULL 0
++
++#include <inttypes.h>
++#include <string>
+ 
+ ///////////////////////////////////////////////// ASSERTIONS /////////////////////////////////////
+ // assertions will check for wrong use of the library.
+@@ -29,7 +29,7 @@
+ //#define NDEBUG 
+ 
+ // enable printing of function name, filename, linenumber and failed expression. This takes a LOT of memory (too much for the Arduino UNO)
+-//#define __ASSERT_USE_STDERR 
++#define __ASSERT_USE_STDERR 
+ #include <assert.h>
+ 
+ // overwrite the assertions to reduce codesize.
+@@ -238,7 +238,11 @@
+ 
+     static int _hw_version;         // Pozyx harware version 
+     static int _sw_version;         // Pozyx software (firmware) version. (By updating the firmware on the Pozyx device, this value can change)
+-   
++
++    static int i2c_file;
++    static int gpio_file;
++
++    static void initI2C(int adapter);
+ 
+     /**
+     * Function: i2cWriteWrite
+@@ -291,7 +295,7 @@
+     * @retval #true event occured.
+     * @retval #false event did not occur, this function timed out.
+     */
+-    static boolean waitForFlag_safe(uint8_t interrupt_flag, int timeout_ms, uint8_t *interrupt = NULL);   
++    static bool waitForFlag_safe(uint8_t interrupt_flag, int timeout_ms, uint8_t *interrupt = NULL);
+    
+ 
+ public:
+@@ -314,7 +318,7 @@
+     * @retval #true event occured.
+     * @retval #false event did not occur, this function timed out.
+     */
+-    static boolean waitForFlag(uint8_t interrupt_flag, int timeout_ms, uint8_t *interrupt = NULL);     
++    static bool waitForFlag(uint8_t interrupt_flag, int timeout_ms, uint8_t *interrupt = 0);
+ 
+     /**
+     * Initiates the Pozyx shield. This function initializes the pozyx device. 
+@@ -330,7 +334,7 @@
+     * @retval #POZYX_SUCCESS success.
+     * @retval #POZYX_FAIL function failed.
+     */
+-    static int begin(boolean print_result = false, int mode = MODE_INTERRUPT,  int interrupts = POZYX_INT_MASK_ALL, int interrupt_pin = POZYX_INT_PIN0);
++    static int begin(int adapter, bool print_result = false, int mode = MODE_INTERRUPT,  int interrupts = POZYX_INT_MASK_ALL, int interrupt_pin = POZYX_INT_PIN0);
+    
+     /**
+     * Read from the registers of the connected Pozyx shield.
+@@ -486,7 +490,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getLastNetworkId(uint16_t *network_id, uint16_t remote_id = NULL);
++    static int getLastNetworkId(uint16_t *network_id, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the number of bytes received.
+@@ -499,7 +503,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getLastDataLength(uint8_t *data_length, uint16_t remote_id = NULL);
++    static int getLastDataLength(uint8_t *data_length, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the network id of the connected Pozyx device.
+@@ -524,7 +528,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int setNetworkId(uint16_t network_id, uint16_t remote_id = NULL);
++    static int setNetworkId(uint16_t network_id, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the current UWB settings.
+@@ -537,7 +541,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getUWBSettings(UWB_settings_t *UWB_settings, uint16_t remote_id = NULL);
++    static int getUWBSettings(UWB_settings_t *UWB_settings, uint16_t remote_id = 0);
+ 
+     /**
+     * Overwrite the UWB settings.
+@@ -552,7 +556,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int setUWBSettings(UWB_settings_t *UWB_settings, uint16_t remote_id = NULL);
++    static int setUWBSettings(UWB_settings_t *UWB_settings, uint16_t remote_id = 0);
+ 
+     /**
+     * Set the Ultra-wideband frequency channel.
+@@ -566,7 +570,7 @@
+     * @retval #POZYX_SUCCESS success.
+     * @retval #POZYX_FAIL function failed.
+     */
+-    static int setUWBChannel(int channel_num, uint16_t remote_id = NULL);
++    static int setUWBChannel(int channel_num, uint16_t remote_id = 0);
+ 
+     /**
+     * Get the Ultra-wideband frequency channel.
+@@ -581,7 +585,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getUWBChannel(int* channel_num, uint16_t remote_id = NULL);
++    static int getUWBChannel(int* channel_num, uint16_t remote_id = 0);
+ 
+     /**
+     * configure the UWB transmission power.
+@@ -600,7 +604,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int setTxPower(float txgain_dB, uint16_t remote_id = NULL);
++    static int setTxPower(float txgain_dB, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the UWB transmission power.
+@@ -615,7 +619,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getTxPower(float* txgain_dB, uint16_t remote_id = NULL);
++    static int getTxPower(float* txgain_dB, uint16_t remote_id = 0);
+ 
+ /** @}*/ 
+ 
+@@ -635,7 +639,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getWhoAmI(uint8_t *whoami, uint16_t remote_id = NULL);
++    static int getWhoAmI(uint8_t *whoami, uint16_t remote_id = 0);
+     
+     /**
+     * Obtain the firmware version.
+@@ -648,7 +652,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getFirmwareVersion(uint8_t *firmware, uint16_t remote_id = NULL);
++    static int getFirmwareVersion(uint8_t *firmware, uint16_t remote_id = 0);
+     
+     /**
+     * Obtain hte hardware version.
+@@ -661,7 +665,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getHardwareVersion(uint8_t *hardware, uint16_t remote_id = NULL);
++    static int getHardwareVersion(uint8_t *hardware, uint16_t remote_id = 0);
+     
+     /**
+     * Obtain the selftest result.
+@@ -674,7 +678,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getSelftest(uint8_t *selftest, uint16_t remote_id = NULL);
++    static int getSelftest(uint8_t *selftest, uint16_t remote_id = 0);
+     
+     /**
+     * Obtain the error code.
+@@ -687,7 +691,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getErrorCode(uint8_t *error_code, uint16_t remote_id = NULL);
++    static int getErrorCode(uint8_t *error_code, uint16_t remote_id = 0);
+     
+     /**
+     * Obtain the interrupt status.
+@@ -702,7 +706,7 @@
+     *
+     * @see waitForFlag
+     */
+-    static int getInterruptStatus(uint8_t *interrupts, uint16_t remote_id = NULL);
++    static int getInterruptStatus(uint8_t *interrupts, uint16_t remote_id = 0);
+     
+     /**
+     * Obtain the calibration status.
+@@ -715,7 +719,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getCalibrationStatus(uint8_t *calibration_status, uint16_t remote_id = NULL);
++    static int getCalibrationStatus(uint8_t *calibration_status, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the digital value on one of the GPIO pins.
+@@ -731,7 +735,7 @@
+     *
+     * @note In firmware version v0.9. The GPIO state cannot be read remotely.
+     */
+-    static int getGPIO(int gpio_num, uint8_t *value, uint16_t remote_id = NULL);
++    static int getGPIO(int gpio_num, uint8_t *value, uint16_t remote_id = 0);
+ 
+     /**
+     * Set the digital value on one of the GPIO pins.
+@@ -745,7 +749,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int setGPIO(int gpio_num, uint8_t value, uint16_t remote_id = NULL);
++    static int setGPIO(int gpio_num, uint8_t value, uint16_t remote_id = 0);
+ 
+ 
+     /**
+@@ -755,7 +759,7 @@
+     *
+     *   @param remote_id: optional parameter that determines the remote device to be used.
+     */
+-    static void resetSystem(uint16_t remote_id = NULL);
++    static void resetSystem(uint16_t remote_id = 0);
+ 
+ 
+     /**
+@@ -774,7 +778,7 @@
+     *
+     * @see setLedConfig
+     */
+-    static int setLed(int led_num, boolean state, uint16_t remote_id = NULL);
++    static int setLed(int led_num, bool state, uint16_t remote_id = 0);
+ 
+     /**
+     * Function to obtain the interrupt configuration.
+@@ -788,7 +792,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getInterruptMask(uint8_t *mask, uint16_t remote_id = NULL);
++    static int getInterruptMask(uint8_t *mask, uint16_t remote_id = 0);
+     
+     /**
+     * Function to configure the interrupts.
+@@ -803,7 +807,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int setInterruptMask(uint8_t mask, uint16_t remote_id = NULL);
++    static int setInterruptMask(uint8_t mask, uint16_t remote_id = 0);
+ 
+ 
+     /**
+@@ -819,7 +823,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getConfigModeGPIO(int gpio_num, uint8_t *mode, uint16_t remote_id = NULL);
++    static int getConfigModeGPIO(int gpio_num, uint8_t *mode, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the pull configuration of a GPIO pin.
+@@ -834,7 +838,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getConfigPullGPIO(int gpio_num, uint8_t *pull, uint16_t remote_id = NULL);
++    static int getConfigPullGPIO(int gpio_num, uint8_t *pull, uint16_t remote_id = 0);
+ 
+ 
+     /**
+@@ -851,7 +855,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int setConfigGPIO(int gpio_num, int mode, int pull, uint16_t remote_id = NULL);
++    static int setConfigGPIO(int gpio_num, int mode, int pull, uint16_t remote_id = 0);
+ 
+     /**
+     * Configure the LEDs.
+@@ -868,7 +872,7 @@
+     *
+     * @see setLed
+     */
+-    static int setLedConfig(uint8_t config = 0x0, uint16_t remote_id = NULL);
++    static int setLedConfig(uint8_t config = 0x0, uint16_t remote_id = 0);
+ 
+ /** @}*/
+ 
+@@ -892,7 +896,7 @@
+     *
+     * @see doPositioning, doRemotePositioning
+     */
+-    static int getCoordinates(coordinates_t *coordinates, uint16_t remote_id = NULL);
++    static int getCoordinates(coordinates_t *coordinates, uint16_t remote_id = 0);
+ 
+     /**
+     * Set the coordinates of the device. 
+@@ -907,7 +911,7 @@
+     *
+     * @see getCoordinates
+     */
+-    static int setCoordinates(coordinates_t coordinates, uint16_t remote_id = NULL);
++    static int setCoordinates(coordinates_t coordinates, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the last estimated position error covariance information. 
+@@ -921,7 +925,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getPositionError(pos_error_t *pos_error, uint16_t remote_id = NULL);
++    static int getPositionError(pos_error_t *pos_error, uint16_t remote_id = 0);
+ 
+     /**
+     * Manually set which anchors to use for positioning.
+@@ -939,8 +943,8 @@
+     *
+     * @see setSelectionOfAnchors, getPositioningAnchorIds
+     */
+-    static int setPositioningAnchorIds(uint16_t anchors[], int anchor_num, uint16_t remote_id = NULL);
+-    
++    static int setPositioningAnchorIds(uint16_t anchors[], int anchor_num, uint16_t remote_id = 0);
++
+     /**
+     * Obtain which anchors used for positioning.
+     * Function to retrieve the anchors that used for positioning by calling the register function reg:POZYX_POS_GET_ANCHOR_IDS. 
+@@ -956,7 +960,7 @@
+     *
+     * @see setSelectionOfAnchors, setPositioningAnchorIds
+     */
+-    static int getPositioningAnchorIds(uint16_t anchors[], int anchor_num, uint16_t remote_id = NULL);
++    static int getPositioningAnchorIds(uint16_t anchors[], int anchor_num, uint16_t remote_id = 0);
+ 
+     /**
+     * Read the update interval continuous positioning.
+@@ -971,7 +975,7 @@
+     *
+     * @see setUpdateInterval
+     */
+-    static int getUpdateInterval(uint16_t *ms, uint16_t remote_id = NULL);
++    static int getUpdateInterval(uint16_t *ms, uint16_t remote_id = 0);
+ 
+     /**
+     * Configure the udpate interval for continuous positioning.
+@@ -987,7 +991,7 @@
+     *
+     * @see getUpdateInterval
+     */
+-    static int setUpdateInterval(uint16_t ms, uint16_t remote_id = NULL);
++    static int setUpdateInterval(uint16_t ms, uint16_t remote_id = 0);
+   
+     
+ 
+@@ -1005,7 +1009,7 @@
+     *
+     * @see getPositionDimension, setPositionAlgorithm
+     */
+-    static int getPositionAlgorithm(uint8_t *algorithm, uint16_t remote_id = NULL);
++    static int getPositionAlgorithm(uint8_t *algorithm, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the configured positioning dimension.
+@@ -1020,7 +1024,7 @@
+     *
+     * @see getPositionAlgorithm, setPositionAlgorithm
+     */
+-    static int getPositionDimension(uint8_t *dimension, uint16_t remote_id = NULL);
++    static int getPositionDimension(uint8_t *dimension, uint16_t remote_id = 0);
+ 
+ 
+     /**
+@@ -1037,7 +1041,7 @@
+     *
+     * @see getPositionAlgorithm, getPositionDimension
+     */
+-    static int setPositionAlgorithm(int algorithm = POZYX_POS_ALG_UWB_ONLY, int dimension = 0x0, uint16_t remote_id = NULL);
++    static int setPositionAlgorithm(int algorithm = POZYX_POS_ALG_UWB_ONLY, int dimension = 0x0, uint16_t remote_id = 0);
+     
+     /**
+     * Obtain the anchor selection mode.
+@@ -1051,7 +1055,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getAnchorSelectionMode(uint8_t *mode, uint16_t remote_id = NULL);
++    static int getAnchorSelectionMode(uint8_t *mode, uint16_t remote_id = 0);
+ 
+ 
+     /**
+@@ -1066,7 +1070,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */  
+-    static int getNumberOfAnchors(uint8_t *nr_anchors, uint16_t remote_id = NULL);
++    static int getNumberOfAnchors(uint8_t *nr_anchors, uint16_t remote_id = 0);
+ 
+ 
+     /**
+@@ -1086,7 +1090,7 @@
+     *
+     * @see setPositioningAnchorIds to set the anchor IDs in manual anchor selection mode.
+     */  
+-    static int setSelectionOfAnchors(int mode, int nr_anchors, uint16_t remote_id = NULL);
++    static int setSelectionOfAnchors(int mode, int nr_anchors, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the operation mode of the device.
+@@ -1103,7 +1107,7 @@
+     *
+     * @see setOperationMode
+     */  
+-    static int getOperationMode(uint8_t *mode, uint16_t remote_id = NULL);
++    static int getOperationMode(uint8_t *mode, uint16_t remote_id = 0);
+ 
+ 
+     /**
+@@ -1120,7 +1124,7 @@
+     *
+     * @see getOperationMode
+     */    
+-    static int setOperationMode(uint8_t mode, uint16_t remote_id = NULL);
++    static int setOperationMode(uint8_t mode, uint16_t remote_id = 0);
+ 
+ 
+     /**
+@@ -1132,7 +1136,7 @@
+     * @retval String the textual error
+     *
+     */
+-    static String getSystemError(uint16_t remote_id = NULL);
++    static std::string getSystemError(uint16_t remote_id = 0);
+ 
+ 
+ /** @}*/
+@@ -1153,7 +1157,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getSensorMode(uint8_t *sensor_mode, uint16_t remote_id = NULL);
++    static int getSensorMode(uint8_t *sensor_mode, uint16_t remote_id = 0);
+ 
+     /**
+     * Configure the sensor mode.
+@@ -1165,7 +1169,7 @@
+     * @retval #POZYX_SUCCESS success.
+     * @retval #POZYX_FAIL function failed.
+     */
+-    static int setSensorMode(uint8_t sensor_mode, uint16_t remote_id = NULL);
++    static int setSensorMode(uint8_t sensor_mode, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain all sensor data at once.
+@@ -1179,7 +1183,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getAllSensorData(sensor_data_t *sensor_data, uint16_t remote_id = NULL);
++    static int getAllSensorData(sensor_data_t *sensor_data, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the atmospheric pressure in Pascal. 
+@@ -1192,7 +1196,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getPressure_Pa(float32_t *pressure, uint16_t remote_id = NULL);
++    static int getPressure_Pa(float32_t *pressure, uint16_t remote_id = 0);
+ 
+ 
+     /**
+@@ -1207,7 +1211,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getAcceleration_mg(acceleration_t *acceleration, uint16_t remote_id = NULL);
++    static int getAcceleration_mg(acceleration_t *acceleration, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the 3D magnetic field strength vector in µTesla.
+@@ -1221,7 +1225,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getMagnetic_uT(magnetic_t *magnetic, uint16_t remote_id = NULL);
++    static int getMagnetic_uT(magnetic_t *magnetic, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the 3D angular velocity vector degrees per second.
+@@ -1235,7 +1239,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getAngularVelocity_dps(angular_vel_t *angular_vel, uint16_t remote_id = NULL);
++    static int getAngularVelocity_dps(angular_vel_t *angular_vel, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the orientation in Euler angles in degrees.
+@@ -1248,7 +1252,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getEulerAngles_deg(euler_angles_t *euler_angles, uint16_t remote_id = NULL);
++    static int getEulerAngles_deg(euler_angles_t *euler_angles, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the orientation in quaternions.
+@@ -1262,7 +1266,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getQuaternion(quaternion_t *quaternion, uint16_t remote_id = NULL);
++    static int getQuaternion(quaternion_t *quaternion, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the 3D linear acceleration in mg.
+@@ -1278,7 +1282,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getLinearAcceleration_mg(linear_acceleration_t *linear_acceleration, uint16_t remote_id = NULL);
++    static int getLinearAcceleration_mg(linear_acceleration_t *linear_acceleration, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the 3D gravity vector in mg.
+@@ -1292,7 +1296,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getGravityVector_mg(gravity_vector_t *gravity_vector, uint16_t remote_id = NULL);
++    static int getGravityVector_mg(gravity_vector_t *gravity_vector, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the temperature in degrees Celcius.
+@@ -1306,7 +1310,7 @@
+     * @retval #POZYX_FAIL function failed.
+     * @retval #POZYX_TIMEOUT function timed out, no response received.
+     */
+-    static int getTemperature_c(float32_t *temperature, uint16_t remote_id = NULL);
++    static int getTemperature_c(float32_t *temperature, uint16_t remote_id = 0);
+ 
+ /** @}*/
+ 
+@@ -1399,7 +1403,7 @@
+     *
+     * @see doRanging, doRemoteRanging
+     */
+-    static int getDeviceRangeInfo(uint16_t device_id, device_range_t *device_range, uint16_t remote_id = NULL);
++    static int getDeviceRangeInfo(uint16_t device_id, device_range_t *device_range, uint16_t remote_id = 0);
+ 
+ /** @}*/  
+ 
+@@ -1419,7 +1423,7 @@
+     *
+     * @see doDiscovery, doAnchorCalibration
+     */
+-    static int getDeviceListSize(uint8_t *device_list_size, uint16_t remote_id = NULL);
++    static int getDeviceListSize(uint8_t *device_list_size, uint16_t remote_id = 0);
+    
+ 
+     /**
+@@ -1433,7 +1437,7 @@
+     * @retval #POZYX_SUCCESS success.
+     * @retval #POZYX_FAIL function failed.
+     */
+-    static int getDeviceIds(uint16_t devices[], int size, uint16_t remote_id = NULL);
++    static int getDeviceIds(uint16_t devices[], int size, uint16_t remote_id = 0);
+ 
+     /**
+     * Obtain the network IDs from all the anchors in the device list.
+@@ -1446,7 +1450,7 @@
+     * @retval #POZYX_SUCCESS success.
+     * @retval #POZYX_FAIL function failed.
+     */
+-    static int getAnchorIds(uint16_t anchors[], int size, uint16_t remote_id = NULL);
++    static int getAnchorIds(uint16_t anchors[], int size, uint16_t remote_id = 0);
+     
+     /**
+     * Obtain the network IDs from all the tags in the device list.
+@@ -1459,7 +1463,7 @@
+     * @retval #POZYX_SUCCESS success.
+     * @retval #POZYX_FAIL function failed.
+     */
+-    static int getTagIds(uint16_t tags[], int size, uint16_t remote_id = NULL);
++    static int getTagIds(uint16_t tags[], int size, uint16_t remote_id = 0);
+ 
+     /**
+     * Discover Pozyx devices in range.
+@@ -1499,7 +1503,7 @@
+     *
+     * @see Please read the Ready to Localize tutorial to get started with this function.
+     */
+-    static int doAnchorCalibration(int dimension = POZYX_2D, int num_measurements = 10, int num_anchors = 0, uint16_t anchors[] = NULL,  int32_t heights[] = NULL);
++    static int doAnchorCalibration(int dimension = POZYX_2D, int num_measurements = 10, int num_anchors = 0, uint16_t anchors[] = 0,  int32_t heights[] = NULL);
+         
+     /**
+     * Empty the internal list of devices.
+@@ -1510,7 +1514,7 @@
+     * @retval #POZYX_SUCCESS success.
+     * @retval #POZYX_FAIL function failed.
+     */
+-    static int clearDevices(uint16_t remote_id = NULL);
++    static int clearDevices(uint16_t remote_id = 0);
+ 
+     /**
+     * Manualy adds a device to the device list.
+@@ -1523,7 +1527,7 @@
+     * @retval #POZYX_SUCCESS success.
+     * @retval #POZYX_FAIL function failed.
+     */
+-    static int addDevice(device_coordinates_t device_coordinates, uint16_t remote_id = NULL);
++    static int addDevice(device_coordinates_t device_coordinates, uint16_t remote_id = 0);
+ 
+     /**
+     * Retrieve the stored coordinates of a device.
+@@ -1536,7 +1540,7 @@
+     * @retval #POZYX_SUCCESS success.
+     * @retval #POZYX_FAIL function failed.
+     */
+-    static int getDeviceCoordinates(uint16_t device_id, coordinates_t *coordinates, uint16_t remote_id = NULL);
++    static int getDeviceCoordinates(uint16_t device_id, coordinates_t *coordinates, uint16_t remote_id = 0);
+ 
+ /** @}*/    
+ 
+diff -Naur Pozyx-Arduino-library/Pozyx_lib.cpp Pozyx-custom-library/Pozyx_lib.cpp
+--- Pozyx-Arduino-library/Pozyx_lib.cpp	2016-07-25 15:03:47.124548015 +0300
++++ Pozyx-custom-library/Pozyx_lib.cpp	2016-07-25 17:10:07.650137812 +0300
+@@ -5,13 +5,25 @@
+ *
+ */
+ 
++#include "helpers.hh"
+ #include "Pozyx.h"
+-#include <Wire.h>
++#include <string>
++#include <iostream>
++#include <cstring>
+ 
+ extern "C" {
+   #include "Pozyx_definitions.h"
+ }
+ 
++#undef NULL
++#define NULL 0
++
++using std::cout;
++using std::cerr;
++using std::endl;
++using std::string;
++using std::memcpy;
++
+ int PozyxClass::getWhoAmI(uint8_t *whoami , uint16_t remote_id)
+ {
+   assert(whoami != NULL);
+@@ -136,7 +148,7 @@
+ 
+ int PozyxClass::setUpdateInterval(uint16_t ms, uint16_t remote_id)
+ { 
+-  assert(ms > 100);
++  assert(ms >= 100);
+   assert(ms <= 60000);
+ 
+   int status;
+@@ -404,8 +416,8 @@
+ 
+   // afterwards, it is possible to set the gain to a custom value
+   if(UWB_settings->gain_db > 0.1){
+-    Serial.println(UWB_settings->channel);
+-    Serial.println(UWB_settings->gain_db );
++    cout << UWB_settings->channel << endl;
++    cout << UWB_settings->gain_db << endl;
+     status = setTxPower(UWB_settings->gain_db, remote_id);
+   }else
+     getTxPower(&(UWB_settings->gain_db), remote_id);
+@@ -929,7 +941,7 @@
+ }
+ 
+ 
+-String PozyxClass::getSystemError(uint16_t remote_id)
++string PozyxClass::getSystemError(uint16_t remote_id)
+ {
+   uint8_t error_code, result;
+ 
+@@ -941,49 +953,49 @@
+   }
+ 
+   if(result != POZYX_SUCCESS)
+-    return F("Error: could not connect with the Pozyx device");
++    return "Error: could not connect with the Pozyx device";
+ 
+   switch(error_code)
+   {
+     case POZYX_ERROR_NONE:
+-      return F("");
++      return ("");
+     case POZYX_ERROR_I2C_WRITE:
+-      return F("Error 0x01: Error writing to a register through the I2C bus");
++      return ("Error 0x01: Error writing to a register through the I2C bus");
+     case POZYX_ERROR_I2C_CMDFULL:
+-      return F("Error 0x02: Pozyx cannot handle all the I2C commands at once");
++      return ("Error 0x02: Pozyx cannot handle all the I2C commands at once");
+     case POZYX_ERROR_ANCHOR_ADD:
+-      return F("Error 0x03: Cannot add anchor to the internal device list");
++      return ("Error 0x03: Cannot add anchor to the internal device list");
+     case POZYX_ERROR_COMM_QUEUE_FULL:
+-      return F("Error 0x04: Communication queue is full, too many UWB messages");
++      return ("Error 0x04: Communication queue is full, too many UWB messages");
+     case POZYX_ERROR_I2C_READ:
+-      return F("Error 0x05: Error reading from a register from the I2C bus");
++      return ("Error 0x05: Error reading from a register from the I2C bus");
+     case POZYX_ERROR_UWB_CONFIG:
+-      return F("Error 0x06: Cannot change the UWB configuration");
++      return ("Error 0x06: Cannot change the UWB configuration");
+     case POZYX_ERROR_OPERATION_QUEUE_FULL:
+-      return F("Error 0x07: Pozyx cannot handle all the operations at once");
++      return ("Error 0x07: Pozyx cannot handle all the operations at once");
+     case POZYX_ERROR_STARTUP_BUSFAULT:
+-      return F("Error 0x08: Internal bus error");
++      return ("Error 0x08: Internal bus error");
+     case POZYX_ERROR_FLASH_INVALID:
+-      return F("Error 0x09: Flash memory is corrupted or invalid");
++      return ("Error 0x09: Flash memory is corrupted or invalid");
+     case POZYX_ERROR_NOT_ENOUGH_ANCHORS:
+-      return F("Error 0x0A: Not enough anchors available for positioning");
++      return ("Error 0x0A: Not enough anchors available for positioning");
+     case POZYX_ERROR_DISCOVERY:
+-      return F("Error 0x0B: Error during the Discovery process");
++      return ("Error 0x0B: Error during the Discovery process");
+     case POZYX_ERROR_CALIBRATION:
+-      return F("Error 0x0C: Error during the auto calibration process");
++      return ("Error 0x0C: Error during the auto calibration process");
+     case POZYX_ERROR_FUNC_PARAM:
+-      return F("Error 0x0D: Invalid function parameters for the register function");
++      return ("Error 0x0D: Invalid function parameters for the register function");
+     case POZYX_ERROR_ANCHOR_NOT_FOUND:
+-      return F("Error 0x0E: The coordinates of an anchor are not found");
++      return ("Error 0x0E: The coordinates of an anchor are not found");
+     case POZYX_ERROR_GENERAL:
+-      return F("Error 0xFF: General error");
++      return ("Error 0xFF: General error");
+     default:
+-      return F("Unknown error");
++      return ("Unknown error");
+   }
+ 
+ }
+ 
+-int PozyxClass::setLed(int led_num, boolean state, uint16_t remote_id)
++int PozyxClass::setLed(int led_num, bool state, uint16_t remote_id)
+ {
+   assert(led_num >= 1);
+   assert(led_num <= 4);
+@@ -1490,22 +1502,18 @@
+ void __attribute__((weak)) __assert (const char *func, const char *file, int line, const char *failedexpr)
+ {
+     // print out whatever you like here, function name, filename, line#, expression that failed.
+-  if (Serial){
+-    Serial.print("Assertion in function : ");
+-    Serial.println(func);
+-    Serial.print("Assertion failed : ");
+-    Serial.println(failedexpr);
+-    Serial.print("Filename: ");
+-    Serial.println(file);
+-    Serial.print("Line number: ");
+-    Serial.println(line);
++  if (true){
++    cerr << "Assertion in function : " << func << endl;
++    cerr << "Assertion failed : " << failedexpr << endl;
++    cerr << "Filename: " << file << endl;
++    cerr << "Line number: " << line << endl;
+ 
+     // platform independent delay to allow the string to be printed
+     delay(10);
+   }
+ 
+     // halt after outputting information
+-    abort(); 
++    return;
+ }
+ #else
+ void __attribute__((weak)) __assert_pozyx (const char *__func, const char *__file, int __lineno)

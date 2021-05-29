@@ -1,0 +1,144 @@
+diff --git a/measurement.sh b/measurement.sh
+index 652d9e7..ae9dd85 100755
+--- a/measurement.sh
++++ b/measurement.sh
+@@ -2,7 +2,7 @@
+ 
+ # VARIABLES TO CONFIGURE
+ 
+-HOME="/home/pi"
++HOME="/home/openkin"
+ 
+ # Needed for rostopic etc
+ #source /opt/ros/indigo/setup.bash
+@@ -25,33 +25,33 @@ POZYXTAGFILE="$HOME/data/tags.txt"
+ GPS=0
+ 
+ # wireless MTw connected = 0, not = 1
+-MTW=1
++MTW=0
+ 
+ # wired MTi connected = 0, not = 1
+-MTI=0
++MTI=1
+ 
+ # Pozyx connected = 0, not = 1
+ POZYX=0
+ # Linux I2C device = 0, not (pigpiod) = 1
+-LINUXI2C=1
++LINUXI2C=0
+ 
+ # primary led connected (linux-gpio) = 0, not = 1, pwm = 2, rpigpio = 3, inverse gpio = 4
+-LED[0]=4
++LED[0]=2
+ # GPIO pin or pwm device number
+-LEDGPIO[0]=24
++LEDGPIO[0]=0
+ LEDPID[0]=0
+ 
+ # secondary led connected = 0, not = 1, pwm = 2, rpigpio = 3, inverse gpio = 4
+-LED[1]=4
+-LEDGPIO[1]=25
++LED[1]=0
++LEDGPIO[1]=474
+ LEDPID[1]=0
+ 
+-LED[2]=4
+-LEDGPIO[2]=10
++LED[2]=2
++LEDGPIO[2]=1
+ LEDPID[2]=0
+ 
+ # linux-shutdown switch connected = 0, not = 1, rpi python = 2
+-PWRSWITCH=2
++PWRSWITCH=0
+ 
+ # CONFIGURATION ENDS HERE
+ 
+diff --git a/nodes/ascii_logger/src/listener.py b/nodes/ascii_logger/src/listener.py
+index 7d9ebc3..c9689ae 100755
+--- a/nodes/ascii_logger/src/listener.py
++++ b/nodes/ascii_logger/src/listener.py
+@@ -19,7 +19,7 @@ import threading
+ 
+ import time
+ filename = time.strftime("%Y-%m-%d-%H-%M-%S")
+-filename = "/home/pi/data/" + filename + ".txt"
++filename = "/home/openkin/data/" + filename + ".txt"
+ 
+ file = open(filename, "a")
+ 
+diff --git a/nodes/pozyx/CMakeLists.txt b/nodes/pozyx/CMakeLists.txt
+index 1faccbd..939c8e5 100644
+--- a/nodes/pozyx/CMakeLists.txt
++++ b/nodes/pozyx/CMakeLists.txt
+@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 2.8.3)
+ project(pozyx)
+ find_package(catkin REQUIRED roscpp imu_sequenced std_msgs geometry_msgs sensor_msgs message_generation)
+ 
+-find_package(Threads REQUIRED)
+-
+ add_message_files(
+   FILES
+ 	StringStamped.msg
+@@ -24,7 +22,7 @@ include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+ add_executable(pozyx src/pozyx.cpp)
+ add_library(pozyx-lib include/Pozyx-custom-library/Pozyx_core.cpp include/Pozyx-custom-library/Pozyx_lib.cpp include/Pozyx-custom-library/helpers.cpp)
+ 
+-target_link_libraries(pozyx pozyx-lib pigpiod_if2 rt)
++target_link_libraries(pozyx pozyx-lib)
+ 
+ add_dependencies(pozyx pozyx_gencpp)
+ 
+@@ -32,12 +30,4 @@ target_link_libraries(pozyx
+         ${catkin_LIBRARIES}
+ )
+ 
+-if(THREADS_HAVE_PTHREAD_ARG)
+-  target_compile_options(PUBLIC pozyx "-pthread")
+-endif()
+-if(CMAKE_THREAD_LIBS_INIT)
+-  target_link_libraries(pozyx "${CMAKE_THREAD_LIBS_INIT}")
+-endif()
+-
+-
+ #set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+diff --git a/nodes/pozyx/include/Pozyx-custom-library/Pozyx.h b/nodes/pozyx/include/Pozyx-custom-library/Pozyx.h
+index 28118a6..afc2c94 100644
+--- a/nodes/pozyx/include/Pozyx-custom-library/Pozyx.h
++++ b/nodes/pozyx/include/Pozyx-custom-library/Pozyx.h
+@@ -19,8 +19,8 @@
+ #undef NULL
+ #define NULL 0
+ 
+-#define RPI
+-#undef MINNOW
++#undef RPI
++#define MINNOW
+ 
+ #include <inttypes.h>
+ #include <string>
+diff --git a/nodes/ublox/ublox_gps/launch/ublox_device.launch b/nodes/ublox/ublox_gps/launch/ublox_device.launch
+index e8d288f..95efe60 100644
+--- a/nodes/ublox/ublox_gps/launch/ublox_device.launch
++++ b/nodes/ublox/ublox_gps/launch/ublox_device.launch
+@@ -2,7 +2,7 @@
+ 
+ <launch>
+   <arg name="node_name" default="gps"/>
+-  <arg name="param_file_name" doc="name of param file, e.g. rover" default="rpi"/>
++  <arg name="param_file_name" doc="name of param file, e.g. rover" default="minnow"/>
+   <arg name="output" default="screen" />
+ 
+   <node pkg="ublox_gps" type="ublox_gps" name="$(arg node_name)"
+diff --git a/start_script.sh b/start_script.sh
+index f0fab48..995c233 100755
+--- a/start_script.sh
++++ b/start_script.sh
+@@ -1,5 +1,5 @@
+ #!/bin/bash
+ 
+-/usr/bin/flock -n /home/pi/openkin.lock -c "/home/pi/openkin/measurement.sh &" > /dev/null 2>&1
++/usr/bin/flock -n /home/openkin/openkin.lock -c "/home/openkin/openkin/measurement.sh &" > /dev/null 2>&1
+ 
+ exit $?
