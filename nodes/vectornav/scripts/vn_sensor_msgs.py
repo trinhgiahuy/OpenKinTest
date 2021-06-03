@@ -139,17 +139,31 @@ if __name__ == '__main__':
   global msg_imu
     
   msg_imu = Imu()
+  file_name="vn_sensor_msgs.py: "
+  pub_ = "Publisher "
+  sub_  = "Subcriber "
+  pub_log = file_name + pub_
+  sub_log = file_name + sub_
+  
   
   pub_imu  = rospy.Publisher("/Imu"          , Imu)
+  rospy.loginfo(pub_log + "/Imu")
   pub_mag  = rospy.Publisher("/MagneticField", MagneticField)
+  rospy.loginfo(pub_log + "/MagneticField")
   pub_temp = rospy.Publisher("/Temerature"   , Temperature)
+  rospy.loginfo(pub_log + "/Temperature")
   pub_baro = rospy.Publisher("/FluidPressure", FluidPressure)
+  rospy.loginfo(pub_log + "/FluidPressure")
   pub_gps  = rospy.Publisher("/NavSatFix"    , NavSatFix)
+  rospy.loginfo(pub_log + "/NavSatFix")
   pub_time = rospy.Publisher("/TimeRef"      , TimeReference)
+  rospy.loginfo(pub_log + "/TimeRef")
   
   #TODO: Only subscribe when we have subscribers
   rospy.Subscriber("/vectornav/imu", sensors,  sub_imuCB)
+  rospy.loginfo(sub_log+ "/vectornav/imu")
   rospy.Subscriber("/vectornav/ins", ins,      sub_insCB)
+  rospy.loginfo(sub_log+ "/vectornav/ins")
   rospy.spin()
   
   
