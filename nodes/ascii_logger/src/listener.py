@@ -572,9 +572,11 @@ def line_formatter(point):
       point.get('dvel.x', 'NaN'),
       point.get('dvel.y', 'NaN'),
       point.get('dvel.z', 'NaN'),
+      #34	    
       point.get('gpsvelN', 'NaN'),
       point.get('gpsvelE', 'NaN'),
       point.get('gpsvelD', 'NaN'),
+      #37
       point.get('gpslatitude', 'NaN'),
       point.get('gpslongitude', 'NaN'),
       point.get('gpsaltitude', 'NaN'),
