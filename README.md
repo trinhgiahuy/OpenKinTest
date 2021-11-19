@@ -77,3 +77,4 @@ The script now starts from /etc/rc.local, with lockfile at /home/ubuntu/measurem
 
 # More documentation...
 ... can be found in Google Docs with the tutopenkin@gmail.com -account.
+[doc/](doc/)
