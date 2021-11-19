@@ -75,6 +75,7 @@ http://msthub.ain.rd.tut.fi/mobilemachines/motion_fusion/blob/master/src/KalmanI
 The measurements are started by running ~/openkin/start_script.sh, which in turn calls the main script at ~/openkin/measurement.sh using locks.
 The script now starts from /etc/rc.local, with lockfile at /home/ubuntu/measurement.lock and as user ubuntu (or pi or openkin).
 
-# More documentation...
+# Old documentation...
 ... can be found in Google Docs with the tutopenkin@gmail.com -account.
-[doc/](doc/)
+
+# For latest documentation, please look at [doc/](doc/)
