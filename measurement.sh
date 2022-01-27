@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# 2022-01-28 UPDATE: SEARCH FOR DOUBLE COMMENT (##) FOR SCREEN OUTPUT MESSAGE
+
 # VARIABLES TO CONFIGURE
 
 HOME="/home/pi"
@@ -124,6 +126,7 @@ TIMECORRECTED=1
 
 online=1
 
+## SCREEN OUTPUT THIS
 logger "Starting datalogger"
 
 rm $INSRECORDING
@@ -216,6 +219,9 @@ for i in {0..2}; do
 		sleep 1
 		LEDPID[$i]=$(ps --ppid ${SUDOPID[$i]} -o pid=)
 		echo "${LEDPID[$i]}"
+		## SCREEN OUTPUT THIS AS 
+		## Led 0 connected
+		## Led 1 connected
 		logger "Led $i connected"
 		sleep 2
 		led_on $i
@@ -230,6 +236,7 @@ function quitScreens {
 	#led_on 1
 
 	if screen -list | grep -q "log"; then
+		## SCREEN OUTPUT THIS
 		logger "Shutting down logger"
 		screen -S log -X stuff $'\003'
 		sleep 3
@@ -237,6 +244,7 @@ function quitScreens {
 	fi
 
 	if screen -list | grep -q "bag"; then
+		## SCREEN OUTPUT THIS
 		logger "Shutting down bag"
 		#The bag needs to exit gracefully
 		screen -S bag -X stuff $'\003'
@@ -264,6 +272,7 @@ function quitScreens {
 	fi
 
 	if screen -list | grep -q "ins"; then
+		## SCREEN OUTPUT THIS
 		logger "Shutting down the INS"
 		screen -S ins -X stuff $'\003'
 		sleep 4
@@ -352,6 +361,7 @@ if [ "$POZYX" -eq 0 ] && [ "$LINUXI2C" -eq 0 ]; then
 	done
 fi
 
+## SCREEN OUTPUT THIS
 logger "Starting loop"
 while true; do
 #	logger "Running loop"
@@ -367,10 +377,12 @@ while true; do
 
 		if [ "$TIMECORRECTED" -ne 0 ]; then
 			sudo date +%Y%m%d -s "20180101"
+			## SCREEN OUTPUT THIS
 			logger "Time to past"
 		fi
 		if [[ $TIMECORRECTED -ne 0 ]] && sudo ntpdate time1.mikes.fi; then
 			TIMECORRECTED=0
+			## SCREEN OUTPUT THIS
 			logger "Time corrected"
 			led_blink_f 0
 			( sleep 5 && led_off 0) &
@@ -383,6 +395,7 @@ while true; do
 
 			echo "OFF" > $INSRECORDING
 			#Uploading the data
+			## SCREEN OUTPUT THIS
 			logger "Waiting for everything to shut down"
 			COUNTER=0
 			while screen -list | grep "ins\|imu\|mtw\|pozyx\|gps\|bag\|log"; do
@@ -401,6 +414,7 @@ while true; do
 		if [ "$UPLOADED" -ne 0 ]; then
 			if [ "$STARTEDUPLOAD" -ne 0 ] && ! ps -p $GRIVEPID > /dev/null 2>&1; then
 				STARTEDUPLOAD=0
+				## SCREEN OUTPUT THIS
 				logger "Uploading the data"
 				#screen -r grive -X stuff $'\ngrive\n'
 				# upload in subshell
@@ -415,6 +429,7 @@ while true; do
 				UPLOADED=0
 				STARTEDUPLOAD=1
 				led_on 1
+				## SCREEN OUTPUT THIS
 				logger "Done uploading!"
 			fi
 			#UPLOADED=0
@@ -514,6 +529,15 @@ while true; do
 
 			if [ "$INS" -eq 0 ]; then
 				if ! screen -list | grep -q "ins"; then
+					## SCREEN OUTPUT THIS
+					## IT MAY GET ERROR HERE FOR THE FIRST TIME 
+: '
+[Sun 18 Jul 15:35:41 EEST 2021] Error on starting ins
+[Sun 18 Jul 15:35:41 EEST 2021] terminate called after throwing an instance of 'vn::unknown_error'
+  what():  std::exception
+[31m[vectornav-2] process has died [pid 2818, exit code -6, cmd /home/pi/catkin_ws/devel/lib/vectornav/vn200_node __name:=vectornav __log:=/home/pi/.ros/log/a2d40c38-e7c4-11eb-83d7-3fbee8684fc9/vectornav-2.log].
+log file: /home/pi/.ros/log/a2d40c38-e7c4-11eb-83d7-3fbee8684fc9/vectornav-2*.log[0m
+'
 					logger "Offline: Starting INS"
 					screen -dmS ins
 					screen -r ins -X stuff $'\nsudo -E bash\nrm '$INSTEMPFILE$'\nnice -n -10 roslaunch vectornav vn200.launch 2> '$INSTEMPFILE$'\n'
@@ -616,6 +640,7 @@ while true; do
 			fi
 
 			if ! screen -list | grep -q "bag"; then
+				## SCREEN OUTPUT THIS
 				logger "Offline: Starting RECORDING"
 				screen -dmS bag
 				screen -r bag -X stuff $'\ncd ~/data\nrosbag record -a\n'
@@ -624,6 +649,7 @@ while true; do
 			fi
 
 			if ! (screen -list | grep -q "log") && [[ $IMUERR -eq 0 ]] && [[ $MTWERR -eq 0 ]] && [[ $GPSERR -eq 0 ]] && [[ $INSERR -eq 0 ]] && [[ $POZYXERR -eq 0 ]]; then
+				## SCREEN OUTPUT THIS
 				logger "Offline: Starting logger"
 				screen -dmS log
 				screen -r log -X stuff $'\nrosrun ascii_logger listener.py > '$ASCIILOG$'\n'
