@@ -1,0 +1,2892 @@
+before loop 3 00:15
+before loop 6 00:15
+after loop 3 00:15
+new3  43 67 
+---------set60secs
+---beforeadd 43 67
+---afteradd 44 7
+before loop 3 00:30
+before loop 6 00:30
+after loop 3 00:30
+new3  43 82 
+---------set60secs
+---beforeadd 43 82
+---afteradd 44 22
+before loop 3 00:45
+before loop 6 00:45
+after loop 3 00:45
+new3  43 97 
+---------set60secs
+---beforeadd 43 97
+---afteradd 44 37
+before loop 3 01:00
+before loop 6 01:00
+after loop 3 01:00
+new3  44 52 
+before loop 3 01:15
+before loop 6 01:15
+after loop 3 01:15
+new3  44 67 
+---------set60secs
+---beforeadd 44 67
+---afteradd 45 7
+before loop 3 01:30
+before loop 6 01:30
+after loop 3 01:30
+new3  44 82 
+---------set60secs
+---beforeadd 44 82
+---afteradd 45 22
+before loop 3 01:45
+before loop 6 01:45
+after loop 3 01:45
+new3  44 97 
+---------set60secs
+---beforeadd 44 97
+---afteradd 45 37
+before loop 3 02:00
+before loop 6 02:00
+after loop 3 02:00
+new3  45 52 
+before loop 3 02:15
+before loop 6 02:15
+after loop 3 02:15
+new3  45 67 
+---------set60secs
+---beforeadd 45 67
+---afteradd 46 7
+before loop 3 02:30
+before loop 6 02:30
+after loop 3 02:30
+new3  45 82 
+---------set60secs
+---beforeadd 45 82
+---afteradd 46 22
+before loop 3 02:45
+before loop 6 02:45
+after loop 3 02:45
+new3  45 97 
+---------set60secs
+---beforeadd 45 97
+---afteradd 46 37
+before loop 3 03:00
+before loop 6 03:00
+after loop 3 03:00
+new3  46 52 
+before loop 3 03:15
+before loop 6 03:15
+after loop 3 03:15
+new3  46 67 
+---------set60secs
+---beforeadd 46 67
+---afteradd 47 7
+before loop 3 03:30
+before loop 6 03:30
+after loop 3 03:30
+new3  46 82 
+---------set60secs
+---beforeadd 46 82
+---afteradd 47 22
+before loop 3 03:45
+before loop 6 03:45
+after loop 3 03:45
+new3  46 97 
+---------set60secs
+---beforeadd 46 97
+---afteradd 47 37
+before loop 3 04:00
+before loop 6 04:00
+after loop 3 04:00
+new3  47 52 
+before loop 3 04:15
+before loop 6 04:15
+after loop 3 04:15
+new3  47 67 
+---------set60secs
+---beforeadd 47 67
+---afteradd 48 7
+before loop 3 04:30
+before loop 6 04:30
+after loop 3 04:30
+new3  47 82 
+---------set60secs
+---beforeadd 47 82
+---afteradd 48 22
+before loop 3 04:45
+before loop 6 04:45
+after loop 3 04:45
+new3  47 97 
+---------set60secs
+---beforeadd 47 97
+---afteradd 48 37
+before loop 3 05:00
+before loop 6 05:00
+after loop 3 05:00
+new3  48 52 
+before loop 3 05:15
+before loop 6 05:15
+after loop 3 05:15
+new3  48 67 
+---------set60secs
+---beforeadd 48 67
+---afteradd 49 7
+before loop 3 05:30
+before loop 6 05:30
+after loop 3 05:30
+new3  48 82 
+---------set60secs
+---beforeadd 48 82
+---afteradd 49 22
+before loop 3 05:45
+before loop 6 05:45
+after loop 3 05:45
+new3  48 97 
+---------set60secs
+---beforeadd 48 97
+---afteradd 49 37
+before loop 3 06:00
+before loop 6 06:00
+after loop 3 06:00
+new3  49 52 
+before loop 3 06:15
+before loop 6 06:15
+after loop 3 06:15
+new3  49 67 
+---------set60secs
+---beforeadd 49 67
+---afteradd 50 7
+before loop 3 06:30
+before loop 6 06:30
+after loop 3 06:30
+new3  49 82 
+---------set60secs
+---beforeadd 49 82
+---afteradd 50 22
+before loop 3 06:45
+before loop 6 06:45
+after loop 3 06:45
+new3  49 97 
+---------set60secs
+---beforeadd 49 97
+---afteradd 50 37
+before loop 3 07:00
+before loop 6 07:00
+after loop 3 07:00
+new3  50 52 
+before loop 3 07:15
+before loop 6 07:15
+after loop 3 07:15
+new3  50 67 
+---------set60secs
+---beforeadd 50 67
+---afteradd 51 7
+before loop 3 07:30
+before loop 6 07:30
+after loop 3 07:30
+new3  50 82 
+---------set60secs
+---beforeadd 50 82
+---afteradd 51 22
+before loop 3 07:45
+before loop 6 07:45
+after loop 3 07:45
+new3  50 97 
+---------set60secs
+---beforeadd 50 97
+---afteradd 51 37
+before loop 3 08:00
+before loop 6 08:00
+after loop 3 08:00
+new3  51 52 
+before loop 3 08:15
+before loop 6 08:15
+after loop 3 08:15
+new3  51 67 
+---------set60secs
+---beforeadd 51 67
+---afteradd 52 7
+before loop 3 08:30
+before loop 6 08:30
+after loop 3 08:30
+new3  51 82 
+---------set60secs
+---beforeadd 51 82
+---afteradd 52 22
+before loop 3 08:45
+before loop 6 08:45
+after loop 3 08:45
+new3  51 97 
+---------set60secs
+---beforeadd 51 97
+---afteradd 52 37
+before loop 3 09:00
+before loop 6 09:00
+after loop 3 09:00
+new3  52 52 
+before loop 3 09:15
+before loop 6 09:15
+after loop 3 09:15
+new3  52 67 
+---------set60secs
+---beforeadd 52 67
+---afteradd 53 7
+before loop 3 09:30
+before loop 6 09:30
+after loop 3 09:30
+new3  52 82 
+---------set60secs
+---beforeadd 52 82
+---afteradd 53 22
+before loop 3 09:45
+before loop 6 09:45
+after loop 3 09:45
+new3  52 97 
+---------set60secs
+---beforeadd 52 97
+---afteradd 53 37
+before loop 3 10:00
+before loop 6 10:00
+after loop 3 10:00
+new3  53 52 
+before loop 3 10:15
+before loop 6 10:15
+after loop 3 10:15
+new3  53 67 
+---------set60secs
+---beforeadd 53 67
+---afteradd 54 7
+before loop 3 10:30
+before loop 6 10:30
+after loop 3 10:30
+new3  53 82 
+---------set60secs
+---beforeadd 53 82
+---afteradd 54 22
+before loop 3 10:45
+before loop 6 10:45
+after loop 3 10:45
+new3  53 97 
+---------set60secs
+---beforeadd 53 97
+---afteradd 54 37
+before loop 3 11:00
+before loop 6 11:00
+after loop 3 11:00
+new3  54 52 
+before loop 3 11:15
+before loop 6 11:15
+after loop 3 11:15
+new3  54 67 
+---------set60secs
+---beforeadd 54 67
+---afteradd 55 7
+before loop 3 11:30
+before loop 6 11:30
+after loop 3 11:30
+new3  54 82 
+---------set60secs
+---beforeadd 54 82
+---afteradd 55 22
+before loop 3 11:45
+before loop 6 11:45
+after loop 3 11:45
+new3  54 97 
+---------set60secs
+---beforeadd 54 97
+---afteradd 55 37
+before loop 3 12:00
+before loop 6 12:00
+after loop 3 12:00
+new3  55 52 
+before loop 3 12:15
+before loop 6 12:15
+after loop 3 12:15
+new3  55 67 
+---------set60secs
+---beforeadd 55 67
+---afteradd 56 7
+before loop 3 12:30
+before loop 6 12:30
+after loop 3 12:30
+new3  55 82 
+---------set60secs
+---beforeadd 55 82
+---afteradd 56 22
+before loop 3 12:45
+before loop 6 12:45
+after loop 3 12:45
+new3  55 97 
+---------set60secs
+---beforeadd 55 97
+---afteradd 56 37
+before loop 3 13:00
+before loop 6 13:00
+after loop 3 13:00
+new3  56 52 
+before loop 3 13:15
+before loop 6 13:15
+after loop 3 13:15
+new3  56 67 
+---------set60secs
+---beforeadd 56 67
+---afteradd 57 7
+before loop 3 13:30
+before loop 6 13:30
+after loop 3 13:30
+new3  56 82 
+---------set60secs
+---beforeadd 56 82
+---afteradd 57 22
+before loop 3 13:45
+before loop 6 13:45
+after loop 3 13:45
+new3  56 98 
+---------set60secs
+---beforeadd 56 98
+---afteradd 57 38
+before loop 3 14:00
+before loop 6 14:00
+after loop 3 14:00
+new3  57 53 
+before loop 3 14:15
+before loop 6 14:15
+after loop 3 14:15
+new3  57 68 
+---------set60secs
+---beforeadd 57 68
+---afteradd 58 8
+before loop 3 14:30
+before loop 6 14:30
+after loop 3 14:30
+new3  57 83 
+---------set60secs
+---beforeadd 57 83
+---afteradd 58 23
+before loop 3 14:45
+before loop 6 14:45
+after loop 3 14:45
+new3  57 98 
+---------set60secs
+---beforeadd 57 98
+---afteradd 58 38
+before loop 3 15:00
+before loop 6 15:00
+after loop 3 15:00
+new3  58 53 
+before loop 3 15:15
+before loop 6 15:15
+after loop 3 15:15
+new3  58 68 
+---------set60secs
+---beforeadd 58 68
+---afteradd 59 8
+before loop 3 15:30
+before loop 6 15:30
+after loop 3 15:30
+new3  58 83 
+---------set60secs
+---beforeadd 58 83
+---afteradd 59 23
+before loop 3 15:45
+before loop 6 15:45
+after loop 3 15:45
+new3  58 98 
+---------set60secs
+---beforeadd 58 98
+---afteradd 59 38
+before loop 3 16:00
+before loop 6 16:00
+after loop 3 16:00
+new3  59 53 
+before loop 3 16:15
+before loop 6 16:15
+after loop 3 16:15
+new3  59 68 
+---------set60secs
+---beforeadd 59 68
+---afteradd 60 8
+---------set60mins
+---beforeadd  60 8
+---afteradd 1 0 8
+before loop 3 16:30
+before loop 6 16:30
+after loop 3 16:30
+new3  59 83 
+---------set60secs
+---beforeadd 59 83
+---afteradd 60 23
+---------set60mins
+---beforeadd  60 23
+---afteradd 1 0 23
+before loop 3 16:45
+before loop 6 16:45
+after loop 3 16:45
+new3  59 98 
+---------set60secs
+---beforeadd 59 98
+---afteradd 60 38
+---------set60mins
+---beforeadd  60 38
+---afteradd 1 0 38
+before loop 3 17:00
+before loop 6 17:00
+after loop 3 17:00
+new3  60 53 
+---------set60mins
+---beforeadd  60 53
+---afteradd 1 0 53
+before loop 3 17:15
+before loop 6 17:15
+after loop 3 17:15
+new3  60 68 
+---------set60secs
+---beforeadd 60 68
+---afteradd 61 8
+---------set60mins
+---beforeadd  61 8
+---afteradd 1 1 8
+before loop 3 17:30
+before loop 6 17:30
+after loop 3 17:30
+new3  60 83 
+---------set60secs
+---beforeadd 60 83
+---afteradd 61 23
+---------set60mins
+---beforeadd  61 23
+---afteradd 1 1 23
+before loop 3 17:45
+before loop 6 17:45
+after loop 3 17:45
+new3  60 98 
+---------set60secs
+---beforeadd 60 98
+---afteradd 61 38
+---------set60mins
+---beforeadd  61 38
+---afteradd 1 1 38
+before loop 3 18:00
+before loop 6 18:00
+after loop 3 18:00
+new3  61 53 
+---------set60mins
+---beforeadd  61 53
+---afteradd 1 1 53
+before loop 3 18:15
+before loop 6 18:15
+after loop 3 18:15
+new3  61 68 
+---------set60secs
+---beforeadd 61 68
+---afteradd 62 8
+---------set60mins
+---beforeadd  62 8
+---afteradd 1 2 8
+before loop 3 18:30
+before loop 6 18:30
+after loop 3 18:30
+new3  61 83 
+---------set60secs
+---beforeadd 61 83
+---afteradd 62 23
+---------set60mins
+---beforeadd  62 23
+---afteradd 1 2 23
+before loop 3 18:45
+before loop 6 18:45
+after loop 3 18:45
+new3  61 98 
+---------set60secs
+---beforeadd 61 98
+---afteradd 62 38
+---------set60mins
+---beforeadd  62 38
+---afteradd 1 2 38
+before loop 3 19:00
+before loop 6 19:00
+after loop 3 19:00
+new3  62 53 
+---------set60mins
+---beforeadd  62 53
+---afteradd 1 2 53
+before loop 3 19:15
+before loop 6 19:15
+after loop 3 19:15
+new3  62 68 
+---------set60secs
+---beforeadd 62 68
+---afteradd 63 8
+---------set60mins
+---beforeadd  63 8
+---afteradd 1 3 8
+before loop 3 19:30
+before loop 6 19:30
+after loop 3 19:30
+new3  62 83 
+---------set60secs
+---beforeadd 62 83
+---afteradd 63 23
+---------set60mins
+---beforeadd  63 23
+---afteradd 1 3 23
+before loop 3 19:45
+before loop 6 19:45
+after loop 3 19:45
+new3  62 98 
+---------set60secs
+---beforeadd 62 98
+---afteradd 63 38
+---------set60mins
+---beforeadd  63 38
+---afteradd 1 3 38
+before loop 3 20:00
+before loop 6 20:00
+after loop 3 20:00
+new3  63 53 
+---------set60mins
+---beforeadd  63 53
+---afteradd 1 3 53
+before loop 3 20:15
+before loop 6 20:15
+after loop 3 20:15
+new3  63 68 
+---------set60secs
+---beforeadd 63 68
+---afteradd 64 8
+---------set60mins
+---beforeadd  64 8
+---afteradd 1 4 8
+before loop 3 20:30
+before loop 6 20:30
+after loop 3 20:30
+new3  63 83 
+---------set60secs
+---beforeadd 63 83
+---afteradd 64 23
+---------set60mins
+---beforeadd  64 23
+---afteradd 1 4 23
+before loop 3 20:45
+before loop 6 20:45
+after loop 3 20:45
+new3  63 98 
+---------set60secs
+---beforeadd 63 98
+---afteradd 64 38
+---------set60mins
+---beforeadd  64 38
+---afteradd 1 4 38
+before loop 3 21:00
+before loop 6 21:00
+after loop 3 21:00
+new3  64 53 
+---------set60mins
+---beforeadd  64 53
+---afteradd 1 4 53
+before loop 3 21:15
+before loop 6 21:15
+after loop 3 21:15
+new3  64 68 
+---------set60secs
+---beforeadd 64 68
+---afteradd 65 8
+---------set60mins
+---beforeadd  65 8
+---afteradd 1 5 8
+before loop 3 21:30
+before loop 6 21:30
+after loop 3 21:30
+new3  64 83 
+---------set60secs
+---beforeadd 64 83
+---afteradd 65 23
+---------set60mins
+---beforeadd  65 23
+---afteradd 1 5 23
+before loop 3 21:45
+before loop 6 21:45
+after loop 3 21:45
+new3  64 98 
+---------set60secs
+---beforeadd 64 98
+---afteradd 65 38
+---------set60mins
+---beforeadd  65 38
+---afteradd 1 5 38
+before loop 3 22:00
+before loop 6 22:00
+after loop 3 22:00
+new3  65 53 
+---------set60mins
+---beforeadd  65 53
+---afteradd 1 5 53
+before loop 3 22:15
+before loop 6 22:15
+after loop 3 22:15
+new3  65 68 
+---------set60secs
+---beforeadd 65 68
+---afteradd 66 8
+---------set60mins
+---beforeadd  66 8
+---afteradd 1 6 8
+before loop 3 22:30
+before loop 6 22:30
+after loop 3 22:30
+new3  65 83 
+---------set60secs
+---beforeadd 65 83
+---afteradd 66 23
+---------set60mins
+---beforeadd  66 23
+---afteradd 1 6 23
+before loop 3 22:45
+before loop 6 22:45
+after loop 3 22:45
+new3  65 98 
+---------set60secs
+---beforeadd 65 98
+---afteradd 66 38
+---------set60mins
+---beforeadd  66 38
+---afteradd 1 6 38
+before loop 3 23:00
+before loop 6 23:00
+after loop 3 23:00
+new3  66 53 
+---------set60mins
+---beforeadd  66 53
+---afteradd 1 6 53
+before loop 3 23:15
+before loop 6 23:15
+after loop 3 23:15
+new3  66 68 
+---------set60secs
+---beforeadd 66 68
+---afteradd 67 8
+---------set60mins
+---beforeadd  67 8
+---afteradd 1 7 8
+before loop 3 23:30
+before loop 6 23:30
+after loop 3 23:30
+new3  66 83 
+---------set60secs
+---beforeadd 66 83
+---afteradd 67 23
+---------set60mins
+---beforeadd  67 23
+---afteradd 1 7 23
+before loop 3 23:45
+before loop 6 23:45
+after loop 3 23:45
+new3  66 98 
+---------set60secs
+---beforeadd 66 98
+---afteradd 67 38
+---------set60mins
+---beforeadd  67 38
+---afteradd 1 7 38
+before loop 3 24:00
+before loop 6 24:00
+after loop 3 24:00
+new3  67 53 
+---------set60mins
+---beforeadd  67 53
+---afteradd 1 7 53
+before loop 3 24:15
+before loop 6 24:15
+after loop 3 24:15
+new3  67 68 
+---------set60secs
+---beforeadd 67 68
+---afteradd 68 8
+---------set60mins
+---beforeadd  68 8
+---afteradd 1 8 8
+before loop 3 24:30
+before loop 6 24:30
+after loop 3 24:30
+new3  67 83 
+---------set60secs
+---beforeadd 67 83
+---afteradd 68 23
+---------set60mins
+---beforeadd  68 23
+---afteradd 1 8 23
+before loop 3 24:45
+before loop 6 24:45
+after loop 3 24:45
+new3  67 98 
+---------set60secs
+---beforeadd 67 98
+---afteradd 68 38
+---------set60mins
+---beforeadd  68 38
+---afteradd 1 8 38
+before loop 3 25:00
+before loop 6 25:00
+after loop 3 25:00
+new3  68 53 
+---------set60mins
+---beforeadd  68 53
+---afteradd 1 8 53
+before loop 3 25:15
+before loop 6 25:15
+after loop 3 25:15
+new3  68 68 
+---------set60secs
+---beforeadd 68 68
+---afteradd 69 8
+---------set60mins
+---beforeadd  69 8
+---afteradd 1 9 8
+before loop 3 25:30
+before loop 6 25:30
+after loop 3 25:30
+new3  68 83 
+---------set60secs
+---beforeadd 68 83
+---afteradd 69 23
+---------set60mins
+---beforeadd  69 23
+---afteradd 1 9 23
+before loop 3 25:45
+before loop 6 25:45
+after loop 3 25:45
+new3  68 98 
+---------set60secs
+---beforeadd 68 98
+---afteradd 69 38
+---------set60mins
+---beforeadd  69 38
+---afteradd 1 9 38
+before loop 3 26:00
+before loop 6 26:00
+after loop 3 26:00
+new3  69 53 
+---------set60mins
+---beforeadd  69 53
+---afteradd 1 9 53
+before loop 3 26:15
+before loop 6 26:15
+after loop 3 26:15
+new3  69 68 
+---------set60secs
+---beforeadd 69 68
+---afteradd 70 8
+---------set60mins
+---beforeadd  70 8
+---afteradd 1 10 8
+before loop 3 26:30
+before loop 6 26:30
+after loop 3 26:30
+new3  69 83 
+---------set60secs
+---beforeadd 69 83
+---afteradd 70 23
+---------set60mins
+---beforeadd  70 23
+---afteradd 1 10 23
+before loop 3 26:45
+before loop 6 26:45
+after loop 3 26:45
+new3  69 98 
+---------set60secs
+---beforeadd 69 98
+---afteradd 70 38
+---------set60mins
+---beforeadd  70 38
+---afteradd 1 10 38
+before loop 3 27:00
+before loop 6 27:00
+after loop 3 27:00
+new3  70 53 
+---------set60mins
+---beforeadd  70 53
+---afteradd 1 10 53
+before loop 3 27:15
+before loop 6 27:15
+after loop 3 27:15
+new3  70 68 
+---------set60secs
+---beforeadd 70 68
+---afteradd 71 8
+---------set60mins
+---beforeadd  71 8
+---afteradd 1 11 8
+before loop 3 27:30
+before loop 6 27:30
+after loop 3 27:30
+new3  70 83 
+---------set60secs
+---beforeadd 70 83
+---afteradd 71 23
+---------set60mins
+---beforeadd  71 23
+---afteradd 1 11 23
+before loop 3 27:45
+before loop 6 27:45
+after loop 3 27:45
+new3  70 99 
+---------set60secs
+---beforeadd 70 99
+---afteradd 71 39
+---------set60mins
+---beforeadd  71 39
+---afteradd 1 11 39
+before loop 3 28:00
+before loop 6 28:00
+after loop 3 28:00
+new3  71 54 
+---------set60mins
+---beforeadd  71 54
+---afteradd 1 11 54
+before loop 3 28:15
+before loop 6 28:15
+after loop 3 28:15
+new3  71 69 
+---------set60secs
+---beforeadd 71 69
+---afteradd 72 9
+---------set60mins
+---beforeadd  72 9
+---afteradd 1 12 9
+before loop 3 28:30
+before loop 6 28:30
+after loop 3 28:30
+new3  71 84 
+---------set60secs
+---beforeadd 71 84
+---afteradd 72 24
+---------set60mins
+---beforeadd  72 24
+---afteradd 1 12 24
+before loop 3 28:45
+before loop 6 28:45
+after loop 3 28:45
+new3  71 99 
+---------set60secs
+---beforeadd 71 99
+---afteradd 72 39
+---------set60mins
+---beforeadd  72 39
+---afteradd 1 12 39
+before loop 3 29:00
+before loop 6 29:00
+after loop 3 29:00
+new3  72 54 
+---------set60mins
+---beforeadd  72 54
+---afteradd 1 12 54
+before loop 3 29:15
+before loop 6 29:15
+after loop 3 29:15
+new3  72 69 
+---------set60secs
+---beforeadd 72 69
+---afteradd 73 9
+---------set60mins
+---beforeadd  73 9
+---afteradd 1 13 9
+before loop 3 29:30
+before loop 6 29:30
+after loop 3 29:30
+new3  72 84 
+---------set60secs
+---beforeadd 72 84
+---afteradd 73 24
+---------set60mins
+---beforeadd  73 24
+---afteradd 1 13 24
+before loop 3 29:45
+before loop 6 29:45
+after loop 3 29:45
+new3  72 99 
+---------set60secs
+---beforeadd 72 99
+---afteradd 73 39
+---------set60mins
+---beforeadd  73 39
+---afteradd 1 13 39
+before loop 3 30:00
+before loop 6 30:00
+after loop 3 30:00
+new3  73 54 
+---------set60mins
+---beforeadd  73 54
+---afteradd 1 13 54
+before loop 3 30:15
+before loop 6 30:15
+after loop 3 30:15
+new3  73 69 
+---------set60secs
+---beforeadd 73 69
+---afteradd 74 9
+---------set60mins
+---beforeadd  74 9
+---afteradd 1 14 9
+before loop 3 30:30
+before loop 6 30:30
+after loop 3 30:30
+new3  73 84 
+---------set60secs
+---beforeadd 73 84
+---afteradd 74 24
+---------set60mins
+---beforeadd  74 24
+---afteradd 1 14 24
+before loop 3 30:45
+before loop 6 30:45
+after loop 3 30:45
+new3  73 99 
+---------set60secs
+---beforeadd 73 99
+---afteradd 74 39
+---------set60mins
+---beforeadd  74 39
+---afteradd 1 14 39
+before loop 3 31:00
+before loop 6 31:00
+after loop 3 31:00
+new3  74 54 
+---------set60mins
+---beforeadd  74 54
+---afteradd 1 14 54
+before loop 3 31:15
+before loop 6 31:15
+after loop 3 31:15
+new3  74 69 
+---------set60secs
+---beforeadd 74 69
+---afteradd 75 9
+---------set60mins
+---beforeadd  75 9
+---afteradd 1 15 9
+before loop 3 31:30
+before loop 6 31:30
+after loop 3 31:30
+new3  74 84 
+---------set60secs
+---beforeadd 74 84
+---afteradd 75 24
+---------set60mins
+---beforeadd  75 24
+---afteradd 1 15 24
+before loop 3 31:45
+before loop 6 31:45
+after loop 3 31:45
+new3  74 99 
+---------set60secs
+---beforeadd 74 99
+---afteradd 75 39
+---------set60mins
+---beforeadd  75 39
+---afteradd 1 15 39
+before loop 3 32:00
+before loop 6 32:00
+after loop 3 32:00
+new3  75 54 
+---------set60mins
+---beforeadd  75 54
+---afteradd 1 15 54
+before loop 3 32:15
+before loop 6 32:15
+after loop 3 32:15
+new3  75 69 
+---------set60secs
+---beforeadd 75 69
+---afteradd 76 9
+---------set60mins
+---beforeadd  76 9
+---afteradd 1 16 9
+before loop 3 32:30
+before loop 6 32:30
+after loop 3 32:30
+new3  75 84 
+---------set60secs
+---beforeadd 75 84
+---afteradd 76 24
+---------set60mins
+---beforeadd  76 24
+---afteradd 1 16 24
+before loop 3 32:45
+before loop 6 32:45
+after loop 3 32:45
+new3  75 99 
+---------set60secs
+---beforeadd 75 99
+---afteradd 76 39
+---------set60mins
+---beforeadd  76 39
+---afteradd 1 16 39
+before loop 3 33:00
+before loop 6 33:00
+after loop 3 33:00
+new3  76 54 
+---------set60mins
+---beforeadd  76 54
+---afteradd 1 16 54
+before loop 3 33:15
+before loop 6 33:15
+after loop 3 33:15
+new3  76 69 
+---------set60secs
+---beforeadd 76 69
+---afteradd 77 9
+---------set60mins
+---beforeadd  77 9
+---afteradd 1 17 9
+before loop 3 33:30
+before loop 6 33:30
+after loop 3 33:30
+new3  76 84 
+---------set60secs
+---beforeadd 76 84
+---afteradd 77 24
+---------set60mins
+---beforeadd  77 24
+---afteradd 1 17 24
+before loop 3 33:45
+before loop 6 33:45
+after loop 3 33:45
+new3  76 99 
+---------set60secs
+---beforeadd 76 99
+---afteradd 77 39
+---------set60mins
+---beforeadd  77 39
+---afteradd 1 17 39
+before loop 3 34:00
+before loop 6 34:00
+after loop 3 34:00
+new3  77 54 
+---------set60mins
+---beforeadd  77 54
+---afteradd 1 17 54
+before loop 3 34:15
+before loop 6 34:15
+after loop 3 34:15
+new3  77 69 
+---------set60secs
+---beforeadd 77 69
+---afteradd 78 9
+---------set60mins
+---beforeadd  78 9
+---afteradd 1 18 9
+before loop 3 34:30
+before loop 6 34:30
+after loop 3 34:30
+new3  77 84 
+---------set60secs
+---beforeadd 77 84
+---afteradd 78 24
+---------set60mins
+---beforeadd  78 24
+---afteradd 1 18 24
+before loop 3 34:45
+before loop 6 34:45
+after loop 3 34:45
+new3  77 99 
+---------set60secs
+---beforeadd 77 99
+---afteradd 78 39
+---------set60mins
+---beforeadd  78 39
+---afteradd 1 18 39
+before loop 3 35:00
+before loop 6 35:00
+after loop 3 35:00
+new3  78 54 
+---------set60mins
+---beforeadd  78 54
+---afteradd 1 18 54
+before loop 3 35:15
+before loop 6 35:15
+after loop 3 35:15
+new3  78 69 
+---------set60secs
+---beforeadd 78 69
+---afteradd 79 9
+---------set60mins
+---beforeadd  79 9
+---afteradd 1 19 9
+before loop 3 35:30
+before loop 6 35:30
+after loop 3 35:30
+new3  78 84 
+---------set60secs
+---beforeadd 78 84
+---afteradd 79 24
+---------set60mins
+---beforeadd  79 24
+---afteradd 1 19 24
+before loop 3 35:45
+before loop 6 35:45
+after loop 3 35:45
+new3  78 99 
+---------set60secs
+---beforeadd 78 99
+---afteradd 79 39
+---------set60mins
+---beforeadd  79 39
+---afteradd 1 19 39
+before loop 3 36:00
+before loop 6 36:00
+after loop 3 36:00
+new3  79 54 
+---------set60mins
+---beforeadd  79 54
+---afteradd 1 19 54
+before loop 3 36:15
+before loop 6 36:15
+after loop 3 36:15
+new3  79 69 
+---------set60secs
+---beforeadd 79 69
+---afteradd 80 9
+---------set60mins
+---beforeadd  80 9
+---afteradd 1 20 9
+before loop 3 36:30
+before loop 6 36:30
+after loop 3 36:30
+new3  79 84 
+---------set60secs
+---beforeadd 79 84
+---afteradd 80 24
+---------set60mins
+---beforeadd  80 24
+---afteradd 1 20 24
+before loop 3 36:45
+before loop 6 36:45
+after loop 3 36:45
+new3  79 99 
+---------set60secs
+---beforeadd 79 99
+---afteradd 80 39
+---------set60mins
+---beforeadd  80 39
+---afteradd 1 20 39
+before loop 3 37:00
+before loop 6 37:00
+after loop 3 37:00
+new3  80 54 
+---------set60mins
+---beforeadd  80 54
+---afteradd 1 20 54
+before loop 3 37:15
+before loop 6 37:15
+after loop 3 37:15
+new3  80 69 
+---------set60secs
+---beforeadd 80 69
+---afteradd 81 9
+---------set60mins
+---beforeadd  81 9
+---afteradd 1 21 9
+before loop 3 37:30
+before loop 6 37:30
+after loop 3 37:30
+new3  80 84 
+---------set60secs
+---beforeadd 80 84
+---afteradd 81 24
+---------set60mins
+---beforeadd  81 24
+---afteradd 1 21 24
+before loop 3 37:45
+before loop 6 37:45
+after loop 3 37:45
+new3  80 99 
+---------set60secs
+---beforeadd 80 99
+---afteradd 81 39
+---------set60mins
+---beforeadd  81 39
+---afteradd 1 21 39
+before loop 3 38:00
+before loop 6 38:00
+after loop 3 38:00
+new3  81 54 
+---------set60mins
+---beforeadd  81 54
+---afteradd 1 21 54
+before loop 3 38:15
+before loop 6 38:15
+after loop 3 38:15
+new3  81 69 
+---------set60secs
+---beforeadd 81 69
+---afteradd 82 9
+---------set60mins
+---beforeadd  82 9
+---afteradd 1 22 9
+before loop 3 38:30
+before loop 6 38:30
+after loop 3 38:30
+new3  81 84 
+---------set60secs
+---beforeadd 81 84
+---afteradd 82 24
+---------set60mins
+---beforeadd  82 24
+---afteradd 1 22 24
+before loop 3 38:45
+before loop 6 38:45
+after loop 3 38:45
+new3  81 99 
+---------set60secs
+---beforeadd 81 99
+---afteradd 82 39
+---------set60mins
+---beforeadd  82 39
+---afteradd 1 22 39
+before loop 3 39:00
+before loop 6 39:00
+after loop 3 39:00
+new3  82 54 
+---------set60mins
+---beforeadd  82 54
+---afteradd 1 22 54
+before loop 3 39:15
+before loop 6 39:15
+after loop 3 39:15
+new3  82 69 
+---------set60secs
+---beforeadd 82 69
+---afteradd 83 9
+---------set60mins
+---beforeadd  83 9
+---afteradd 1 23 9
+before loop 3 39:30
+before loop 6 39:30
+after loop 3 39:30
+new3  82 84 
+---------set60secs
+---beforeadd 82 84
+---afteradd 83 24
+---------set60mins
+---beforeadd  83 24
+---afteradd 1 23 24
+before loop 3 39:45
+before loop 6 39:45
+after loop 3 39:45
+new3  82 99 
+---------set60secs
+---beforeadd 82 99
+---afteradd 83 39
+---------set60mins
+---beforeadd  83 39
+---afteradd 1 23 39
+before loop 3 40:00
+before loop 6 40:00
+after loop 3 40:00
+new3  83 54 
+---------set60mins
+---beforeadd  83 54
+---afteradd 1 23 54
+before loop 3 40:15
+before loop 6 40:15
+after loop 3 40:15
+new3  83 69 
+---------set60secs
+---beforeadd 83 69
+---afteradd 84 9
+---------set60mins
+---beforeadd  84 9
+---afteradd 1 24 9
+before loop 3 40:30
+before loop 6 40:30
+after loop 3 40:30
+new3  83 84 
+---------set60secs
+---beforeadd 83 84
+---afteradd 84 24
+---------set60mins
+---beforeadd  84 24
+---afteradd 1 24 24
+before loop 3 40:45
+before loop 6 40:45
+after loop 3 40:45
+new3  83 99 
+---------set60secs
+---beforeadd 83 99
+---afteradd 84 39
+---------set60mins
+---beforeadd  84 39
+---afteradd 1 24 39
+before loop 3 41:00
+before loop 6 41:00
+after loop 3 41:00
+new3  84 54 
+---------set60mins
+---beforeadd  84 54
+---afteradd 1 24 54
+before loop 3 41:15
+before loop 6 41:15
+after loop 3 41:15
+new3  84 69 
+---------set60secs
+---beforeadd 84 69
+---afteradd 85 9
+---------set60mins
+---beforeadd  85 9
+---afteradd 1 25 9
+before loop 3 41:30
+before loop 6 41:30
+after loop 3 41:30
+new3  84 84 
+---------set60secs
+---beforeadd 84 84
+---afteradd 85 24
+---------set60mins
+---beforeadd  85 24
+---afteradd 1 25 24
+before loop 3 41:45
+before loop 6 41:45
+after loop 3 41:45
+new3  84 99 
+---------set60secs
+---beforeadd 84 99
+---afteradd 85 39
+---------set60mins
+---beforeadd  85 39
+---afteradd 1 25 39
+before loop 3 42:00
+before loop 6 42:00
+after loop 3 42:00
+new3  85 54 
+---------set60mins
+---beforeadd  85 54
+---afteradd 1 25 54
+before loop 3 42:15
+before loop 6 42:15
+after loop 3 42:15
+new3  85 69 
+---------set60secs
+---beforeadd 85 69
+---afteradd 86 9
+---------set60mins
+---beforeadd  86 9
+---afteradd 1 26 9
+before loop 3 42:30
+before loop 6 42:30
+after loop 3 42:30
+new3  85 84 
+---------set60secs
+---beforeadd 85 84
+---afteradd 86 24
+---------set60mins
+---beforeadd  86 24
+---afteradd 1 26 24
+before loop 3 42:45
+before loop 6 42:45
+after loop 3 42:45
+new3  85 99 
+---------set60secs
+---beforeadd 85 99
+---afteradd 86 39
+---------set60mins
+---beforeadd  86 39
+---afteradd 1 26 39
+before loop 3 43:00
+before loop 6 43:00
+after loop 3 43:00
+new3  86 55 
+---------set60mins
+---beforeadd  86 55
+---afteradd 1 26 55
+before loop 3 43:15
+before loop 6 43:15
+after loop 3 43:15
+new3  86 70 
+---------set60secs
+---beforeadd 86 70
+---afteradd 87 10
+---------set60mins
+---beforeadd  87 10
+---afteradd 1 27 10
+before loop 3 43:30
+before loop 6 43:30
+after loop 3 43:30
+new3  86 85 
+---------set60secs
+---beforeadd 86 85
+---afteradd 87 25
+---------set60mins
+---beforeadd  87 25
+---afteradd 1 27 25
+before loop 3 43:45
+before loop 6 43:45
+after loop 3 43:45
+new3  86 100 
+---------set60secs
+---beforeadd 86 100
+---afteradd 87 40
+---------set60mins
+---beforeadd  87 40
+---afteradd 1 27 40
+before loop 3 44:00
+before loop 6 44:00
+after loop 3 44:00
+new3  87 55 
+---------set60mins
+---beforeadd  87 55
+---afteradd 1 27 55
+before loop 3 44:15
+before loop 6 44:15
+after loop 3 44:15
+new3  87 70 
+---------set60secs
+---beforeadd 87 70
+---afteradd 88 10
+---------set60mins
+---beforeadd  88 10
+---afteradd 1 28 10
+before loop 3 44:30
+before loop 6 44:30
+after loop 3 44:30
+new3  87 85 
+---------set60secs
+---beforeadd 87 85
+---afteradd 88 25
+---------set60mins
+---beforeadd  88 25
+---afteradd 1 28 25
+before loop 3 44:45
+before loop 6 44:45
+after loop 3 44:45
+new3  87 100 
+---------set60secs
+---beforeadd 87 100
+---afteradd 88 40
+---------set60mins
+---beforeadd  88 40
+---afteradd 1 28 40
+before loop 3 45:00
+before loop 6 45:00
+after loop 3 45:00
+new3  88 55 
+---------set60mins
+---beforeadd  88 55
+---afteradd 1 28 55
+before loop 3 45:15
+before loop 6 45:15
+after loop 3 45:15
+new3  88 70 
+---------set60secs
+---beforeadd 88 70
+---afteradd 89 10
+---------set60mins
+---beforeadd  89 10
+---afteradd 1 29 10
+before loop 3 45:30
+before loop 6 45:30
+after loop 3 45:30
+new3  88 85 
+---------set60secs
+---beforeadd 88 85
+---afteradd 89 25
+---------set60mins
+---beforeadd  89 25
+---afteradd 1 29 25
+before loop 3 45:45
+before loop 6 45:45
+after loop 3 45:45
+new3  88 100 
+---------set60secs
+---beforeadd 88 100
+---afteradd 89 40
+---------set60mins
+---beforeadd  89 40
+---afteradd 1 29 40
+before loop 3 46:00
+before loop 6 46:00
+after loop 3 46:00
+new3  89 55 
+---------set60mins
+---beforeadd  89 55
+---afteradd 1 29 55
+before loop 3 46:15
+before loop 6 46:15
+after loop 3 46:15
+new3  89 70 
+---------set60secs
+---beforeadd 89 70
+---afteradd 90 10
+---------set60mins
+---beforeadd  90 10
+---afteradd 1 30 10
+before loop 3 46:30
+before loop 6 46:30
+after loop 3 46:30
+new3  89 85 
+---------set60secs
+---beforeadd 89 85
+---afteradd 90 25
+---------set60mins
+---beforeadd  90 25
+---afteradd 1 30 25
+before loop 3 46:45
+before loop 6 46:45
+after loop 3 46:45
+new3  89 100 
+---------set60secs
+---beforeadd 89 100
+---afteradd 90 40
+---------set60mins
+---beforeadd  90 40
+---afteradd 1 30 40
+before loop 3 47:00
+before loop 6 47:00
+after loop 3 47:00
+new3  90 55 
+---------set60mins
+---beforeadd  90 55
+---afteradd 1 30 55
+before loop 3 47:15
+before loop 6 47:15
+after loop 3 47:15
+new3  90 70 
+---------set60secs
+---beforeadd 90 70
+---afteradd 91 10
+---------set60mins
+---beforeadd  91 10
+---afteradd 1 31 10
+before loop 3 47:30
+before loop 6 47:30
+after loop 3 47:30
+new3  90 85 
+---------set60secs
+---beforeadd 90 85
+---afteradd 91 25
+---------set60mins
+---beforeadd  91 25
+---afteradd 1 31 25
+before loop 3 47:45
+before loop 6 47:45
+after loop 3 47:45
+new3  90 100 
+---------set60secs
+---beforeadd 90 100
+---afteradd 91 40
+---------set60mins
+---beforeadd  91 40
+---afteradd 1 31 40
+before loop 3 48:00
+before loop 6 48:00
+after loop 3 48:00
+new3  91 55 
+---------set60mins
+---beforeadd  91 55
+---afteradd 1 31 55
+before loop 3 48:15
+before loop 6 48:15
+after loop 3 48:15
+new3  91 70 
+---------set60secs
+---beforeadd 91 70
+---afteradd 92 10
+---------set60mins
+---beforeadd  92 10
+---afteradd 1 32 10
+before loop 3 48:30
+before loop 6 48:30
+after loop 3 48:30
+new3  91 85 
+---------set60secs
+---beforeadd 91 85
+---afteradd 92 25
+---------set60mins
+---beforeadd  92 25
+---afteradd 1 32 25
+before loop 3 48:45
+before loop 6 48:45
+after loop 3 48:45
+new3  91 100 
+---------set60secs
+---beforeadd 91 100
+---afteradd 92 40
+---------set60mins
+---beforeadd  92 40
+---afteradd 1 32 40
+before loop 3 49:00
+before loop 6 49:00
+after loop 3 49:00
+new3  92 55 
+---------set60mins
+---beforeadd  92 55
+---afteradd 1 32 55
+before loop 3 49:15
+before loop 6 49:15
+after loop 3 49:15
+new3  92 70 
+---------set60secs
+---beforeadd 92 70
+---afteradd 93 10
+---------set60mins
+---beforeadd  93 10
+---afteradd 1 33 10
+before loop 3 49:30
+before loop 6 49:30
+after loop 3 49:30
+new3  92 85 
+---------set60secs
+---beforeadd 92 85
+---afteradd 93 25
+---------set60mins
+---beforeadd  93 25
+---afteradd 1 33 25
+before loop 3 49:45
+before loop 6 49:45
+after loop 3 49:45
+new3  92 100 
+---------set60secs
+---beforeadd 92 100
+---afteradd 93 40
+---------set60mins
+---beforeadd  93 40
+---afteradd 1 33 40
+before loop 3 50:00
+before loop 6 50:00
+after loop 3 50:00
+new3  93 55 
+---------set60mins
+---beforeadd  93 55
+---afteradd 1 33 55
+before loop 3 50:15
+before loop 6 50:15
+after loop 3 50:15
+new3  93 70 
+---------set60secs
+---beforeadd 93 70
+---afteradd 94 10
+---------set60mins
+---beforeadd  94 10
+---afteradd 1 34 10
+before loop 3 50:30
+before loop 6 50:30
+after loop 3 50:30
+new3  93 85 
+---------set60secs
+---beforeadd 93 85
+---afteradd 94 25
+---------set60mins
+---beforeadd  94 25
+---afteradd 1 34 25
+before loop 3 50:45
+before loop 6 50:45
+after loop 3 50:45
+new3  93 100 
+---------set60secs
+---beforeadd 93 100
+---afteradd 94 40
+---------set60mins
+---beforeadd  94 40
+---afteradd 1 34 40
+before loop 3 51:00
+before loop 6 51:00
+after loop 3 51:00
+new3  94 55 
+---------set60mins
+---beforeadd  94 55
+---afteradd 1 34 55
+before loop 3 51:15
+before loop 6 51:15
+after loop 3 51:15
+new3  94 70 
+---------set60secs
+---beforeadd 94 70
+---afteradd 95 10
+---------set60mins
+---beforeadd  95 10
+---afteradd 1 35 10
+before loop 3 51:30
+before loop 6 51:30
+after loop 3 51:30
+new3  94 85 
+---------set60secs
+---beforeadd 94 85
+---afteradd 95 25
+---------set60mins
+---beforeadd  95 25
+---afteradd 1 35 25
+before loop 3 51:45
+before loop 6 51:45
+after loop 3 51:45
+new3  94 100 
+---------set60secs
+---beforeadd 94 100
+---afteradd 95 40
+---------set60mins
+---beforeadd  95 40
+---afteradd 1 35 40
+before loop 3 52:00
+before loop 6 52:00
+after loop 3 52:00
+new3  95 55 
+---------set60mins
+---beforeadd  95 55
+---afteradd 1 35 55
+before loop 3 52:15
+before loop 6 52:15
+after loop 3 52:15
+new3  95 70 
+---------set60secs
+---beforeadd 95 70
+---afteradd 96 10
+---------set60mins
+---beforeadd  96 10
+---afteradd 1 36 10
+before loop 3 52:30
+before loop 6 52:30
+after loop 3 52:30
+new3  95 85 
+---------set60secs
+---beforeadd 95 85
+---afteradd 96 25
+---------set60mins
+---beforeadd  96 25
+---afteradd 1 36 25
+before loop 3 52:45
+before loop 6 52:45
+after loop 3 52:45
+new3  95 100 
+---------set60secs
+---beforeadd 95 100
+---afteradd 96 40
+---------set60mins
+---beforeadd  96 40
+---afteradd 1 36 40
+before loop 3 53:00
+before loop 6 53:00
+after loop 3 53:00
+new3  96 55 
+---------set60mins
+---beforeadd  96 55
+---afteradd 1 36 55
+before loop 3 53:15
+before loop 6 53:15
+after loop 3 53:15
+new3  96 70 
+---------set60secs
+---beforeadd 96 70
+---afteradd 97 10
+---------set60mins
+---beforeadd  97 10
+---afteradd 1 37 10
+before loop 3 53:30
+before loop 6 53:30
+after loop 3 53:30
+new3  96 85 
+---------set60secs
+---beforeadd 96 85
+---afteradd 97 25
+---------set60mins
+---beforeadd  97 25
+---afteradd 1 37 25
+before loop 3 53:45
+before loop 6 53:45
+after loop 3 53:45
+new3  96 100 
+---------set60secs
+---beforeadd 96 100
+---afteradd 97 40
+---------set60mins
+---beforeadd  97 40
+---afteradd 1 37 40
+before loop 3 54:00
+before loop 6 54:00
+after loop 3 54:00
+new3  97 55 
+---------set60mins
+---beforeadd  97 55
+---afteradd 1 37 55
+before loop 3 54:15
+before loop 6 54:15
+after loop 3 54:15
+new3  97 70 
+---------set60secs
+---beforeadd 97 70
+---afteradd 98 10
+---------set60mins
+---beforeadd  98 10
+---afteradd 1 38 10
+before loop 3 54:30
+before loop 6 54:30
+after loop 3 54:30
+new3  97 85 
+---------set60secs
+---beforeadd 97 85
+---afteradd 98 25
+---------set60mins
+---beforeadd  98 25
+---afteradd 1 38 25
+before loop 3 54:45
+before loop 6 54:45
+after loop 3 54:45
+new3  97 100 
+---------set60secs
+---beforeadd 97 100
+---afteradd 98 40
+---------set60mins
+---beforeadd  98 40
+---afteradd 1 38 40
+before loop 3 55:00
+before loop 6 55:00
+after loop 3 55:00
+new3  98 55 
+---------set60mins
+---beforeadd  98 55
+---afteradd 1 38 55
+before loop 3 55:15
+before loop 6 55:15
+after loop 3 55:15
+new3  98 70 
+---------set60secs
+---beforeadd 98 70
+---afteradd 99 10
+---------set60mins
+---beforeadd  99 10
+---afteradd 1 39 10
+before loop 3 55:30
+before loop 6 55:30
+after loop 3 55:30
+new3  98 85 
+---------set60secs
+---beforeadd 98 85
+---afteradd 99 25
+---------set60mins
+---beforeadd  99 25
+---afteradd 1 39 25
+before loop 3 55:45
+before loop 6 55:45
+after loop 3 55:45
+new3  98 100 
+---------set60secs
+---beforeadd 98 100
+---afteradd 99 40
+---------set60mins
+---beforeadd  99 40
+---afteradd 1 39 40
+before loop 3 56:00
+before loop 6 56:00
+after loop 3 56:00
+new3  99 55 
+---------set60mins
+---beforeadd  99 55
+---afteradd 1 39 55
+before loop 3 56:15
+before loop 6 56:15
+after loop 3 56:15
+new3  99 70 
+---------set60secs
+---beforeadd 99 70
+---afteradd 100 10
+---------set60mins
+---beforeadd  100 10
+---afteradd 1 40 10
+before loop 3 56:30
+before loop 6 56:30
+after loop 3 56:30
+new3  99 85 
+---------set60secs
+---beforeadd 99 85
+---afteradd 100 25
+---------set60mins
+---beforeadd  100 25
+---afteradd 1 40 25
+before loop 3 56:45
+before loop 6 56:45
+after loop 3 56:45
+new3  99 100 
+---------set60secs
+---beforeadd 99 100
+---afteradd 100 40
+---------set60mins
+---beforeadd  100 40
+---afteradd 1 40 40
+before loop 3 57:00
+before loop 6 57:00
+after loop 3 57:00
+new3  100 55 
+---------set60mins
+---beforeadd  100 55
+---afteradd 1 40 55
+before loop 3 57:15
+before loop 6 57:15
+after loop 3 57:15
+new3  100 70 
+---------set60secs
+---beforeadd 100 70
+---afteradd 101 10
+---------set60mins
+---beforeadd  101 10
+---afteradd 1 41 10
+before loop 3 57:30
+before loop 6 57:30
+after loop 3 57:30
+new3  100 85 
+---------set60secs
+---beforeadd 100 85
+---afteradd 101 25
+---------set60mins
+---beforeadd  101 25
+---afteradd 1 41 25
+before loop 3 57:45
+before loop 6 57:45
+after loop 3 57:45
+new3  100 100 
+---------set60secs
+---beforeadd 100 100
+---afteradd 101 40
+---------set60mins
+---beforeadd  101 40
+---afteradd 1 41 40
+before loop 3 58:00
+before loop 6 58:00
+after loop 3 58:00
+new3  101 55 
+---------set60mins
+---beforeadd  101 55
+---afteradd 1 41 55
+before loop 3 58:15
+before loop 6 58:15
+after loop 3 58:15
+new3  101 70 
+---------set60secs
+---beforeadd 101 70
+---afteradd 102 10
+---------set60mins
+---beforeadd  102 10
+---afteradd 1 42 10
+before loop 3 58:30
+before loop 6 58:30
+after loop 3 58:30
+new3  101 86 
+---------set60secs
+---beforeadd 101 86
+---afteradd 102 26
+---------set60mins
+---beforeadd  102 26
+---afteradd 1 42 26
+before loop 3 58:45
+before loop 6 58:45
+after loop 3 58:45
+new3  101 101 
+---------set60secs
+---beforeadd 101 101
+---afteradd 102 41
+---------set60mins
+---beforeadd  102 41
+---afteradd 1 42 41
+before loop 3 59:00
+before loop 6 59:00
+after loop 3 59:00
+new3  102 56 
+---------set60mins
+---beforeadd  102 56
+---afteradd 1 42 56
+before loop 3 59:15
+before loop 6 59:15
+after loop 3 59:15
+new3  102 71 
+---------set60secs
+---beforeadd 102 71
+---afteradd 103 11
+---------set60mins
+---beforeadd  103 11
+---afteradd 1 43 11
+before loop 3 59:30
+before loop 6 59:30
+after loop 3 59:30
+new3  102 86 
+---------set60secs
+---beforeadd 102 86
+---afteradd 103 26
+---------set60mins
+---beforeadd  103 26
+---afteradd 1 43 26
+before loop 3 59:45
+before loop 6 59:45
+after loop 3 59:45
+new3  102 101 
+---------set60secs
+---beforeadd 102 101
+---afteradd 103 41
+---------set60mins
+---beforeadd  103 41
+---afteradd 1 43 41
+before loop 3 1:00:00
+before loop 6 1:00:00
+after loop 6 1:00:00 
+_____new6 1 0 0
+new6 1 0 0
+before loop 3 1:00:15
+before loop 6 1:00:15
+after loop 6 1:00:15 
+_____new6 1 0 15
+new6 1 0 15
+---------set60secs
+---beforeadd 43 71
+---afteradd 44 11
+before loop 3 1:00:30
+before loop 6 1:00:30
+after loop 6 1:00:30 
+_____new6 1 0 30
+new6 1 0 30
+---------set60secs
+---beforeadd 43 86
+---afteradd 44 26
+before loop 3 1:00:45
+before loop 6 1:00:45
+after loop 6 1:00:45 
+_____new6 1 0 45
+new6 1 0 45
+---------set60secs
+---beforeadd 43 101
+---afteradd 44 41
+before loop 3 1:01:00
+before loop 6 1:01:00
+after loop 6 1:01:00 
+_____new6 1 1 0
+new6 1 1 0
+before loop 3 1:01:15
+before loop 6 1:01:15
+after loop 6 1:01:15 
+_____new6 1 1 15
+new6 1 1 15
+---------set60secs
+---beforeadd 44 71
+---afteradd 45 11
+before loop 3 1:01:30
+before loop 6 1:01:30
+after loop 6 1:01:30 
+_____new6 1 1 30
+new6 1 1 30
+---------set60secs
+---beforeadd 44 86
+---afteradd 45 26
+before loop 3 1:01:45
+before loop 6 1:01:45
+after loop 6 1:01:45 
+_____new6 1 1 45
+new6 1 1 45
+---------set60secs
+---beforeadd 44 101
+---afteradd 45 41
+before loop 3 1:02:00
+before loop 6 1:02:00
+after loop 6 1:02:00 
+_____new6 1 2 0
+new6 1 2 0
+before loop 3 1:02:15
+before loop 6 1:02:15
+after loop 6 1:02:15 
+_____new6 1 2 15
+new6 1 2 15
+---------set60secs
+---beforeadd 45 71
+---afteradd 46 11
+before loop 3 1:02:30
+before loop 6 1:02:30
+after loop 6 1:02:30 
+_____new6 1 2 30
+new6 1 2 30
+---------set60secs
+---beforeadd 45 86
+---afteradd 46 26
+before loop 3 1:02:45
+before loop 6 1:02:45
+after loop 6 1:02:45 
+_____new6 1 2 45
+new6 1 2 45
+---------set60secs
+---beforeadd 45 101
+---afteradd 46 41
+before loop 3 1:03:00
+before loop 6 1:03:00
+after loop 6 1:03:00 
+_____new6 1 3 0
+new6 1 3 0
+before loop 3 1:03:15
+before loop 6 1:03:15
+after loop 6 1:03:15 
+_____new6 1 3 15
+new6 1 3 15
+---------set60secs
+---beforeadd 46 71
+---afteradd 47 11
+before loop 3 1:03:30
+before loop 6 1:03:30
+after loop 6 1:03:30 
+_____new6 1 3 30
+new6 1 3 30
+---------set60secs
+---beforeadd 46 86
+---afteradd 47 26
+before loop 3 1:03:45
+before loop 6 1:03:45
+after loop 6 1:03:45 
+_____new6 1 3 45
+new6 1 3 45
+---------set60secs
+---beforeadd 46 101
+---afteradd 47 41
+before loop 3 1:04:00
+before loop 6 1:04:00
+after loop 6 1:04:00 
+_____new6 1 4 0
+new6 1 4 0
+before loop 3 1:04:15
+before loop 6 1:04:15
+after loop 6 1:04:15 
+_____new6 1 4 15
+new6 1 4 15
+---------set60secs
+---beforeadd 47 71
+---afteradd 48 11
+before loop 3 1:04:30
+before loop 6 1:04:30
+after loop 6 1:04:30 
+_____new6 1 4 30
+new6 1 4 30
+---------set60secs
+---beforeadd 47 86
+---afteradd 48 26
+before loop 3 1:04:45
+before loop 6 1:04:45
+after loop 6 1:04:45 
+_____new6 1 4 45
+new6 1 4 45
+---------set60secs
+---beforeadd 47 101
+---afteradd 48 41
+before loop 3 1:05:00
+before loop 6 1:05:00
+after loop 6 1:05:00 
+_____new6 1 5 0
+new6 1 5 0
+before loop 3 1:05:15
+before loop 6 1:05:15
+after loop 6 1:05:15 
+_____new6 1 5 15
+new6 1 5 15
+---------set60secs
+---beforeadd 48 71
+---afteradd 49 11
+before loop 3 1:05:30
+before loop 6 1:05:30
+after loop 6 1:05:30 
+_____new6 1 5 30
+new6 1 5 30
+---------set60secs
+---beforeadd 48 86
+---afteradd 49 26
+before loop 3 1:05:45
+before loop 6 1:05:45
+after loop 6 1:05:45 
+_____new6 1 5 45
+new6 1 5 45
+---------set60secs
+---beforeadd 48 101
+---afteradd 49 41
+before loop 3 1:06:00
+before loop 6 1:06:00
+after loop 6 1:06:00 
+_____new6 1 6 0
+new6 1 6 0
+before loop 3 1:06:15
+before loop 6 1:06:15
+after loop 6 1:06:15 
+_____new6 1 6 15
+new6 1 6 15
+---------set60secs
+---beforeadd 49 71
+---afteradd 50 11
+before loop 3 1:06:30
+before loop 6 1:06:30
+after loop 6 1:06:30 
+_____new6 1 6 30
+new6 1 6 30
+---------set60secs
+---beforeadd 49 86
+---afteradd 50 26
+before loop 3 1:06:45
+before loop 6 1:06:45
+after loop 6 1:06:45 
+_____new6 1 6 45
+new6 1 6 45
+---------set60secs
+---beforeadd 49 101
+---afteradd 50 41
+before loop 3 1:07:00
+before loop 6 1:07:00
+after loop 6 1:07:00 
+_____new6 1 7 0
+new6 1 7 0
+before loop 3 1:07:15
+before loop 6 1:07:15
+after loop 6 1:07:15 
+_____new6 1 7 15
+new6 1 7 15
+---------set60secs
+---beforeadd 50 71
+---afteradd 51 11
+before loop 3 1:07:30
+before loop 6 1:07:30
+after loop 6 1:07:30 
+_____new6 1 7 30
+new6 1 7 30
+---------set60secs
+---beforeadd 50 86
+---afteradd 51 26
+before loop 3 1:07:45
+before loop 6 1:07:45
+after loop 6 1:07:45 
+_____new6 1 7 45
+new6 1 7 45
+---------set60secs
+---beforeadd 50 101
+---afteradd 51 41
+before loop 3 1:08:00
+before loop 6 1:08:00
+after loop 6 1:08:00 
+_____new6 1 8 0
+new6 1 8 0
+before loop 3 1:08:15
+before loop 6 1:08:15
+after loop 6 1:08:15 
+_____new6 1 8 15
+new6 1 8 15
+---------set60secs
+---beforeadd 51 71
+---afteradd 52 11
+before loop 3 1:08:30
+before loop 6 1:08:30
+after loop 6 1:08:30 
+_____new6 1 8 30
+new6 1 8 30
+---------set60secs
+---beforeadd 51 86
+---afteradd 52 26
+before loop 3 1:08:45
+before loop 6 1:08:45
+after loop 6 1:08:45 
+_____new6 1 8 45
+new6 1 8 45
+---------set60secs
+---beforeadd 51 101
+---afteradd 52 41
+before loop 3 1:09:00
+before loop 6 1:09:00
+after loop 6 1:09:00 
+_____new6 1 9 0
+new6 1 9 0
+before loop 3 1:09:15
+before loop 6 1:09:15
+after loop 6 1:09:15 
+_____new6 1 9 15
+new6 1 9 15
+---------set60secs
+---beforeadd 52 71
+---afteradd 53 11
+before loop 3 1:09:30
+before loop 6 1:09:30
+after loop 6 1:09:30 
+_____new6 1 9 30
+new6 1 9 30
+---------set60secs
+---beforeadd 52 86
+---afteradd 53 26
+before loop 3 1:09:45
+before loop 6 1:09:45
+after loop 6 1:09:45 
+_____new6 1 9 45
+new6 1 9 45
+---------set60secs
+---beforeadd 52 101
+---afteradd 53 41
+before loop 3 1:10:00
+before loop 6 1:10:00
+after loop 6 1:10:00 
+_____new6 1 10 0
+new6 1 10 0
+before loop 3 1:10:15
+before loop 6 1:10:15
+after loop 6 1:10:15 
+_____new6 1 10 15
+new6 1 10 15
+---------set60secs
+---beforeadd 53 71
+---afteradd 54 11
+before loop 3 1:10:30
+before loop 6 1:10:30
+after loop 6 1:10:30 
+_____new6 1 10 30
+new6 1 10 30
+---------set60secs
+---beforeadd 53 86
+---afteradd 54 26
+before loop 3 1:10:45
+before loop 6 1:10:45
+after loop 6 1:10:45 
+_____new6 1 10 45
+new6 1 10 45
+---------set60secs
+---beforeadd 53 101
+---afteradd 54 41
+before loop 3 1:11:00
+before loop 6 1:11:00
+after loop 6 1:11:00 
+_____new6 1 11 0
+new6 1 11 0
+before loop 3 1:11:15
+before loop 6 1:11:15
+after loop 6 1:11:15 
+_____new6 1 11 15
+new6 1 11 15
+---------set60secs
+---beforeadd 54 71
+---afteradd 55 11
+before loop 3 1:11:30
+before loop 6 1:11:30
+after loop 6 1:11:30 
+_____new6 1 11 30
+new6 1 11 30
+---------set60secs
+---beforeadd 54 86
+---afteradd 55 26
+before loop 3 1:11:45
+before loop 6 1:11:45
+after loop 6 1:11:45 
+_____new6 1 11 45
+new6 1 11 45
+---------set60secs
+---beforeadd 54 101
+---afteradd 55 41
+before loop 3 1:12:00
+before loop 6 1:12:00
+after loop 6 1:12:00 
+_____new6 1 12 0
+new6 1 12 0
+before loop 3 1:12:15
+before loop 6 1:12:15
+after loop 6 1:12:15 
+_____new6 1 12 15
+new6 1 12 15
+---------set60secs
+---beforeadd 55 71
+---afteradd 56 11
+before loop 3 1:12:30
+before loop 6 1:12:30
+after loop 6 1:12:30 
+_____new6 1 12 30
+new6 1 12 30
+---------set60secs
+---beforeadd 55 86
+---afteradd 56 26
+before loop 3 1:12:45
+before loop 6 1:12:45
+after loop 6 1:12:45 
+_____new6 1 12 45
+new6 1 12 45
+---------set60secs
+---beforeadd 55 101
+---afteradd 56 41
+before loop 3 1:13:00
+before loop 6 1:13:00
+after loop 6 1:13:00 
+_____new6 1 13 0
+new6 1 13 0
+before loop 3 1:13:15
+before loop 6 1:13:15
+after loop 6 1:13:15 
+_____new6 1 13 15
+new6 1 13 15
+---------set60secs
+---beforeadd 56 71
+---afteradd 57 11
+before loop 3 1:13:30
+before loop 6 1:13:30
+after loop 6 1:13:30 
+_____new6 1 13 30
+new6 1 13 30
+---------set60secs
+---beforeadd 56 86
+---afteradd 57 26
+before loop 3 1:13:45
+before loop 6 1:13:45
+after loop 6 1:13:45 
+_____new6 1 13 45
+new6 1 13 45
+---------set60secs
+---beforeadd 56 101
+---afteradd 57 41
+before loop 3 1:14:00
+before loop 6 1:14:00
+after loop 6 1:14:00 
+_____new6 1 14 0
+new6 1 14 0
+before loop 3 1:14:15
+before loop 6 1:14:15
+after loop 6 1:14:15 
+_____new6 1 14 15
+new6 1 14 15
+---------set60secs
+---beforeadd 57 72
+---afteradd 58 12
+before loop 3 1:14:30
+before loop 6 1:14:30
+after loop 6 1:14:30 
+_____new6 1 14 30
+new6 1 14 30
+---------set60secs
+---beforeadd 57 87
+---afteradd 58 27
+before loop 3 1:14:45
+before loop 6 1:14:45
+after loop 6 1:14:45 
+_____new6 1 14 45
+new6 1 14 45
+---------set60secs
+---beforeadd 57 102
+---afteradd 58 42
+before loop 3 1:15:00
+before loop 6 1:15:00
+after loop 6 1:15:00 
+_____new6 1 15 0
+new6 1 15 0
+before loop 3 1:15:15
+before loop 6 1:15:15
+after loop 6 1:15:15 
+_____new6 1 15 15
+new6 1 15 15
+---------set60secs
+---beforeadd 58 72
+---afteradd 59 12
+before loop 3 1:15:30
+before loop 6 1:15:30
+after loop 6 1:15:30 
+_____new6 1 15 30
+new6 1 15 30
+---------set60secs
+---beforeadd 58 87
+---afteradd 59 27
+before loop 3 1:15:45
+before loop 6 1:15:45
+after loop 6 1:15:45 
+_____new6 1 15 45
+new6 1 15 45
+---------set60secs
+---beforeadd 58 102
+---afteradd 59 42
+before loop 3 1:16:00
+before loop 6 1:16:00
+after loop 6 1:16:00 
+_____new6 1 16 0
+new6 1 16 0
+before loop 3 1:16:15
+before loop 6 1:16:15
+after loop 6 1:16:15 
+_____new6 1 16 15
+new6 1 16 15
+---------set60secs
+---beforeadd 59 72
+---afteradd 60 12
+---------set60mins
+---beforeadd 1 60 12
+---afteradd 2 0 12
+before loop 3 1:16:30
+before loop 6 1:16:30
+after loop 6 1:16:30 
+_____new6 1 16 30
+new6 1 16 30
+---------set60secs
+---beforeadd 59 87
+---afteradd 60 27
+---------set60mins
+---beforeadd 1 60 27
+---afteradd 2 0 27
+before loop 3 1:16:45
+before loop 6 1:16:45
+after loop 6 1:16:45 
+_____new6 1 16 45
+new6 1 16 45
+---------set60secs
+---beforeadd 59 102
+---afteradd 60 42
+---------set60mins
+---beforeadd 1 60 42
+---afteradd 2 0 42
+before loop 3 1:17:00
+before loop 6 1:17:00
+after loop 6 1:17:00 
+_____new6 1 17 0
+new6 1 17 0
+---------set60mins
+---beforeadd 1 60 57
+---afteradd 2 0 57
+before loop 3 1:17:15
+before loop 6 1:17:15
+after loop 6 1:17:15 
+_____new6 1 17 15
+new6 1 17 15
+---------set60secs
+---beforeadd 60 72
+---afteradd 61 12
+---------set60mins
+---beforeadd 1 61 12
+---afteradd 2 1 12
+before loop 3 1:17:30
+before loop 6 1:17:30
+after loop 6 1:17:30 
+_____new6 1 17 30
+new6 1 17 30
+---------set60secs
+---beforeadd 60 87
+---afteradd 61 27
+---------set60mins
+---beforeadd 1 61 27
+---afteradd 2 1 27
+before loop 3 1:17:45
+before loop 6 1:17:45
+after loop 6 1:17:45 
+_____new6 1 17 45
+new6 1 17 45
+---------set60secs
+---beforeadd 60 102
+---afteradd 61 42
+---------set60mins
+---beforeadd 1 61 42
+---afteradd 2 1 42
+before loop 3 1:18:00
+before loop 6 1:18:00
+after loop 6 1:18:00 
+_____new6 1 18 0
+new6 1 18 0
+---------set60mins
+---beforeadd 1 61 57
+---afteradd 2 1 57
+before loop 3 1:18:15
+before loop 6 1:18:15
+after loop 6 1:18:15 
+_____new6 1 18 15
+new6 1 18 15
+---------set60secs
+---beforeadd 61 72
+---afteradd 62 12
+---------set60mins
+---beforeadd 1 62 12
+---afteradd 2 2 12
+before loop 3 1:18:30
+before loop 6 1:18:30
+after loop 6 1:18:30 
+_____new6 1 18 30
+new6 1 18 30
+---------set60secs
+---beforeadd 61 87
+---afteradd 62 27
+---------set60mins
+---beforeadd 1 62 27
+---afteradd 2 2 27
+before loop 3 1:18:45
+before loop 6 1:18:45
+after loop 6 1:18:45 
+_____new6 1 18 45
+new6 1 18 45
+---------set60secs
+---beforeadd 61 102
+---afteradd 62 42
+---------set60mins
+---beforeadd 1 62 42
+---afteradd 2 2 42
+before loop 3 1:19:00
+before loop 6 1:19:00
+after loop 6 1:19:00 
+_____new6 1 19 0
+new6 1 19 0
+---------set60mins
+---beforeadd 1 62 57
+---afteradd 2 2 57
+before loop 3 1:19:15
+before loop 6 1:19:15
+after loop 6 1:19:15 
+_____new6 1 19 15
+new6 1 19 15
+---------set60secs
+---beforeadd 62 72
+---afteradd 63 12
+---------set60mins
+---beforeadd 1 63 12
+---afteradd 2 3 12
+before loop 3 1:19:30
+before loop 6 1:19:30
+after loop 6 1:19:30 
+_____new6 1 19 30
+new6 1 19 30
+---------set60secs
+---beforeadd 62 87
+---afteradd 63 27
+---------set60mins
+---beforeadd 1 63 27
+---afteradd 2 3 27
+before loop 3 1:19:45
+before loop 6 1:19:45
+after loop 6 1:19:45 
+_____new6 1 19 45
+new6 1 19 45
+---------set60secs
+---beforeadd 62 102
+---afteradd 63 42
+---------set60mins
+---beforeadd 1 63 42
+---afteradd 2 3 42
+before loop 3 1:20:00
+before loop 6 1:20:00
+after loop 6 1:20:00 
+_____new6 1 20 0
+new6 1 20 0
+---------set60mins
+---beforeadd 1 63 57
+---afteradd 2 3 57
+before loop 3 1:20:15
+before loop 6 1:20:15
+after loop 6 1:20:15 
+_____new6 1 20 15
+new6 1 20 15
+---------set60secs
+---beforeadd 63 72
+---afteradd 64 12
+---------set60mins
+---beforeadd 1 64 12
+---afteradd 2 4 12
+before loop 3 1:20:30
+before loop 6 1:20:30
+after loop 6 1:20:30 
+_____new6 1 20 30
+new6 1 20 30
+---------set60secs
+---beforeadd 63 87
+---afteradd 64 27
+---------set60mins
+---beforeadd 1 64 27
+---afteradd 2 4 27
+before loop 3 1:20:45
+before loop 6 1:20:45
+after loop 6 1:20:45 
+_____new6 1 20 45
+new6 1 20 45
+---------set60secs
+---beforeadd 63 102
+---afteradd 64 42
+---------set60mins
+---beforeadd 1 64 42
+---afteradd 2 4 42
+before loop 3 1:21:00
+before loop 6 1:21:00
+after loop 6 1:21:00 
+_____new6 1 21 0
+new6 1 21 0
+---------set60mins
+---beforeadd 1 64 57
+---afteradd 2 4 57
+before loop 3 1:21:15
+before loop 6 1:21:15
+after loop 6 1:21:15 
+_____new6 1 21 15
+new6 1 21 15
+---------set60secs
+---beforeadd 64 72
+---afteradd 65 12
+---------set60mins
+---beforeadd 1 65 12
+---afteradd 2 5 12
+before loop 3 1:21:30
+before loop 6 1:21:30
+after loop 6 1:21:30 
+_____new6 1 21 30
+new6 1 21 30
+---------set60secs
+---beforeadd 64 87
+---afteradd 65 27
+---------set60mins
+---beforeadd 1 65 27
+---afteradd 2 5 27
+before loop 3 1:21:45
+before loop 6 1:21:45
+after loop 6 1:21:45 
+_____new6 1 21 45
+new6 1 21 45
+---------set60secs
+---beforeadd 64 102
+---afteradd 65 42
+---------set60mins
+---beforeadd 1 65 42
+---afteradd 2 5 42
+before loop 3 1:22:00
+before loop 6 1:22:00
+after loop 6 1:22:00 
+_____new6 1 22 0
+new6 1 22 0
+---------set60mins
+---beforeadd 1 65 57
+---afteradd 2 5 57
+before loop 3 1:22:15
+before loop 6 1:22:15
+after loop 6 1:22:15 
+_____new6 1 22 15
+new6 1 22 15
+---------set60secs
+---beforeadd 65 72
+---afteradd 66 12
+---------set60mins
+---beforeadd 1 66 12
+---afteradd 2 6 12
+before loop 3 1:22:30
+before loop 6 1:22:30
+after loop 6 1:22:30 
+_____new6 1 22 30
+new6 1 22 30
+---------set60secs
+---beforeadd 65 87
+---afteradd 66 27
+---------set60mins
+---beforeadd 1 66 27
+---afteradd 2 6 27
+before loop 3 1:22:45
+before loop 6 1:22:45
+after loop 6 1:22:45 
+_____new6 1 22 45
+new6 1 22 45
+---------set60secs
+---beforeadd 65 102
+---afteradd 66 42
+---------set60mins
+---beforeadd 1 66 42
+---afteradd 2 6 42
+before loop 3 1:23:00
+before loop 6 1:23:00
+after loop 6 1:23:00 
+_____new6 1 23 0
+new6 1 23 0
+---------set60mins
+---beforeadd 1 66 57
+---afteradd 2 6 57
+before loop 3 1:23:15
+before loop 6 1:23:15
+after loop 6 1:23:15 
+_____new6 1 23 15
+new6 1 23 15
+---------set60secs
+---beforeadd 66 72
+---afteradd 67 12
+---------set60mins
+---beforeadd 1 67 12
+---afteradd 2 7 12
+before loop 3 1:23:30
+before loop 6 1:23:30
+after loop 6 1:23:30 
+_____new6 1 23 30
+new6 1 23 30
+---------set60secs
+---beforeadd 66 87
+---afteradd 67 27
+---------set60mins
+---beforeadd 1 67 27
+---afteradd 2 7 27
+before loop 3 1:23:45
+before loop 6 1:23:45
+after loop 6 1:23:45 
+_____new6 1 23 45
+new6 1 23 45
+---------set60secs
+---beforeadd 66 102
+---afteradd 67 42
+---------set60mins
+---beforeadd 1 67 42
+---afteradd 2 7 42
+before loop 3 1:24:00
+before loop 6 1:24:00
+after loop 6 1:24:00 
+_____new6 1 24 0
+new6 1 24 0
+---------set60mins
+---beforeadd 1 67 57
+---afteradd 2 7 57
+before loop 3 1:24:15
+before loop 6 1:24:15
+after loop 6 1:24:15 
+_____new6 1 24 15
+new6 1 24 15
+---------set60secs
+---beforeadd 67 72
+---afteradd 68 12
+---------set60mins
+---beforeadd 1 68 12
+---afteradd 2 8 12
+before loop 3 1:24:30
+before loop 6 1:24:30
+after loop 6 1:24:30 
+_____new6 1 24 30
+new6 1 24 30
+---------set60secs
+---beforeadd 67 87
+---afteradd 68 27
+---------set60mins
+---beforeadd 1 68 27
+---afteradd 2 8 27
+before loop 3 1:24:45
+before loop 6 1:24:45
+after loop 6 1:24:45 
+_____new6 1 24 45
+new6 1 24 45
+---------set60secs
+---beforeadd 67 102
+---afteradd 68 42
+---------set60mins
+---beforeadd 1 68 42
+---afteradd 2 8 42
+before loop 3 1:25:00
+before loop 6 1:25:00
+after loop 6 1:25:00 
+_____new6 1 25 0
+new6 1 25 0
+---------set60mins
+---beforeadd 1 68 57
+---afteradd 2 8 57
+before loop 3 1:25:15
+before loop 6 1:25:15
+after loop 6 1:25:15 
+_____new6 1 25 15
+new6 1 25 15
+---------set60secs
+---beforeadd 68 72
+---afteradd 69 12
+---------set60mins
+---beforeadd 1 69 12
+---afteradd 2 9 12
+before loop 3 1:25:30
+before loop 6 1:25:30
+after loop 6 1:25:30 
+_____new6 1 25 30
+new6 1 25 30
+---------set60secs
+---beforeadd 68 87
+---afteradd 69 27
+---------set60mins
+---beforeadd 1 69 27
+---afteradd 2 9 27
+before loop 3 1:25:45
+before loop 6 1:25:45
+after loop 6 1:25:45 
+_____new6 1 25 45
+new6 1 25 45
+---------set60secs
+---beforeadd 68 102
+---afteradd 69 42
+---------set60mins
+---beforeadd 1 69 42
+---afteradd 2 9 42
