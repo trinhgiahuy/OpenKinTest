@@ -4,7 +4,7 @@ REM (
 for /f "usebackq tokens=1 delims=, skip=8" %%i in (D:\a.csv) do (
 ::setlocal enabledelayedexpansion
 call :PROCESS %%i
-)
+)>> a.log
 REM )
 pause
 ::endlocal
@@ -35,10 +35,10 @@ if %result%==3 (
 echo after loop 3 !tmp_data!
 REM call :ECHO3 %tmp_data%
 ::echo %result% loop result = 3
-set /A tmp_mins=1!tmp_data:~0,2! - 100
-set /A tmp_secs=1!tmp_data:~3,2! - 100
+set /A tmp_mins = 1!tmp_data:~0,2! - 100
+set /A tmp_secs = !tmp_data:~3,2!
 ::echo !tmp_mins! !tmp_secs! 
-set new_hours=!clk_hour!
+set new_hours = !clk_hour!
 REM if !tmp_mins!==08 (
 REM echo 08
 REM set tmp_mins=8
@@ -48,8 +48,8 @@ REM if !tmp_mins!==09 (
 REM echo 09
 REM set tmp_mins=9
 REM )
-set /A new_mins=!clk_mins! + !tmp_mins!
-set /A new_secs=!clk_secs! + !tmp_secs!
+set /A new_mins = !clk_mins! + !tmp_mins!
+set /A new_secs = !clk_secs! + !tmp_secs!
 
 echo new3 !new_hours! !new_mins! !new_secs! 
 )
@@ -58,24 +58,32 @@ if %result%==6 (
 echo after loop 6 !tmp_data! 
 ::echo %result% loop result = 6
 set tmp_hours=!tmp_data:~0,1!
-set tmp_mins=1!tmp_data:~2,2! - 100
-set tmp_secs=!tmp_data:~5,2!
-
-set /A new_hours=!clk_hour! + !tmp_hour!
-set /A new_mins=!clk_mins! + !tmp_mins!
-set /A new_secs=!clk_secs! + !tmp_secs!
-
+set /A tmp_mins=1!tmp_data:~2,2!-100
+set /A tmp_secs=1!tmp_data:~5,2!-100
+echo _____new6 !tmp_hours! !tmp_mins! !tmp_secs!
+set /A new_hours=!clk_hour!+!tmp_hours!
+set /A new_mins=!clk_mins!+!tmp_mins!
+set /A new_secs=!clk_secs!+!tmp_secs!
 echo new6 !tmp_hours! !tmp_mins! !tmp_secs!
 )
 
 ::Check if secs and hours are larger than 60
 if !new_secs! geq 60 (
-echo ---------set60
+echo ---------set60secs
 echo ---beforeadd !new_mins! !new_secs!
-set /A new_mins=!new_mins!+1
-set /A new_secs=!new_secs!-60
+set /A new_mins = !new_mins! + 1
+set /A new_secs = !new_secs! - 60
 echo ---afteradd !new_mins! !new_secs!
 )
+
+if !new_mins! geq 60 (
+echo ---------set60mins
+echo ---beforeadd !new_hours! !new_mins! !new_secs!
+set /A new_hours = !new_hours!+1
+set /A new_mins = !new_mins!-60
+echo ---afteradd !new_hours! !new_mins! !new_secs!
+)
+
 
 REM :ECHO3
 REM ::echo callecho3 %1
@@ -87,7 +95,7 @@ REM echo echo3 %tmp_mins% %tmp_secs%
 REM :ECHO6
 REM echo 6 %tmp_hours% %tmp_mins% %tmp_secs%
 
-::set tmp_hour=%tmp:
+::set tmp_hours=%tmp:
 ::echo %clk_hour%
 ::echo %clk_mins%
 ::echo %clk_secs%
