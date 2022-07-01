@@ -41,5 +41,7 @@ But it still remains mysterious to me why cuDNN sometimes would fail to initiali
 
 [TensorFlow 1.x Bug](https://github.com/tensorflow/tensorflow/issues/24828)
 
+[keras LSTM Fail to find the dnn implementation #36508](https://github.com/tensorflow/tensorflow/issues/36508)
+
 [TensorFlow 2.x - Limiting GPU Memory Growth](https://www.tensorflow.org/guide/gpu#limiting_gpu_memory_growth)
 
