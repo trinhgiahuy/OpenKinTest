@@ -1,3 +1,4 @@
+## NORE: SUBJECT 2 HERE MEANS SUBJECT 3
 Some important link
 
 [Normalize columns of pandas data frame](https://stackoverflow.com/questions/26414913/normalize-columns-of-pandas-data-frame)
