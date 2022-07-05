@@ -1,4 +1,16 @@
 ## NORE: SUBJECT 2 HERE MEANS SUBJECT 3
+
+
+### EvaluateTable
+
+| ModelName               								    | Pred1					    			  |Pred2					    			  
+|-------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
+|Best_nha_bao_model_bidir.h5			                    |                               |0.3535                                                                |
+|ModelTrained-12									        |0.                 			||
+|ModelTrained-121                                           |                               |0.2020|
+
+
+
 Some important link
 
 [Normalize columns of pandas data frame](https://stackoverflow.com/questions/26414913/normalize-columns-of-pandas-data-frame)
