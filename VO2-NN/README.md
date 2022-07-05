@@ -3,11 +3,11 @@
 
 ### EvaluateTable
 
-| ModelName               								    | Pred1					    			  |Pred2					    			  
+| ModelName               								    | Pred1					    	|Pred2	                                                			   | 
 |-------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
 |Best_nha_bao_model_bidir.h5			                    |                               |0.3535                                                                |
-|ModelTrained-12									        |0.                 			||
-|ModelTrained-121                                           |                               |0.2020|
+|ModelTrained-12									        |0.                 			|                                                                      |
+|ModelTrained-121                                           |                               |0.2020                                                                |
 
 
 
