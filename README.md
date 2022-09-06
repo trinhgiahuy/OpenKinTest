@@ -1,5 +1,11 @@
 
 # Usage
+
+## Matlab instruction
+
+- In matlab folder, create folder name for example `O1_out`
+- At the begging `newCellArrayParser_velseg_plotting`, change subjectID and run the file
+
 This section describes the basic usage of the device
 
 ## Connecting the devices
