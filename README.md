@@ -1,7 +1,8 @@
-
 # Usage
 
 ## Matlab instruction
+
+Test repo for matab: D:\(...BackupDdrive)\(..RA)\....PAVEL\MATLAB-APP\test
 
 - In matlab folder, create folder name for example `O1_out`
 - At the begging `newCellArrayParser_velseg_plotting`, change subjectID and run the file
