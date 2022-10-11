@@ -5,7 +5,7 @@
 Test repo for matab: `D:\(...BackupDdrive)\(..RA)\....PAVEL\MATLAB-APP\test`
 
 - In matlab folder, create folder name ${subjectID}_out, for example `O1_out`
-- The directory should includes these files:
+- The directory should include these files:
   * 2022-XX-XX-XX-XX-XX_s.txt (**sliced** ID's gaitpod file)
   * OXYGAX_marker_XXXX_s.txt(**sliced** ID'oxygen file)
   * `run.m` executable file run the everything
@@ -15,7 +15,7 @@ Test repo for matab: `D:\(...BackupDdrive)\(..RA)\....PAVEL\MATLAB-APP\test`
   * `trainingPartitions.m`
   
 - At the begging `run.mat`, change subjectID and change `sortedInputFeatures` to true if want output input features in ordet (false by default) and run the file
--It will produce input feature file
+- After about 5 mins it will produce input feature file
 
 
 This section describes the basic usage of the device
