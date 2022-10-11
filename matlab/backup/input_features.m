@@ -1,10 +1,4 @@
 function [] = input_features(subjectId,sorted)
-% Multiple features
-% Start from the step 
-%clear inputFeatures
-%clear oxygen
-%clear targetFeatures
-
 oxygen = csvread(['O',num2str(subjectId),'_output_smooth.csv']);
 load (['velSeg_O',num2str(subjectId),'_out.mat']);
 step0 = 50;
@@ -14,9 +8,6 @@ numTimeSteps = 50;
 inputFeatures = cell(1,examples);
 targetFeatures = zeros(1,examples,1);
 
-%example 1598
-%numTimeSteps 100
-%k:1-1498
 for k=1:(examples-numTimeSteps)
       
    time(k) = steps(k)/400;
@@ -32,13 +23,15 @@ for k=1:(examples-numTimeSteps)
   
 end
 
-%length(inputFeatures(1,:))
-
 [idxTrain,idxTest] = trainingPartitions(examples-numTimeSteps,[0.8 0.2]);
 
 if sorted
     idxTrain=sort(idxTrain);
     idxTest=sort(idxTest);
+    sortPrefix = '_sorted';
+else
+    sortPrefix = '';
+end
 
 XTrain = inputFeatures(idxTrain);
 %XValidation = inputFeatures(idxValidation);
@@ -49,7 +42,6 @@ TTrain = targetFeatures(idxTrain);
 %TValidation = targetFeatures(idxValidation);
 TTest = targetFeatures(idxTest);
 
-%fileName=['inputFeaturesss',num2str(subjectId),'_sort'];
-%save(fileName,'XTrain','XTest','TTrain','TTest')
-save inputFeatures3_NOOsort.mat XTrain XTest TTrain TTest
+fileName=['inputFeatures',num2str(subjectId),sortPrefix];
+save(fileName,'XTrain','XTest','TTrain','TTest')
 end
