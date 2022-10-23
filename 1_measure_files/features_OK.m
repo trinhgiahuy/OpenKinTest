@@ -6,7 +6,7 @@ function [] = features_OK(data,subjectId)
 %t0=200000;
 t0=1;
 tend=max(size(data));
-rad2deg=180/pi;
+%rad2deg=180/pi;
 %tend=250000;
 %fsmgaitv2.m
 for k=t0:tend
@@ -14,6 +14,8 @@ for k=t0:tend
     V_n(k)=data(k).gps.v_n;
     V_e(k)=data(k).gps.v_e;
     V_d(k)=data(k).gps.v_d;
+    % IMU horizontal speed
+    V_lon(k) = sqrt(V_n(k)^2 + V_e(k)^2);
 
 %     V_gps_n(k)=data(k).gps.raw_v_n;
 %     V_gps_e(k)=data(k).gps.raw_v_e;
@@ -25,14 +27,14 @@ for k=t0:tend
 %     wy(k)=data(k).imu.ang_vel(2); % rad/sec
 %     wz(k)=data(k).imu.ang_vel(3); % rad/sec
 
-    q0(k)=data(k).imu.quat(1);
-    q1(k)=data(k).imu.quat(2);
-    q2(k)=data(k).imu.quat(3);
-    q3(k)=data(k).imu.quat(4);
+    %q0(k)=data(k).imu.quat(1);
+    %q1(k)=data(k).imu.quat(2);
+    %q2(k)=data(k).imu.quat(3);
+    %q3(k)=data(k).imu.quat(4);
 
-    acc_n(k)=data(k).imu.acc(1);
-    acc_e(k)=data(k).imu.acc(2);
-    acc_d(k)=data(k).imu.acc(3);
+    %acc_n(k)=data(k).imu.acc(1);
+    %acc_e(k)=data(k).imu.acc(2);
+    %acc_d(k)=data(k).imu.acc(3);
 
 %     delVx(k) = data(k).d.vel(1);
 %     delVy(k) = data(k).d.vel(2);
@@ -42,32 +44,36 @@ for k=t0:tend
 %     delTz(k) = data(k).d.theta(3);
 
     % Ground track
-    GrndTrack(k)=rad2deg*atan2(V_e(k),V_n(k));
+    %GrndTrack(k)=rad2deg*atan2(V_e(k),V_n(k));
     % Lateral velocity constraint V_y = 0 (straight line running?)
-    V_lat(k) = V_e(k)*cosd(GrndTrack(k)) - V_n(k)*sind(GrndTrack(k));
-    % IMU horizontal speed
-    V_lon(k) = sqrt(V_n(k)^2 + V_e(k)^2);
+    %V_lat(k) = V_e(k)*cosd(GrndTrack(k)) - V_n(k)*sind(GrndTrack(k));
+    
+
     % GPS horizontal speed
     %V_gps_lon(k) = sqrt(V_gps_n(k)^2 + V_gps_e(k)^2);
+    
     % Longitudinal acceleration
-    A_lon(k) = sqrt(acc_n(k)^2 + acc_e(k)^2);
+    %A_lon(k) = sqrt(acc_n(k)^2 + acc_e(k)^2);
     % Euler angle computation
     %dcm_xsens = quat2dcm( [q0(k) q1(k) q2(k) q3(k)] );
-    [yaw(k) pitch(k) roll(k)] = quat2angle( [q3(k) q0(k) q1(k) q2(k)] );
+    %[yaw(k) pitch(k) roll(k)] = quat2angle( [q3(k) q0(k) q1(k) q2(k)] );
 %     [yaw(k) pitch(k) roll(k)] = quat2angle( [q0(k) q1(k) q2(k) q3(k)] );
     %V_ref(k,:)= data(k).d.vel;
 end
 
 subjOutputDir=['O',num2str(subjectId),'_out\'];
-save([subjOutputDir,'acc.mat'], 'acc_n', 'acc_e','acc_d','A_lon');
-save([subjOutputDir,'vel_imu.mat'], 'V_n', 'V_e','V_d','V_lon','V_lat','GrndTrack');
-save([subjOutputDir,'euler.mat'], 'yaw', 'pitch', 'roll');
+
+save([subjOutputDir,'vel_imu.mat'],'V_d','V_lon');
+
+%%save([subjOutputDir,'euler.mat'], 'yaw', 'pitch', 'roll');
+%%save([subjOutputDir,'acc.mat'], 'acc_n', 'acc_e','acc_d','A_lon');
+
+% Necessary: V_d, V_lon
+
 % save('ang_vel.mat', 'wx', 'wy', 'wz')
 % save('quat.mat', 'q0', 'q1', 'q2','q3')
 % save('delV.mat', 'delVx', 'delVy', 'delVz') 
 % save('delT.mat', 'delTx', 'delTy', 'delTz') 
-
-
 
 % figure(1)
 % plot(t0:tend,A_lon(t0:tend))
