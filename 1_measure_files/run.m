@@ -1,7 +1,7 @@
 clear
 %% Create database files' name
 subjectId=3;
-sortedInputFeatures=true
+sortedInputFeatures=false
 
 %% Insert more files here into database
 db_oxy = containers.Map({'1','2','3','4','5','7','8'}, ...
@@ -67,11 +67,11 @@ fig=figure('Name','Velocity','NumberTitle','off','units','normalized','outerposi
 % Smooth before sampling
 %V_lon=smoothdata(V_lon,'movmean',8000);
 
-N=length(V_lon);
+N = length(V_lon);
 idx=(1:2000:N);
 
 %b_match=meanSampling(V_lon,idx);
-b_match=zeros(size(idx));
+b_match = zeros(size(idx));
 for i=1:length(idx)-1
     b_match(i)=mean(V_lon(idx(i):idx(i+1)-1));
 end
@@ -152,17 +152,20 @@ csvwrite(['O',oxygenID(6),'_output_smooth.csv'],VO2_in_sgolay(1,:).');
 % Walking/running data processing
 data = cell_array_parser_vn200(fileID,'vn200');
 
-% This functino will create acceleration, velocity_imu and Euler mat files
+% This function will create acceleration, velocity_imu and Euler mat files
 disp('Call features_OK()...');
 features_OK(data,subjectId);
+disp('Finish features_OK()')
 
 % This function will load following files acc.mat, vel_imu.mat, euler.mat
 % and calculate input's features for ML model: 
 % speed, speedChange, stepDuration, vertOscillation_dis_amp with oxygen
 disp('Call velSeg()...');
 velSeg(subjectId);
+disp('Finish velSeg()')
 
 % This function will use those input's feature and creating
 % training/testing set for ML model
 disp('Call input_features()...');
 input_features(subjectId,sortedInputFeatures);
+disp('Finish everything! Please find the input features file in same directory')
