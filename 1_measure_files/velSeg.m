@@ -1,21 +1,18 @@
 function [] = velSeg(subjectId)
 fileDir=['O',num2str(subjectId),'_out\'];
 load([fileDir,'vel_imu.mat'])
-%load([fileDir,'acc.mat'])
-%load([fileDir,'euler.mat'])
+
 oxyFile=['O',num2str(subjectId),'_output_smooth.csv'];
-%path_motion = "C:\Users\pavel\Desktop\OpenKin DNN implementation\Oxygen prediction LSTM\dataO2_O8\Params_O2-O8\O2-out"
-%path_oxygen = "C:\Users\pavel\Desktop\OpenKin DNN implementation\Oxygen prediction LSTM\dataO2_O8\VO2_O2-O8"
-%oxygen=csvread('O1-out\O1_output.csv')
+
 oxygen=csvread(oxyFile);
 
-%%
+
 windowStart = 1;
 windowEnd = length(V_d);
 
 Fs = 400;
 vertVel = V_d(1, windowStart:windowEnd);
-%%
+
 vertVel_d = detrend(vertVel);
 maxV = max(vertVel_d);
 thresh = 0.05 * maxV;
@@ -46,9 +43,7 @@ while (true)
         break;
     end
 end
-%%
-%%yaw = detrend(yaw(1, windowStart + front:windowEnd - back));
-%%pitch = pitch(1, windowStart + front:windowEnd - back);
+
 v_lon = V_lon(1, windowStart + front:windowEnd - back);
 v_d = V_d(1, windowStart + front:windowEnd - back);
 
