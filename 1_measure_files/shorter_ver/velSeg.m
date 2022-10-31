@@ -67,7 +67,7 @@ end
 %length(steps);
 
 stepCount = length(steps) - 1;
-disp("Step count:");
+%disp("Step count:");
 %%disp(stepCount)
 %%
 stepDuration = [];

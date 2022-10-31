@@ -169,11 +169,10 @@ disp('Call input_features()...');
 input_features(subjectId,sortedInputFeatures);
 disp('Finish everything! Please find the input features file in same directory')
 pause(15);
-disp("front:windowEnd")
-disp(windowEnd_r);
+%% Why cannot display windowEnd_r??
+%%disp("front:windowEnd")
+%%disp(windowEnd_r);
 disp("Back:")
 disp(back_r)
 disp("Step count:");
 disp(stepCount);
-disp("front:windowEnd")
-disp(windowEnd_r);
