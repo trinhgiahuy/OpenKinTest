@@ -6,5 +6,9 @@ Validate normal `inputFeatures9_sorted.mat` train 850 epochs, validation_split=0
 
 ![image](https://user-images.githubusercontent.com/65078173/202299124-a9bbe296-4968-4991-8312-ad09baf0c4a9.png)
 
-With `inputFeatures9_sorted_99.mat`
+## With `inputFeatures9_sorted_99.mat`
 ![image](https://user-images.githubusercontent.com/65078173/202307069-39a866a8-5020-4df0-9e01-ddc4371a9541.png)
+
+### Decrease learning rate to 0.01 and 500 epochs
+
+![image](https://user-images.githubusercontent.com/65078173/202309329-544cea07-3473-4e21-a979-1e79de274638.png)
