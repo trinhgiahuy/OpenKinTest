@@ -1,3 +1,9 @@
+## Useful link
+
+[Diagnose udner/over fit in LSTM](https://machinelearningmastery.com/diagnose-overfitting-underfitting-lstm-models/)
+
+[Understand impact of learning rate](https://machinelearningmastery.com/understand-the-dynamics-of-learning-rate-on-deep-learning-neural-networks/)
+
 ## This repo contains all neccessary files for measurement day
 
 Validate normal `inputFeatures9_sorted.mat` train 850 epochs, validation_split=0.33
