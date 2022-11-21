@@ -1,4 +1,7 @@
+**Note**: For subject `15`, we do not slice HR index according to oxygen resampling length
+
 ## In this version the HR is linearized using linear interpolate built-in Matlab function call `interp1`. 
+
 But it was resampling with 400Hz rate. 
 
 The plot when it plot together with **V_lon** would be
