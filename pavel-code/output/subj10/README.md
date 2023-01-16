@@ -39,4 +39,91 @@ options =
          ResetInputNormalization: 1
     BatchNormalizationStatistics: 'population'
                    OutputNetwork: 'last-iteration'
+                   
+ layers = 
+
+  4×1 Layer array with layers:
+
+     1   ''   Sequence Input      Sequence input with 4 dimensions
+     2   ''   LSTM                LSTM with 150 hidden units
+     3   ''   Fully Connected     1 fully connected layer
+     4   ''   Regression Output   mean-squared-error
+ >> layers(1)
+
+ans = 
+
+  SequenceInputLayer with properties:
+
+                      Name: ''
+                 InputSize: 4
+                 MinLength: 1
+        SplitComplexInputs: 0
+
+   Hyperparameters
+             Normalization: 'rescale-symmetric'
+    NormalizationDimension: 'auto'
+                       Max: []
+                       Min: []
+
+>> layers(2)
+
+ans = 
+
+  LSTMLayer with properties:
+
+                       Name: ''
+                 InputNames: {'in'}
+                OutputNames: {'out'}
+                  NumInputs: 1
+                 NumOutputs: 1
+             HasStateInputs: 0
+            HasStateOutputs: 0
+
+   Hyperparameters
+                  InputSize: 'auto'
+             NumHiddenUnits: 150
+                 OutputMode: 'last'
+    StateActivationFunction: 'tanh'
+     GateActivationFunction: 'sigmoid'
+
+   Learnable Parameters
+               InputWeights: []
+           RecurrentWeights: []
+                       Bias: []
+
+   State Parameters
+                HiddenState: []
+                  CellState: []
+
+  Show all properties
+
+>> layers(3)
+
+ans = 
+
+  FullyConnectedLayer with properties:
+
+          Name: ''
+
+   Hyperparameters
+     InputSize: 'auto'
+    OutputSize: 1
+
+   Learnable Parameters
+       Weights: []
+          Bias: []
+
+  Show all properties
+
+>> layers(4)
+
+ans = 
+
+  RegressionOutputLayer with properties:
+
+             Name: ''
+    ResponseNames: {}
+
+   Hyperparameters
+     LossFunction: 'mean-squared-error'
 ```
