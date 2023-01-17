@@ -12,3 +12,9 @@ Speed only
 
 
 ![image](https://user-images.githubusercontent.com/65078173/212991482-b8cf380f-ca80-4df2-8ca7-e863ccf3f676.png)
+
+With HR
+
+![image](https://user-images.githubusercontent.com/65078173/213006225-7a64ed2b-8993-47c6-86e5-1eee4223e0cd.png)
+
+![image](https://user-images.githubusercontent.com/65078173/213006249-df50a243-dee8-4205-8cbb-1a9a22c9898b.png)
