@@ -1,9 +1,11 @@
 ## Subject 12
 
 ### Speed only
-![image](https://user-images.githubusercontent.com/65078173/213019457-27abacc5-aead-4a83-9c4a-a6dea7432bb6.png)
 
-![image](https://user-images.githubusercontent.com/65078173/213019493-e55f708c-aa0b-4824-a5d6-56b0f035cc56.png)
+![image](https://user-images.githubusercontent.com/65078173/213112393-5f0495ea-5943-424f-87e8-bc4f98dff4b8.png)
+
+![image](https://user-images.githubusercontent.com/65078173/213112414-7eeafc0a-cb2e-4919-81a3-6945b9936d57.png)
+
 
 
 ### With HR
