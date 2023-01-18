@@ -12,6 +12,12 @@
 
 ![image](https://user-images.githubusercontent.com/65078173/213145698-4aa1cc0b-1dcc-4bda-98b9-200401882748.png)
 
+### HR only
+
+![image](https://user-images.githubusercontent.com/65078173/213169838-c0b130d9-9e05-481a-86e6-cdbd2d5b3e6e.png)
+
+![image](https://user-images.githubusercontent.com/65078173/213170091-8daa5aa7-57fa-4c04-ab37-989b5a59f206.png)
+
 
 ### With HR
 
