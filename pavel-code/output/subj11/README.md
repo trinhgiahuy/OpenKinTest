@@ -1,5 +1,10 @@
 ## Subj 11
 
+### Speed only 
+
+![image](https://user-images.githubusercontent.com/65078173/213161786-6401fdf6-5ebd-45a5-b980-efafc10a7296.png)
+
+![image](https://user-images.githubusercontent.com/65078173/213161841-79b0005e-b6c7-4c3a-a9c2-b5d9de2a6802.png)
 
 ### With HR
 
