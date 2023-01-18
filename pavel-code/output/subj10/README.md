@@ -1,5 +1,12 @@
 ## Subject 10 8000 epochs
 
+### HR only
+
+![image](https://user-images.githubusercontent.com/65078173/213108991-5da99ff9-0213-4c5f-bd89-8fed22871a32.png)
+
+![image](https://user-images.githubusercontent.com/65078173/213109040-9586c2da-4536-40a9-852e-8aaf5cebde95.png)
+
+
 ```m
 >> options
 
