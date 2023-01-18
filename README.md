@@ -1,3 +1,16 @@
+## TC219 CPU info
+
+```
+Device name	HTC219-720-SPC
+Full device name	HTC219-720-SPC.ad.tuni.fi
+Processor	Intel(R) Core(TM) i7-6700 CPU @ 3.40GHz   3.41 GHz
+Installed RAM	32,0 GB
+Device ID	bbbf3aca-47cd-4ad8-9fd0-ad23414388c6
+Product ID	00329-00000-00003-AA689
+System type	64-bit operating system, x64-based processor
+Pen and touch	No pen or touch input is available for this display
+```
+
 # Usage
 
 ## Matlab instruction
