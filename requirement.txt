@@ -1,0 +1,8 @@
+dill
+torch
+torchvision
+numpy
+tqdm
+pandas
+requests
+gdown
