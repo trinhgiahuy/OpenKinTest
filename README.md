@@ -1,6 +1,6 @@
-# Paper: Surrogate Modelling for Oxygen Uptake Prediction Using LSTM Neural Network 
+## Paper: **Surrogate Modelling for Oxygen Uptake Prediction Using LSTM Neural Network**
 
-[mdpi](https://www.mdpi.com/1424-8220/23/4/2249)
+The article can be accessed through [mdpi](https://www.mdpi.com/1424-8220/23/4/2249)
 
 ## Source code for devices measuring in the campaign
 
