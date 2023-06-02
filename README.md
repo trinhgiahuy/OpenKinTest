@@ -2,6 +2,22 @@
 
 The article can be accessed through [mdpi](https://www.mdpi.com/1424-8220/23/4/2249)
 
+
+## Test command 
+
+```sh
+rosrun vectornav vn200_node _serial_port:=/dev/ttyAMA0 _target_baud:=460800 _binary_data_output_port:=2 _binary_ins_data_output_rate:=400
+gdb rosrun vectornav vn200_node _serial_port:=/dev/ttyAMA0 _target_baud:=460800 _binary_data_output_port:=2 _binary_ins_data_output_rate:=400
+rostopic echo /vectornav/imugps
+rostopic hz /vectornav/imugps
+rostopic info /vectornav/imugps
+ps aux
+sudo killall python
+sudo killall screen
+sudo killall tee
+rostopic echo --filter=m.header.seq%200==0 /vectornav/imugps
+
+```
 ## Source code for devices measuring in the campaign
 
 ## TC219 CPU info
